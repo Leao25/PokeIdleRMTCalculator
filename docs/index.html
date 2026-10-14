@@ -452,58 +452,65 @@ function estimate(f, kept, fimMin) {
 
 // ---------- gráfico ----------
 function grafico(f, kept, est, fimMin) {
-  const list = kept.filter((s) => norm(s.species) === norm(f.species)).sort((a, b) => a.min - b.min);
+  // Só o grupo da ficha (shiny ou comum): misturar os dois achata a escala, porque um shiny vale
+  // dezenas de vezes um comum da mesma espécie.
+  const list = kept.filter((s) => norm(s.species) === norm(f.species) && s.shiny === f.shiny).sort((a, b) => a.min - b.min);
+  const grupo = f.shiny ? "shiny" : "comuns";
   const box = $("grafico");
   if (list.length < 2) {
-    box.innerHTML = `<div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(f.species || "—")}</h2></div><p class="muted">Precisa de pelo menos 2 vendas desta espécie no período para desenhar.</p>`;
+    box.innerHTML = `<div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(f.species || "—")}</h2></div><p class="muted">Precisa de pelo menos 2 vendas ${f.shiny ? "shiny" : "comuns"} desta espécie no período para desenhar.</p>`;
     return;
   }
   const W = 680, H = 260, L = 64, R = 12, T = 12, B = 70, ch = H - T - B, bh = 34;
-  const ini = state.dias ? fimMin - state.dias * 1440 : list[0].min - 1440;
+  const ini = Math.max(state.dias ? fimMin - state.dias * 1440 : -Infinity, list[0].min - 360);
   const x = (m) => L + (m - ini) / Math.max(1, fimMin - ini) * (W - L - R);
-  const vals = list.map((s) => toShow(s.gem)).filter((v) => v > 0);
+  const val = (gem) => state.moeda === "gemas" ? gem : gem * state.rate;
+  const fmtEixo = (v) => state.moeda === "gemas" && v < 10 ? nf(v < 1 ? 2 : 1).format(v) : fmtVal(v);
+  const vals = list.map((s) => val(s.gem)).filter((v) => v > 0);
   let lo = Math.min(...vals), hi = Math.max(...vals);
-  if (Number.isFinite(est.p50) && est.items.length) { lo = Math.min(lo, toShow(est.p50)); hi = Math.max(hi, toShow(est.p50)); }
+  if (Number.isFinite(est.p50) && est.items.length) { lo = Math.min(lo, val(est.p50)); hi = Math.max(hi, val(est.p50)); }
   const llo = Math.log10(lo * 0.85), lhi = Math.log10(hi * 1.15);
   const y = (v) => T + ch - (Math.log10(v) - llo) / (lhi - llo) * ch;
   // marcas no eixo: 1, 2, 5 × potências de 10 dentro da faixa
   const ticks = [];
-  for (let e = Math.floor(llo); e <= Math.ceil(lhi); e++) for (const k of [1, 2, 5]) { const v = k * 10 ** e; if (Math.log10(v) >= llo && Math.log10(v) <= lhi) ticks.push(v); }
+  for (let e = Math.floor(llo); e <= Math.ceil(lhi); e++) for (const k of [1, 2, 5]) { const v = Number((k * 10 ** e).toPrecision(2)); if (Math.log10(v) >= llo && Math.log10(v) <= lhi) ticks.push(v); }
   const tick = ticks.length > 6 ? ticks.filter((v, i) => i % 2 === 0) : ticks;
-  // semanas
+  // baldes: um por dia quando o trecho tem até 3 semanas, um por semana quando é maior
+  const passo = (fimMin - ini) / 1440 <= 21 ? 1440 : 7 * 1440;
+  const porQue = passo === 1440 ? "dia" : "semana";
   const semanas = [];
-  for (let s = fimMin; s > ini; s -= 7 * 1440) semanas.unshift([Math.max(ini, s - 7 * 1440), s]);
+  for (let s = fimMin; s > ini; s -= passo) semanas.unshift([Math.max(ini, s - passo), s]);
   const porSemana = semanas.map(([a, b]) => list.filter((v) => v.min > a && v.min <= b));
   const maxN = Math.max(1, ...porSemana.map((w) => w.length));
   const med = porSemana.map((w, i) => {
-    const g = w.filter((v) => v.shiny === f.shiny).map((v) => toShow(v.gem)).sort((a, b) => a - b);
+    const g = w.map((v) => val(v.gem)).sort((a, b) => a - b);
     return g.length ? [x((semanas[i][0] + semanas[i][1]) / 2), y(quant(g, 0.5))] : null;
   }).filter(Boolean);
   const yb = H - 8;
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Preços de venda de ${esc(f.species)} ao longo do tempo">`;
-  tick.forEach((v) => { svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmtVal(v)}</text>`; });
+  tick.forEach((v) => { svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmtEixo(v)}</text>`; });
   // datas: início, meio, fim
   [ini, (ini + fimMin) / 2, fimMin].forEach((m, i) => { svg += `<text x="${x(m)}" y="${T + ch + 16}" text-anchor="${["start", "middle", "end"][i]}">${fmtDate(new Date(m * 60000))}</text>`; });
   if (Number.isFinite(est.p50) && est.items.length) {
-    const yv = y(toShow(est.p50));
+    const yv = y(val(est.p50));
     svg += `<line x1="${L}" x2="${W - R}" y1="${yv}" y2="${yv}" stroke="var(--acc)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
   }
   if (med.length > 1) svg += `<polyline points="${med.map((p) => p.join(",")).join(" ")}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" opacity=".75"/>`;
   list.forEach((s) => {
-    const v = toShow(s.gem); if (!(v > 0)) return;
+    const v = val(s.gem); if (!(v > 0)) return;
     const cor = s.shiny ? "var(--coin)" : "var(--muted)";
-    svg += `<circle cx="${x(s.min).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${s.shiny === f.shiny ? 4 : 3}" fill="${cor}" fill-opacity="${s.shiny === f.shiny ? .85 : .35}" stroke="var(--surface)" stroke-width="1"><title>${fmtDate(s.date)} · ${s.shiny ? "shiny " : ""}P${s.pot} · nota ${nf(2).format(s.nota)} · ${fmtVal(v)} ${unit()}</title></circle>`;
+    svg += `<circle cx="${x(s.min).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${s.pot === f.pot ? 4.5 : 3}" fill="${cor}" fill-opacity="${s.pot === f.pot ? .9 : .4}" stroke="var(--surface)" stroke-width="1"><title>${fmtDate(s.date)} · P${s.pot} · Nv ${s.lvl} · nota ${nf(2).format(s.nota)} · ${fmtEixo(v)} ${unit()}</title></circle>`;
   });
-  // barras de vendas por semana
+  // barras de vendas por dia ou semana
   porSemana.forEach((w, i) => {
     const [a, b] = semanas[i], x0 = x(a) + 2, x1 = x(b) - 2, h = w.length / maxN * bh;
-    svg += `<rect x="${x0.toFixed(1)}" y="${(yb - h).toFixed(1)}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${h.toFixed(1)}" fill="var(--acc)" opacity=".55" rx="2"><title>${w.length} vendas na semana até ${fmtDate(new Date(b * 60000))}</title></rect>`;
+    svg += `<rect x="${x0.toFixed(1)}" y="${(yb - h).toFixed(1)}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${h.toFixed(1)}" fill="var(--acc)" opacity=".55" rx="2"><title>${w.length} vendas ${passo === 1440 ? "em" : "na semana até"} ${fmtDate(new Date(b * 60000))}</title></rect>`;
   });
-  svg += `<text x="${L - 6}" y="${yb - 2}" text-anchor="end">${maxN}/sem</text><line x1="${L}" x2="${W - R}" y1="${yb}" y2="${yb}" stroke="var(--line)"/>`;
+  svg += `<text x="${L - 6}" y="${yb - 2}" text-anchor="end">${maxN}/${passo === 1440 ? "dia" : "sem"}</text><line x1="${L}" x2="${W - R}" y1="${yb}" y2="${yb}" stroke="var(--line)"/>`;
   svg += `</svg>`;
-  box.innerHTML = `<div class="head-row"><div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(list[0].species)}</h2></div><span class="muted small">${list.length} vendas no período · escala logarítmica</span></div>
+  box.innerHTML = `<div class="head-row"><div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(list[0].species)}</h2></div><span class="muted small">${list.length} vendas ${grupo} · escala logarítmica</span></div>
     <div class="chart">${svg}</div>
-    <div class="legend"><span><i class="sw" style="background:var(--coin)"></i>shiny</span><span><i class="sw" style="background:var(--muted)"></i>comum</span><span><i class="sw" style="background:var(--ink);border-radius:2px;height:3px"></i>mediana da semana (${f.shiny ? "shiny" : "comum"})</span><span><i class="sw" style="background:var(--acc);border-radius:2px;height:3px"></i>preço justo do seu</span><span><i class="sw" style="background:var(--acc);opacity:.55;border-radius:2px"></i>vendas por semana</span></div>`;
+    <div class="legend"><span><i class="sw" style="background:${f.shiny ? "var(--coin)" : "var(--muted)"}"></i>venda ${f.shiny ? "shiny" : "comum"} (maior = mesma potência que o seu)</span><span><i class="sw" style="background:var(--ink);border-radius:2px;height:3px"></i>mediana do ${porQue}</span><span><i class="sw" style="background:var(--acc);border-radius:2px;height:3px"></i>preço justo do seu</span><span><i class="sw" style="background:var(--acc);opacity:.55;border-radius:2px"></i>vendas por ${porQue}</span></div>`;
 }
 
 // ---------- render ----------
