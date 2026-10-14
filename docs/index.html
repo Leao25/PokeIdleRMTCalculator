@@ -205,6 +205,11 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .kv dd { margin: 0; font-family: var(--f-mono); text-align: right; }
 .grid.sem-ficha { grid-template-columns: minmax(0, 1fr); }
 .grid.sem-ficha > aside { display: none; }
+.inv-topo { display: flex; flex-wrap: wrap; gap: 10px 32px; align-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
+.inv-topo .kv { min-width: 260px; }
+.inv-grade { display: grid; gap: 14px; }
+.inv-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.inv-card h3 { font-size: 1rem; }
 .pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
 .aviso { color: var(--warn); cursor: help; }
 .spark { width: 80px; height: 20px; display: block; }
@@ -245,6 +250,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   <nav class="abas" role="tablist" aria-label="Seções">
     <button role="tab" data-aba="avaliar" aria-selected="true">Avaliar</button>
     <button role="tab" data-aba="comprar" aria-selected="false">Comprar</button>
+    <button role="tab" data-aba="investir" aria-selected="false">Vale investir?</button>
+    <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
     <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
     <button role="tab" data-aba="itens" aria-selected="false">Itens</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
@@ -312,6 +319,32 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
         </section>
       </div>
 
+      <div class="vista" data-vista="investir" hidden>
+        <section class="panel" id="investir">
+          <div class="head-row"><div><span class="lbl">Upar, evoluir, Mega</span><h2>Vale a pena investir nele?</h2></div>
+            <div class="farm-ctrl"><label class="mini">Nível do treinador <input class="nivel-treinador" inputmode="numeric" placeholder="461"></label></div></div>
+          <p class="muted small">Compara o que o pokémon da ficha vale hoje com o que valeria depois de upar, evoluir ou virar Mega, descontando o preço das pedras, e mostra como fica o farm de shiny em cada caso.</p>
+          <div id="investir-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="trocar" hidden>
+        <section class="panel" id="trocar">
+          <div class="head-row">
+            <div><span class="lbl">Upgrade</span><h2>Quero trocar meu pokémon</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Aceito gastar até <span class="calc-linha"><input id="tr-orc" inputmode="numeric" placeholder="3.000"> <span class="u">Gemas</span></span></label>
+              <label class="mini">Nível do treinador <input class="nivel-treinador" inputmode="numeric" placeholder="461"></label>
+              <label class="mini">Para
+                <select id="tr-crit"><option value="media">Mais abates nas hunts altas</option><option value="alcance">Hunt mais alta no ritmo máximo</option></select>
+              </label>
+            </div>
+          </div>
+          <p class="muted small">Cole a ficha do seu pokémon atual ao lado. O site procura nos anúncios abertos quem farma melhor que ele dentro do seu orçamento.</p>
+          <div id="trocar-out"></div>
+        </section>
+      </div>
+
       <div class="vista" data-vista="sniper" hidden>
         <section class="panel" id="sniper">
           <div class="head-row">
@@ -354,7 +387,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
           <div class="head-row">
             <div><span class="lbl">Shiny por hora</span><h2>Onde farmar</h2></div>
             <div class="farm-ctrl">
-              <label class="mini">Nível do treinador <input id="farm-nivel" inputmode="numeric" placeholder="461"></label>
+              <label class="mini">Nível do treinador <input id="farm-nivel" class="nivel-treinador" inputmode="numeric" placeholder="461"></label>
               <label class="mini">Bola
                 <select id="farm-bola"><option value="4">Ultra Ball</option><option value="8">Beast Ball</option><option value="3">Super Ball</option><option value="2">Great Ball</option></select>
               </label>
@@ -812,6 +845,8 @@ function render() {
   if (state.aba === "mercado") renderCotacao();
   if (state.aba === "sniper") renderSniper();
   if (state.aba === "itens") renderItens();
+  if (state.aba === "investir") renderInvestir();
+  if (state.aba === "trocar") renderTrocar();
 
   if (temFicha) {
   grafico(f, kept, est, fim);
@@ -890,7 +925,7 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 
 // ---------- abas ----------
 function abrirAba(aba) {
-  if (!["avaliar", "comprar", "sniper", "itens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (!["avaliar", "comprar", "investir", "trocar", "sniper", "itens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
@@ -902,6 +937,8 @@ function abrirAba(aba) {
   if (aba === "comprar") renderCompra();
   if (aba === "sniper") renderSniper();
   if (aba === "itens") renderItens();
+  if (aba === "investir") renderInvestir();
+  if (aba === "trocar") renderTrocar();
 }
 
 // ---------- calculadoras ----------
@@ -1184,6 +1221,7 @@ async function carregarAnuncios() {
     id: r[c.id], species: r[c.nome], lvl: r[c.nivel], shiny: !!r[c.shiny], pot: r[c.potencia] || 1, q: r[c.qualidade],
     iv: r[c.ivTotal], nota: r[c.nota], preco: r[c.preco], moeda: r[c.moeda] === "gold" ? "coins" : "gemas",
     criadoEm: r[c.criadoEm], compravelEm: r[c.compravelEm], tm: r[c.tmElemental], aoe: r[c.tmAoe], refino: r[c.refino],
+    ivs: Array.isArray(r[c.ivs]) && r[c.ivs].every((v) => v > 0) ? r[c.ivs] : null, poder: r[c.poder],
   })) };
   return anunciosDados;
 }
@@ -1289,6 +1327,242 @@ async function renderItens() {
     <p class="muted small">A tendência é o preço médio a cada coleta; ela se forma com o tempo. Um menor anúncio bem abaixo da média é oportunidade de compra; bem acima, quase ninguém vende naquela moeda.</p>`;
 }
 
+// ---------- dados extras: evoluções, catálogo, itens ----------
+let evolucoes = null, catalogo = null;
+async function carregarExtras() {
+  if (!evolucoes) evolucoes = (await (await fetch("dados/evolucoes.json")).json()).especies;
+  if (!catalogo) catalogo = await (await fetch("dados/_catalogo.json", { cache: "no-cache" })).json().catch(() => ({}));
+  if (!itensDados) itensDados = await (await fetch("dados/itens.json", { cache: "no-cache" })).json().catch(() => ({ itens: {} }));
+  return { evolucoes, catalogo, itens: itensDados.itens || {} };
+}
+/** Preço de um item em Gemas: a média de 7 dias na moeda em que ele mais circula; sem média, o menor anúncio. */
+function precoItemGem(nome) {
+  const it = Object.values(itensDados?.itens || {}).find((x) => norm(x.nome) === norm(nome));
+  if (!it) return null;
+  const orb = it.mediaOrb > 0 && (it.vendidosOrb || 0) >= 3 ? it.mediaOrb : null;
+  const gold = it.mediaGold > 0 ? it.mediaGold / state.rate : null;
+  const v = (it.vendidosOrb || 0) >= (it.vendidosGold || 0) ? (orb ?? gold) : (gold ?? orb);
+  return v ?? (it.minOrb > 0 ? it.minOrb : it.minGold > 0 ? it.minGold / state.rate : null);
+}
+const nomeTipo = (t) => ({ NORMAL: "Normal", FIRE: "Fire", WATER: "Water", GRASS: "Grass", ELECTRIC: "Electric", ICE: "Ice", FIGHTING: "Fighting", POISON: "Poison", GROUND: "Ground", FLYING: "Flying", PSYCHIC: "Psychic", BUG: "Bug", ROCK: "Rock", GHOST: "Ghost", DRAGON: "Dragon", DARK: "Dark", STEEL: "Steel", FAIRY: "Fairy" }[t] || t);
+/** O que custa evoluir para um destino: pedra comum do tipo, ou Shiny Stone do tipo (pronta ou 10 fragmentos). */
+function custoEvolucao(tipo, shiny) {
+  if (!shiny) {
+    const pedra = catalogo?.pedrasEvolucao?.[tipo]?.nome;
+    return pedra ? { nome: pedra, gem: precoItemGem(pedra) } : { nome: `pedra ${tipo}`, gem: null };
+  }
+  const pronta = precoItemGem(`${nomeTipo(tipo)} Shiny Stone`);
+  const frag = precoItemGem("Shiny Stone Fragment");
+  const viaFrag = frag ? frag * 10 : null;
+  const gem = [pronta, viaFrag].filter((x) => x > 0).sort((a, b) => a - b)[0] ?? null;
+  return { nome: `${nomeTipo(tipo)} Shiny Stone`, gem, detalhe: gem === viaFrag ? "10 fragmentos" : "pronta no Mercado" };
+}
+function custoMega(mega, shiny) {
+  if (shiny) { const f = precoItemGem("Mega Shiny Stone Fragment"); return { nome: "Mega Shiny Stone (10 fragmentos)", gem: f ? f * 10 : null }; }
+  const pronta = precoItemGem(mega.pedra), f = precoItemGem("Mega Stone Fragment");
+  const viaFrag = f ? f * 10 : null;
+  const gem = [pronta, viaFrag].filter((x) => x > 0).sort((a, b) => a - b)[0] ?? null;
+  return { nome: mega.pedra, gem, detalhe: gem === viaFrag ? "10 fragmentos" : "pronta no Mercado" };
+}
+
+// ---------- farm: contexto e melhor hunt para um pokémon ----------
+function contextoFarm(E, nivelT, bola) {
+  const shinyPor = new Map();
+  for (const s of state.kept.filter((x) => x.shiny)) { const k = norm(s.species); if (!shinyPor.has(k)) shinyPor.set(k, []); shinyPor.get(k).push(s.gem); }
+  const todos = [...shinyPor.values()].flat().sort((a, b) => a - b);
+  const medGeral = todos.length ? quant(todos, 0.5) : 0;
+  const alvos = E.lista.filter((e) => e.L > 0 && e.dex < 2000 && !/^mega\s/i.test(e.nome) && (!(nivelT > 0) || e.L <= nivelT)).map((e) => {
+    const v = (shinyPor.get(norm(e.nome)) || []).sort((a, b) => a - b);
+    const ajust = v.length ? (v.length * quant(v, 0.5) + 3 * medGeral) / (v.length + 3) : null;
+    return { e, cap: chanceCaptura(e.npc, bola), valorShiny: ajust != null ? liquidoGemas(ajust) : null };
+  });
+  return { alvos, comValor: alvos.filter((a) => a.valorShiny != null) };
+}
+function voceDe(E, especie, f, ivs) {
+  const L = Number.isFinite(f.lvl) ? f.lvl : 100;
+  const ivMed = Number.isFinite(f.iv) ? f.iv / 6 : 16.5;
+  return { tipos: [E.tipos[especie.t1], especie.t2 >= 0 ? E.tipos[especie.t2] : null].filter(Boolean), base: especie.base, L,
+    ivs: ivs || [ivMed, ivMed, ivMed, ivMed, ivMed, ivMed], q: Number.isFinite(f.q) ? f.q : 1, pot: f.pot || 1, shiny: !!f.shiny, golpes: especie.golpes };
+}
+/** A melhor hunt para esse pokémon: a de mais Gemas/h (shiny) e a de mais abates/h. */
+function melhorFarm(voce, ctx, E) {
+  let gem = null, ab = null;
+  for (const a of ctx.comValor) {
+    const r = abatesPorHora(voce, a.e, E.tipos);
+    const g = r.porHora * a.cap / 24000 * a.valorShiny;
+    if (!gem || g > gem.gemasH) gem = { alvo: a.e, gemasH: g, abates: r.porHora };
+    if (!ab || r.porHora > ab.abates) ab = { alvo: a.e, abates: r.porHora };
+  }
+  return { gem, ab };
+}
+/**
+ * Força de farm: até que hunt o pokémon ainda mata no ritmo máximo (90% do teto de andar), e a
+ * média de abates/h nas 40 hunts mais altas que o treinador alcança. Nas hunts baixas todo mundo
+ * empata no teto; é nas altas que um pokémon mais forte se separa.
+ */
+function forcaFarm(voce, ctx, E) {
+  const altas = ctx.altas || (ctx.altas = [...ctx.alvos].sort((a, b) => b.e.L - a.e.L).slice(0, 40));
+  const teto = 3600 / T_ANDAR;
+  let soma = 0, alcance = null;
+  for (const a of altas) {
+    const r = abatesPorHora(voce, a.e, E.tipos).porHora;
+    soma += r;
+    if (!alcance && r >= teto * 0.9) alcance = a.e;
+  }
+  if (!alcance) {
+    // nenhuma das 40 mais altas no ritmo máximo: procura descendo pelas outras
+    for (const a of [...ctx.alvos].sort((x, y) => y.e.L - x.e.L).slice(40)) {
+      if (abatesPorHora(voce, a.e, E.tipos).porHora >= teto * 0.9) { alcance = a.e; break; }
+    }
+  }
+  return { media: altas.length ? soma / altas.length : 0, alcance };
+}
+/** A espécie de uma Mega como "espécie" do simulador: bases e tipos dela, golpes da base + o de mega. */
+function especieMega(E, base, mega) {
+  const T = (t) => E.tipos.indexOf(t);
+  const fis = mega.bases.atk >= mega.bases.spAtk ? 1 : 0;
+  return { ...base, nome: mega.nome, t1: T(mega.tipos[0]), t2: mega.tipos[1] ? T(mega.tipos[1]) : -1,
+    base: [mega.bases.hp, mega.bases.atk, mega.bases.def, mega.bases.spAtk, mega.bases.spDef, mega.bases.speed],
+    golpes: [...base.golpes, [600, 30, fis, T(mega.tipos[0]), 1]] };
+}
+
+// ---------- vale a pena investir? ----------
+async function renderInvestir() {
+  const out = $("investir-out");
+  const f = state.f;
+  if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon na caixa ao lado. A conta usa a espécie, o nível, a potência, a nota, a qualidade e o IV dele.</p>'; return; }
+  out.innerHTML = '<p class="muted">Calculando…</p>';
+  const E = await carregarEspecies();
+  await carregarExtras();
+  const especie = E.porNome.get(norm(f.species)) || E.porNome.get(norm(f.species.replace(/^mega\s+/i, "")));
+  if (!especie) { out.innerHTML = `<p class="muted">Não achei ${esc(f.species)} na Pokédex do jogo.</p>`; return; }
+  const nivelT = parseBR($("farm-nivel").value), bola = +$("farm-bola").value;
+  const ctx = contextoFarm(E, nivelT, bola);
+  const valorDe = (ff) => { const e = estimate(ff, state.kept, state.fim); return e.items.length ? e.p50 : null; };
+  // valores pequenos em Gemas (pedras custam frações de Gema) saem em Coins
+  const g = (x) => x == null ? "—" : state.moeda === "gemas" && x < 1 ? `${short(x * state.rate)} Coins` : fmtShow(x);
+  const farmTxt = (fz) => fz ? `${nf(0).format(fz.media)} abates/h${fz.alcance ? ` · ritmo máximo até ${esc(fz.alcance.nome)} (Nv ${nf(0).format(fz.alcance.L)})` : ""}` : "—";
+  const agoraV = valorDe(f);
+  const voceAgora = voceDe(E, especie, f, state.ivs);
+  const agoraF = forcaFarm(voceAgora, ctx, E);
+  const agoraShiny = melhorFarm(voceAgora, ctx, E);
+  const dif = (a, b) => a != null && b != null && b > 0 ? a / b - 1 : null;
+  const pct = (x) => x == null ? "" : `<span class="tend ${x > 0.03 ? "sobe" : x < -0.03 ? "desce" : ""}">${x >= 0 ? "+" : "−"}${nf(0).format(Math.abs(x) * 100)}%</span>`;
+  const cartoes = [];
+
+  // 1. upar
+  const L = Number.isFinite(f.lvl) ? f.lvl : 100;
+  const niveis = [...new Set([L + 100, L * 2, L + 500].map((n) => Math.round(n / 10) * 10))].filter((n) => n > L).slice(0, 3);
+  const linhasUp = niveis.map((n) => { const ff = { ...f, lvl: n }; const v = valorDe(ff); const fm = forcaFarm(voceDe(E, especie, ff, state.ivs), ctx, E); return { n, v, fm }; });
+  const ganhoUp = linhasUp.length ? dif(linhasUp[0].v, agoraV) : null;
+  cartoes.push(`<div class="inv-card"><span class="lbl">Upar</span><h3>${ganhoUp == null ? "Sem dados para comparar" : ganhoUp > 0.15 ? "Vale: o preço sobe com o nível" : "Pouco efeito no preço"}</h3>
+    <div class="tbl"><table><thead><tr><th>Nível</th><th class="r">Vale</th><th>Força nas hunts altas</th></tr></thead><tbody>
+    <tr><td>Agora (Nv ${nf(0).format(L)})</td><td class="r n">${g(agoraV)}</td><td class="small">${farmTxt(agoraF)}</td></tr>
+    ${linhasUp.map((x) => `<tr><td>Nv ${nf(0).format(x.n)}</td><td class="r n">${g(x.v)} ${pct(dif(x.v, agoraV))}</td><td class="small">${farmTxt(x.fm)} ${pct(dif(x.fm.media, agoraF.media))}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="muted small">${f.shiny ? "No shiny, o nível quase não mexe no preço: upar vale pelo farm, não pela revenda." : "No pokémon comum, o preço acompanha o nível. O tempo para upar não entra na conta."}</p></div>`);
+
+  // 2. evoluir
+  const ev = evolucoes[especie.nome] || evolucoes[f.species];
+  if (ev?.destinos?.length) {
+    const linhas = ev.destinos.map((d) => {
+      const esp = E.porNome.get(norm(d.nome));
+      const nivelOk = L >= (d.nivel || 0);
+      const ff = { ...f, species: d.nome, lvl: Math.max(L, d.nivel || 0) };
+      const v = valorDe(ff);
+      const custo = custoEvolucao(d.tipoPedra, f.shiny);
+      const lucro = v != null && agoraV != null && custo.gem != null ? v - agoraV - custo.gem : null;
+      const fm = esp ? forcaFarm(voceDe(E, esp, ff, state.ivs), ctx, E) : null;
+      return { d, nivelOk, v, custo, lucro, fm };
+    }).sort((a, b) => (b.lucro ?? -1e12) - (a.lucro ?? -1e12));
+    const melhor = linhas[0];
+    cartoes.push(`<div class="inv-card"><span class="lbl">Evoluir</span><h3>${melhor.lucro == null ? "Sem vendas para comparar" : melhor.lucro > 0 ? `Vale: ${esc(melhor.d.nome)} rende ${g(melhor.lucro)} a mais` : "Não compensa pelo preço"}</h3>
+      <div class="tbl"><table><thead><tr><th>Vira</th><th>Custo</th><th class="r">Vale depois</th><th class="r">Ganho líquido</th><th>Força nas hunts altas</th></tr></thead><tbody>
+      ${linhas.map((x) => `<tr><td>${esc(x.d.nome)}${x.nivelOk ? "" : ` <span class="muted small">(precisa Nv ${nf(0).format(x.d.nivel)})</span>`}</td>
+        <td class="small">${esc(x.custo.nome)}${x.custo.detalhe ? ` <span class="muted">(${x.custo.detalhe})</span>` : ""}<br><b class="num">${g(x.custo.gem)}</b></td>
+        <td class="r n">${g(x.v)}</td><td class="r n">${x.lucro == null ? "—" : `<span class="tend ${x.lucro > 0 ? "sobe" : "desce"}">${x.lucro > 0 ? "+" : "−"}${fmtShow(Math.abs(x.lucro))}</span>`}</td>
+        <td class="small">${x.fm ? farmTxt(x.fm) + " " + pct(dif(x.fm.media, agoraF.media)) : "—"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="muted small">Ganho líquido = valor depois − valor agora − custo da pedra. ${f.shiny ? "Shiny evolui só com Shiny Stone do tipo (10 fragmentos ou pronta)." : "Evoluir pede 1 pedra do tipo e o nível mínimo."} Evoluir nunca baixa a nota.</p></div>`);
+  } else cartoes.push(`<div class="inv-card"><span class="lbl">Evoluir</span><h3>${esc(f.species)} não evolui</h3><p class="muted small">É a última forma da cadeia${/^(ancient|furious|brave|toxic|psy|hard|magma|banshee|evil|enraged|freezing|charged|tribal|war|heavy|magnetic|enigmatic|trickmaster|milch|brute)\s/i.test(f.species) ? " (variantes de Outland não evoluem)" : ""}.</p></div>`);
+
+  // 3. mega
+  const mega = ev?.mega || evolucoes[especie.nome]?.mega;
+  if (mega) {
+    const ff = { ...f, species: mega.nome, mega: true };
+    const v = valorDe(ff);
+    const custo = custoMega(mega, f.shiny);
+    const lucro = v != null && agoraV != null && custo.gem != null ? v - agoraV - custo.gem : null;
+    const fm = forcaFarm(voceDe(E, especieMega(E, especie, mega), f, state.ivs), ctx, E);
+    cartoes.push(`<div class="inv-card"><span class="lbl">Mega Evolução</span><h3>${esc(mega.nome)}: ${lucro == null ? (v == null ? "sem vendas da Mega para comparar" : "sem preço da pedra") : lucro > 0 ? `rende ${g(lucro)} a mais` : "não compensa pelo preço"}</h3>
+      <dl class="kv"><dt>Custo</dt><dd>${esc(custo.nome)}${custo.detalhe ? ` (${custo.detalhe})` : ""}: ${g(custo.gem)}</dd>
+        <dt>Vale depois</dt><dd>${g(v)}</dd><dt>Ganho líquido</dt><dd>${lucro == null ? "—" : (lucro > 0 ? "+" : "−") + fmtShow(Math.abs(lucro))}</dd>
+        <dt>Força nas hunts altas</dt><dd>${farmTxt(fm)} ${pct(dif(fm.media, agoraF.media))}</dd></dl>
+      <p class="muted small">A Mega troca as bases e ganha um golpe de 600 com recarga de 30 s. ${f.shiny ? "Shiny pede a Mega Shiny Stone." : ""}</p></div>`);
+  }
+
+  out.innerHTML = `${nivelT > 0 ? "" : '<div class="alert">Diga o nível do treinador no campo acima: a força é medida nas hunts que você alcança. Sem ele, entram todas as hunts do jogo.</div>'}<div class="inv-topo"><div><span class="lbl">Hoje</span><h3>${f.shiny ? "✨ " : ""}${esc(f.species)} P${f.pot} Nv ${nf(0).format(L)}</h3></div>
+      <dl class="kv"><dt>Vale no Mercado</dt><dd>${g(agoraV)} ${unit()}</dd><dt>Força nas hunts altas</dt><dd>${farmTxt(agoraF)}</dd><dt>Melhor hunt de shiny</dt><dd>${agoraShiny.gem ? `${esc(agoraShiny.gem.alvo.nome)} · ${state.moeda === "gemas" ? nf(1).format(agoraShiny.gem.gemasH) : short(agoraShiny.gem.gemasH * state.rate)} ${unit()}/h` : "—"}</dd></dl></div>
+    <div class="inv-grade">${cartoes.join("")}</div>
+    <p class="muted small">Preços de pedras e fragmentos: média de 7 dias do Mercado (aba Itens). Valores do pokémon: o mesmo cálculo do Avaliar, trocando nível ou espécie. "Força nas hunts altas" é a média de abates/h nas 40 hunts mais altas que o treinador alcança (nível do treinador da aba Onde farmar) e até onde ele mata no ritmo máximo: é onde um pokémon mais forte se separa, porque nas hunts baixas todos matam com um golpe.</p>`;
+}
+
+// ---------- quero trocar ----------
+async function renderTrocar() {
+  const out = $("trocar-out");
+  const f = state.f;
+  const orc = parseBR($("tr-orc").value);
+  document.querySelectorAll("#trocar .u").forEach((u) => { u.textContent = unit(); });
+  if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon que você usa hoje, na caixa ao lado.</p>'; return; }
+  if (!(orc > 0)) { out.innerHTML = '<p class="muted">Digite quanto você aceita gastar.</p>'; return; }
+  out.innerHTML = '<p class="muted">Procurando nos anúncios…</p>';
+  const E = await carregarEspecies();
+  let A;
+  try { A = await carregarAnuncios(); } catch (e) { out.innerHTML = '<p class="muted">Os anúncios ainda não foram coletados.</p>'; return; }
+  const nivelT = parseBR($("farm-nivel").value), bola = +$("farm-bola").value;
+  const ctx = contextoFarm(E, nivelT, bola);
+  const criterio = $("tr-crit").value;
+  const meuEsp = E.porNome.get(norm(f.species)) || E.porNome.get(norm(f.species.replace(/^mega\s+/i, "")));
+  const meu = meuEsp ? forcaFarm(voceDe(E, meuEsp, f, state.ivs), ctx, E) : null;
+  const orcGem = state.moeda === "gemas" ? orc : orc / state.rate;
+  const met = (m) => criterio === "alcance" ? (m?.alcance?.L || 0) + (m?.media || 0) / 1e4 : m?.media;
+  // candidatos: dentro do orçamento, os 150 de maior poder (o ⚔ que o jogo mostra)
+  const cand = A.lista.filter((a) => (a.moeda === "gemas" ? a.preco : a.preco / state.rate) <= orcGem && E.porNome.has(norm(a.species)))
+    .sort((a, b) => (b.poder || 0) - (a.poder || 0)).slice(0, 150);
+  await new Promise((r) => setTimeout(r, 0));
+  const linhas = cand.map((a) => {
+    const esp = E.porNome.get(norm(a.species));
+    const ff = { species: a.species, lvl: a.lvl, pot: a.pot, q: a.q, iv: a.iv, nota: a.nota, shiny: a.shiny };
+    const m = forcaFarm(voceDe(E, esp, ff, a.ivs), ctx, E);
+    const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+    const est = estimate(ff, state.kept, state.fim);
+    return { a, m, v: met(m), precoGem, justo: est.items.length ? est.p50 : null };
+  }).filter((x) => x.v > 0).sort((x, y) => y.v - x.v).slice(0, 15);
+  const base = met(meu);
+  const fmtMet = (v) => v == null ? "—" : criterio === "alcance" ? (v >= 1 ? "Nv " + nf(0).format(Math.floor(v)) : "nenhuma") : nf(0).format(v) + "/h";
+  out.innerHTML = `${nivelT > 0 ? "" : '<div class="alert">Diga o nível do treinador no campo acima: a força é medida nas hunts que você alcança. Sem ele, entram todas as hunts do jogo.</div>'}<p class="muted small">Hoje, com seu ${f.shiny ? "✨ " : ""}${esc(f.species)} Nv ${nf(0).format(f.lvl || 0)}: <b>${fmtMet(base)}</b>${meu?.alcance ? ` · ritmo máximo até ${esc(meu.alcance.nome)} (Nv ${nf(0).format(meu.alcance.L)})` : ""}. Procurei entre os ${nf(0).format(cand.length)} anúncios mais fortes que cabem em ${fmtVal(orc)} ${unit()}.</p>
+    ${linhas.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r">Preço</th><th class="r">Justo</th><th>Ritmo máximo até</th><th class="r">${criterio === "alcance" ? "Hunt mais alta" : "Abates/h nas altas"}</th><th class="r">vs. o seu</th></tr></thead><tbody>
+    ${linhas.map((x) => { const a = x.a, foto = urlFoto(a.species, a.shiny), d = base > 0 ? (criterio === "alcance" ? Math.floor(x.v) / Math.max(1, Math.floor(base)) - 1 : x.v / base - 1) : null;
+      const alvo = x.m.alcance;
+      return `<tr class="click" data-tr="${a.id}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}</td>
+        <td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
+        <td class="r n"><b>${fmtShow(x.precoGem)}</b></td><td class="r n muted">${x.justo ? fmtShow(x.justo) : "—"}</td>
+        <td class="small">${alvo ? `${esc(alvo.nome)} <span class="muted">Nv ${nf(0).format(alvo.L)}</span>` : "—"}</td><td class="r n">${fmtMet(x.v)}</td>
+        <td class="r">${d == null ? "—" : `<span class="tend ${d > 0.03 ? "sobe" : d < -0.03 ? "desce" : ""}">${d >= 0 ? "+" : "−"}${nf(0).format(Math.abs(d) * 100)}%</span>`}</td></tr>`; }).join("")}
+    </tbody></table></div>` : '<p class="muted">Nenhum anúncio dentro desse orçamento.</p>'}
+    <p class="muted small">Ordenado pelo critério escolhido, com o mesmo simulador do Onde farmar (nível do treinador de lá): média de abates/h nas 40 hunts mais altas que você alcança, ou até que hunt ele ainda mata no ritmo máximo. "Justo" é o preço que o Avaliar daria para ele: preço bem abaixo do justo é compra boa também para revender. Clique numa linha para abrir na aba Comprar.</p>`;
+  out.querySelectorAll("tr[data-tr]").forEach((tr) => {
+    const a = A.lista.find((x) => String(x.id) === tr.dataset.tr);
+    const go = () => {
+      $("ficha").value = ""; state.ivs = a.ivs || null;
+      fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
+      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      abrirAba("comprar"); render();
+    };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
+  });
+}
+
 // ---------- eventos ----------
 $("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
@@ -1303,12 +1577,23 @@ let timerB = 0;
 $("ficha-b").addEventListener("input", () => { clearTimeout(timerB); timerB = setTimeout(renderComparar, 250); });
 try { const n = localStorage.getItem("rtm-nivel"); if (n) $("farm-nivel").value = n; } catch (e) {}
 let timerF = 0;
-$("farm-nivel").addEventListener("input", () => { try { localStorage.setItem("rtm-nivel", $("farm-nivel").value); } catch (e) {} clearTimeout(timerF); timerF = setTimeout(renderFarm, 300); });
+// o nível do treinador é um só, repetido nas abas que usam o simulador
+const camposNivel = [...document.querySelectorAll(".nivel-treinador")];
+camposNivel.forEach((c) => { c.value = $("farm-nivel").value; });
+camposNivel.forEach((c) => c.addEventListener("input", () => {
+  camposNivel.forEach((o) => { if (o !== c) o.value = c.value; });
+  try { localStorage.setItem("rtm-nivel", c.value); } catch (e) {}
+  clearTimeout(timerF);
+  timerF = setTimeout(() => { if (state.aba === "farmar") renderFarm(); if (state.aba === "investir") renderInvestir(); if (state.aba === "trocar") renderTrocar(); }, 400);
+}));
 $("farm-bola").addEventListener("change", renderFarm);
 ["sn-desc", "sn-grupo", "sn-ordem", "sn-conf"].forEach((id) => $(id).addEventListener("change", () => { state.snTodos = false; renderSniper(); }));
 let timerSn = 0;
 $("sn-busca").addEventListener("input", () => { clearTimeout(timerSn); timerSn = setTimeout(renderSniper, 250); });
 $("it-cat").addEventListener("change", renderItens);
+let timerTr = 0;
+$("tr-orc").addEventListener("input", () => { clearTimeout(timerTr); timerTr = setTimeout(renderTrocar, 400); });
+$("tr-crit").addEventListener("change", renderTrocar);
 let timerIt = 0;
 $("it-busca").addEventListener("input", () => { clearTimeout(timerIt); timerIt = setTimeout(renderItens, 200); });
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };

@@ -1,0 +1,6399 @@
+{
+ "fonte": "pokeidle.io/assets + shared (evolução)",
+ "especies": {
+  "Bulbasaur": {
+   "id": 1,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Ivysaur",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Ivysaur": {
+   "id": 2,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Venusaur",
+     "nivel": 80,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Venusaur": {
+   "id": 3,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Venusaur",
+    "pedra": "Venusaurite",
+    "tipos": [
+     "GRASS",
+     "POISON"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 100,
+     "def": 123,
+     "spAtk": 122,
+     "spDef": 120,
+     "speed": 80
+    }
+   }
+  },
+  "Charmander": {
+   "id": 4,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Charmeleon",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Charmeleon": {
+   "id": 5,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Charizard",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Charizard": {
+   "id": 6,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Charizard Y",
+    "pedra": "Charizardite Y",
+    "tipos": [
+     "FIRE",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 78,
+     "atk": 104,
+     "def": 78,
+     "spAtk": 159,
+     "spDef": 115,
+     "speed": 100
+    }
+   }
+  },
+  "Squirtle": {
+   "id": 7,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Wartortle",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Wartortle": {
+   "id": 8,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Blastoise",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Blastoise": {
+   "id": 9,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Blastoise",
+    "pedra": "Blastoisinite",
+    "tipos": [
+     "WATER"
+    ],
+    "bases": {
+     "hp": 79,
+     "atk": 103,
+     "def": 120,
+     "spAtk": 135,
+     "spDef": 115,
+     "speed": 78
+    }
+   }
+  },
+  "Caterpie": {
+   "id": 10,
+   "nivel": 10,
+   "destinos": [
+    {
+     "nome": "Metapod",
+     "nivel": 10,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Metapod": {
+   "id": 11,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Butterfree",
+     "nivel": 30,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Weedle": {
+   "id": 13,
+   "nivel": 10,
+   "destinos": [
+    {
+     "nome": "Kakuna",
+     "nivel": 10,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Kakuna": {
+   "id": 14,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Beedrill",
+     "nivel": 30,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Beedrill": {
+   "id": 15,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Beedrill",
+    "pedra": "Beedrillite",
+    "tipos": [
+     "BUG",
+     "POISON"
+    ],
+    "bases": {
+     "hp": 65,
+     "atk": 150,
+     "def": 40,
+     "spAtk": 15,
+     "spDef": 80,
+     "speed": 145
+    }
+   }
+  },
+  "Pidgey": {
+   "id": 16,
+   "nivel": 20,
+   "destinos": [
+    {
+     "nome": "Pidgeotto",
+     "nivel": 20,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Pidgeotto": {
+   "id": 17,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Pidgeot",
+     "nivel": 80,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Pidgeot": {
+   "id": 18,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Pidgeot",
+    "pedra": "Pidgeotite",
+    "tipos": [
+     "NORMAL",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 83,
+     "atk": 80,
+     "def": 80,
+     "spAtk": 135,
+     "spDef": 80,
+     "speed": 121
+    }
+   }
+  },
+  "Rattata": {
+   "id": 19,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Raticate",
+     "nivel": 30,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Spearow": {
+   "id": 21,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Fearow",
+     "nivel": 50,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Ekans": {
+   "id": 23,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Arbok",
+     "nivel": 40,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Pikachu": {
+   "id": 25,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Raichu",
+     "nivel": 80,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Raichu": {
+   "id": 26,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Raichu Y",
+    "pedra": "Raichunite Y",
+    "tipos": [
+     "ELECTRIC"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 100,
+     "def": 55,
+     "spAtk": 160,
+     "spDef": 80,
+     "speed": 130
+    }
+   }
+  },
+  "Sandshrew": {
+   "id": 27,
+   "nivel": 70,
+   "destinos": [
+    {
+     "nome": "Sandslash",
+     "nivel": 70,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Nidoran Female": {
+   "id": 29,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Nidorina",
+     "nivel": 30,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Nidorina": {
+   "id": 30,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Nidoqueen",
+     "nivel": 80,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Nidoran Male": {
+   "id": 32,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Nidorino",
+     "nivel": 30,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Nidorino": {
+   "id": 33,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Nidoking",
+     "nivel": 80,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Clefairy": {
+   "id": 35,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Clefable",
+     "nivel": 80,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Clefable": {
+   "id": 36,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Clefable",
+    "pedra": "Clefablite",
+    "tipos": [
+     "FAIRY",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 95,
+     "atk": 80,
+     "def": 93,
+     "spAtk": 135,
+     "spDef": 110,
+     "speed": 70
+    }
+   }
+  },
+  "Vulpix": {
+   "id": 37,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Ninetales",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Jigglypuff": {
+   "id": 39,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Wigglytuff",
+     "nivel": 80,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Zubat": {
+   "id": 41,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Golbat",
+     "nivel": 40,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Golbat": {
+   "id": 42,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Crobat",
+     "nivel": 80,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Oddish": {
+   "id": 43,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Gloom",
+     "nivel": 30,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Gloom": {
+   "id": 44,
+   "nivel": 70,
+   "destinos": [
+    {
+     "nome": "Vileplume",
+     "nivel": 70,
+     "tipoPedra": "GRASS"
+    },
+    {
+     "nome": "Bellossom",
+     "nivel": 50,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Paras": {
+   "id": 46,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Parasect",
+     "nivel": 50,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Venonat": {
+   "id": 48,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Venomoth",
+     "nivel": 60,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Diglett": {
+   "id": 50,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dugtrio",
+     "nivel": 40,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Meowth": {
+   "id": 52,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Persian",
+     "nivel": 50,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Psyduck": {
+   "id": 54,
+   "nivel": 70,
+   "destinos": [
+    {
+     "nome": "Golduck",
+     "nivel": 70,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Mankey": {
+   "id": 56,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Primeape",
+     "nivel": 50,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Primeape": {
+   "id": 57,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Annihilape",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Growlithe": {
+   "id": 58,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Arcanine",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Poliwag": {
+   "id": 60,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Poliwhirl",
+     "nivel": 30,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Poliwhirl": {
+   "id": 61,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Poliwrath",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    },
+    {
+     "nome": "Politoed",
+     "nivel": 70,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Abra": {
+   "id": 63,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Kadabra",
+     "nivel": 50,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Kadabra": {
+   "id": 64,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Alakazam",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Alakazam": {
+   "id": 65,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Alakazam",
+    "pedra": "Alakazite",
+    "tipos": [
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 55,
+     "atk": 50,
+     "def": 65,
+     "spAtk": 175,
+     "spDef": 105,
+     "speed": 150
+    }
+   }
+  },
+  "Machop": {
+   "id": 66,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Machoke",
+     "nivel": 40,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Machoke": {
+   "id": 67,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Machamp",
+     "nivel": 80,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Bellsprout": {
+   "id": 69,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Weepinbell",
+     "nivel": 30,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Weepinbell": {
+   "id": 70,
+   "nivel": 70,
+   "destinos": [
+    {
+     "nome": "Victreebel",
+     "nivel": 70,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Victreebel": {
+   "id": 71,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Victreebel",
+    "pedra": "Victreebelite",
+    "tipos": [
+     "GRASS",
+     "POISON"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 125,
+     "def": 85,
+     "spAtk": 135,
+     "spDef": 95,
+     "speed": 70
+    }
+   }
+  },
+  "Tentacool": {
+   "id": 72,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Tentacruel",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Geodude": {
+   "id": 74,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Graveler",
+     "nivel": 40,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Graveler": {
+   "id": 75,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Golem",
+     "nivel": 80,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Ponyta": {
+   "id": 77,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Rapidash",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Slowpoke": {
+   "id": 79,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Slowbro",
+     "nivel": 60,
+     "tipoPedra": "WATER"
+    },
+    {
+     "nome": "Slowking",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Slowbro": {
+   "id": 80,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Slowbro",
+    "pedra": "Slowbronite",
+    "tipos": [
+     "WATER",
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 95,
+     "atk": 75,
+     "def": 180,
+     "spAtk": 130,
+     "spDef": 80,
+     "speed": 30
+    }
+   }
+  },
+  "Magnemite": {
+   "id": 81,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Magneton",
+     "nivel": 80,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Magneton": {
+   "id": 82,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Magnezone",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Doduo": {
+   "id": 84,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Dodrio",
+     "nivel": 60,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Seel": {
+   "id": 86,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Dewgong",
+     "nivel": 60,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Grimer": {
+   "id": 88,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Muk",
+     "nivel": 80,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Shellder": {
+   "id": 90,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Cloyster",
+     "nivel": 60,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Gastly": {
+   "id": 92,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Haunter",
+     "nivel": 50,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Haunter": {
+   "id": 93,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gengar",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Gengar": {
+   "id": 94,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Gengar",
+    "pedra": "Gengarite",
+    "tipos": [
+     "GHOST",
+     "POISON"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 65,
+     "def": 80,
+     "spAtk": 170,
+     "spDef": 95,
+     "speed": 130
+    }
+   }
+  },
+  "Onix": {
+   "id": 95,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Steelix",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Drowzee": {
+   "id": 96,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Hypno",
+     "nivel": 60,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Krabby": {
+   "id": 98,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Kingler",
+     "nivel": 60,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Voltorb": {
+   "id": 100,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Electrode",
+     "nivel": 40,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Exeggcute": {
+   "id": 102,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Exeggutor",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Cubone": {
+   "id": 104,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Marowak",
+     "nivel": 50,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Lickitung": {
+   "id": 108,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lickilicky",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Koffing": {
+   "id": 109,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Weezing",
+     "nivel": 60,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Rhyhorn": {
+   "id": 111,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Rhydon",
+     "nivel": 80,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Rhydon": {
+   "id": 112,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Rhyperior",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Chansey": {
+   "id": 113,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Blissey",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Tangela": {
+   "id": 114,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Tangrowth",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Kangaskhan": {
+   "id": 115,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Kangaskhan",
+    "pedra": "Kangaskhanite",
+    "tipos": [
+     "NORMAL"
+    ],
+    "bases": {
+     "hp": 105,
+     "atk": 125,
+     "def": 100,
+     "spAtk": 60,
+     "spDef": 100,
+     "speed": 100
+    }
+   }
+  },
+  "Horsea": {
+   "id": 116,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Seadra",
+     "nivel": 50,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Seadra": {
+   "id": 117,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Kingdra",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Goldeen": {
+   "id": 118,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Seaking",
+     "nivel": 50,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Staryu": {
+   "id": 120,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Starmie",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Starmie": {
+   "id": 121,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Starmie",
+    "pedra": "Starminite",
+    "tipos": [
+     "WATER",
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 140,
+     "def": 105,
+     "spAtk": 130,
+     "spDef": 105,
+     "speed": 120
+    }
+   }
+  },
+  "Scyther": {
+   "id": 123,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Scizor",
+     "nivel": 80,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Electabuzz": {
+   "id": 125,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Electivire",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Magmar": {
+   "id": 126,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Magmortar",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Pinsir": {
+   "id": 127,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Pinsir",
+    "pedra": "Pinsirite",
+    "tipos": [
+     "BUG",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 65,
+     "atk": 155,
+     "def": 120,
+     "spAtk": 65,
+     "spDef": 90,
+     "speed": 105
+    }
+   }
+  },
+  "Magikarp": {
+   "id": 129,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gyarados",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Gyarados": {
+   "id": 130,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Gyarados",
+    "pedra": "Gyaradosite",
+    "tipos": [
+     "WATER",
+     "DARK"
+    ],
+    "bases": {
+     "hp": 95,
+     "atk": 155,
+     "def": 109,
+     "spAtk": 70,
+     "spDef": 130,
+     "speed": 81
+    }
+   }
+  },
+  "Eevee": {
+   "id": 133,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Vaporeon",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    },
+    {
+     "nome": "Jolteon",
+     "nivel": 80,
+     "tipoPedra": "ELECTRIC"
+    },
+    {
+     "nome": "Flareon",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    },
+    {
+     "nome": "Espeon",
+     "nivel": 80,
+     "tipoPedra": "PSYCHIC"
+    },
+    {
+     "nome": "Umbreon",
+     "nivel": 80,
+     "tipoPedra": "DARK"
+    },
+    {
+     "nome": "Leafeon",
+     "nivel": 80,
+     "tipoPedra": "GRASS"
+    },
+    {
+     "nome": "Glaceon",
+     "nivel": 80,
+     "tipoPedra": "ICE"
+    },
+    {
+     "nome": "Sylveon",
+     "nivel": 80,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Porygon": {
+   "id": 137,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Porygon2",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Omanyte": {
+   "id": 138,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Omastar",
+     "nivel": 80,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Kabuto": {
+   "id": 140,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Kabutops",
+     "nivel": 80,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Aerodactyl": {
+   "id": 142,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Aerodactyl",
+    "pedra": "Aerodactylite",
+    "tipos": [
+     "ROCK",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 135,
+     "def": 85,
+     "spAtk": 70,
+     "spDef": 95,
+     "speed": 150
+    }
+   }
+  },
+  "Dratini": {
+   "id": 147,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Dragonair",
+     "nivel": 60,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Dragonair": {
+   "id": 148,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dragonite",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Dragonite": {
+   "id": 149,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Dragonite",
+    "pedra": "Dragonitite",
+    "tipos": [
+     "DRAGON",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 91,
+     "atk": 124,
+     "def": 115,
+     "spAtk": 145,
+     "spDef": 125,
+     "speed": 100
+    }
+   }
+  },
+  "Chikorita": {
+   "id": 152,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Bayleef",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Bayleef": {
+   "id": 153,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Meganium",
+     "nivel": 80,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Meganium": {
+   "id": 154,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Meganium",
+    "pedra": "Meganiumite",
+    "tipos": [
+     "GRASS",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 92,
+     "def": 115,
+     "spAtk": 143,
+     "spDef": 115,
+     "speed": 80
+    }
+   }
+  },
+  "Cyndaquil": {
+   "id": 155,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Quilava",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Quilava": {
+   "id": 156,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Typhlosion",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Totodile": {
+   "id": 158,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Croconaw",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Croconaw": {
+   "id": 159,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Feraligatr",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Feraligatr": {
+   "id": 160,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Feraligatr",
+    "pedra": "Feraligite",
+    "tipos": [
+     "WATER",
+     "DRAGON"
+    ],
+    "bases": {
+     "hp": 85,
+     "atk": 160,
+     "def": 125,
+     "spAtk": 89,
+     "spDef": 93,
+     "speed": 78
+    }
+   }
+  },
+  "Sentret": {
+   "id": 161,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Furret",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Hoothoot": {
+   "id": 163,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Noctowl",
+     "nivel": 60,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Ledyba": {
+   "id": 165,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Ledian",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Spinarak": {
+   "id": 167,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Ariados",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Chinchou": {
+   "id": 170,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Lanturn",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Pichu": {
+   "id": 172,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Pikachu",
+     "nivel": 60,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Cleffa": {
+   "id": 173,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Clefairy",
+     "nivel": 40,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Igglybuff": {
+   "id": 174,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Jigglypuff",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Togepi": {
+   "id": 175,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Togetic",
+     "nivel": 80,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Togetic": {
+   "id": 176,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Togekiss",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Natu": {
+   "id": 177,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Xatu",
+     "nivel": 80,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Mareep": {
+   "id": 179,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Flaaffy",
+     "nivel": 40,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Flaaffy": {
+   "id": 180,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Ampharos",
+     "nivel": 80,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Ampharos": {
+   "id": 181,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Ampharos",
+    "pedra": "Ampharosite",
+    "tipos": [
+     "ELECTRIC",
+     "DRAGON"
+    ],
+    "bases": {
+     "hp": 90,
+     "atk": 95,
+     "def": 105,
+     "spAtk": 165,
+     "spDef": 110,
+     "speed": 45
+    }
+   }
+  },
+  "Marill": {
+   "id": 183,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Azumarill",
+     "nivel": 80,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Hoppip": {
+   "id": 187,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Skiploom",
+     "nivel": 30,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Skiploom": {
+   "id": 188,
+   "nivel": 50,
+   "destinos": [
+    {
+     "nome": "Jumpluff",
+     "nivel": 50,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Aipom": {
+   "id": 190,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ambipom",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Sunkern": {
+   "id": 191,
+   "nivel": 30,
+   "destinos": [
+    {
+     "nome": "Sunflora",
+     "nivel": 30,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Yanma": {
+   "id": 193,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Yanmega",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Wooper": {
+   "id": 194,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Quagsire",
+     "nivel": 60,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Murkrow": {
+   "id": 198,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Honchkrow",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Misdreavus": {
+   "id": 200,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mismagius",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Pineco": {
+   "id": 204,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Forretress",
+     "nivel": 80,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Gligar": {
+   "id": 207,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gliscor",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Steelix": {
+   "id": 208,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Steelix",
+    "pedra": "Steelixite",
+    "tipos": [
+     "STEEL",
+     "GROUND"
+    ],
+    "bases": {
+     "hp": 75,
+     "atk": 125,
+     "def": 230,
+     "spAtk": 55,
+     "spDef": 95,
+     "speed": 30
+    }
+   }
+  },
+  "Snubbull": {
+   "id": 209,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Granbull",
+     "nivel": 80,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Scizor": {
+   "id": 212,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Scizor",
+    "pedra": "Scizorite",
+    "tipos": [
+     "BUG",
+     "STEEL"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 150,
+     "def": 140,
+     "spAtk": 65,
+     "spDef": 100,
+     "speed": 75
+    }
+   }
+  },
+  "Heracross": {
+   "id": 214,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Heracross",
+    "pedra": "Heracronite",
+    "tipos": [
+     "BUG",
+     "FIGHTING"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 185,
+     "def": 115,
+     "spAtk": 40,
+     "spDef": 105,
+     "speed": 75
+    }
+   }
+  },
+  "Sneasel": {
+   "id": 215,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Weavile",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Teddiursa": {
+   "id": 216,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ursaring",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Ursaring": {
+   "id": 217,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ursaluna",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Slugma": {
+   "id": 218,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Magcargo",
+     "nivel": 80,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Swinub": {
+   "id": 220,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Piloswine",
+     "nivel": 80,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Piloswine": {
+   "id": 221,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mamoswine",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Remoraid": {
+   "id": 223,
+   "nivel": 70,
+   "destinos": [
+    {
+     "nome": "Octillery",
+     "nivel": 70,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Skarmory": {
+   "id": 227,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Skarmory",
+    "pedra": "Skarmorite",
+    "tipos": [
+     "STEEL",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 65,
+     "atk": 140,
+     "def": 110,
+     "spAtk": 40,
+     "spDef": 100,
+     "speed": 110
+    }
+   }
+  },
+  "Houndour": {
+   "id": 228,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Houndoom",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Houndoom": {
+   "id": 229,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Houndoom",
+    "pedra": "Houndoominite",
+    "tipos": [
+     "DARK",
+     "FIRE"
+    ],
+    "bases": {
+     "hp": 75,
+     "atk": 90,
+     "def": 90,
+     "spAtk": 140,
+     "spDef": 90,
+     "speed": 115
+    }
+   }
+  },
+  "Phanpy": {
+   "id": 231,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Donphan",
+     "nivel": 80,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Porygon2": {
+   "id": 233,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Porygon-Z",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Tyrogue": {
+   "id": 236,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Hitmontop",
+     "nivel": 60,
+     "tipoPedra": "FIGHTING"
+    },
+    {
+     "nome": "Hitmonlee",
+     "nivel": 60,
+     "tipoPedra": "FIGHTING"
+    },
+    {
+     "nome": "Hitmonchan",
+     "nivel": 60,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Smoochum": {
+   "id": 238,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Jynx",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Elekid": {
+   "id": 239,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Electabuzz",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Magby": {
+   "id": 240,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Magmar",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Larvitar": {
+   "id": 246,
+   "nivel": 60,
+   "destinos": [
+    {
+     "nome": "Pupitar",
+     "nivel": 60,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Pupitar": {
+   "id": 247,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Tyranitar",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Tyranitar": {
+   "id": 248,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Tyranitar",
+    "pedra": "Tyranitarite",
+    "tipos": [
+     "ROCK",
+     "DARK"
+    ],
+    "bases": {
+     "hp": 100,
+     "atk": 164,
+     "def": 150,
+     "spAtk": 95,
+     "spDef": 120,
+     "speed": 71
+    }
+   }
+  },
+  "Treecko": {
+   "id": 252,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Grovyle",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Grovyle": {
+   "id": 253,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Sceptile",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Sceptile": {
+   "id": 254,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Sceptile",
+    "pedra": "Sceptilite",
+    "tipos": [
+     "GRASS",
+     "DRAGON"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 110,
+     "def": 75,
+     "spAtk": 145,
+     "spDef": 85,
+     "speed": 145
+    }
+   }
+  },
+  "Torchic": {
+   "id": 255,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Combusken",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Combusken": {
+   "id": 256,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Blaziken",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Blaziken": {
+   "id": 257,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Blaziken",
+    "pedra": "Blazikenite",
+    "tipos": [
+     "FIRE",
+     "FIGHTING"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 160,
+     "def": 80,
+     "spAtk": 130,
+     "spDef": 80,
+     "speed": 100
+    }
+   }
+  },
+  "Mudkip": {
+   "id": 258,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Marshtomp",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Marshtomp": {
+   "id": 259,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Swampert",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Swampert": {
+   "id": 260,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Swampert",
+    "pedra": "Swampertite",
+    "tipos": [
+     "WATER",
+     "GROUND"
+    ],
+    "bases": {
+     "hp": 100,
+     "atk": 150,
+     "def": 110,
+     "spAtk": 95,
+     "spDef": 110,
+     "speed": 70
+    }
+   }
+  },
+  "Poochyena": {
+   "id": 261,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mightyena",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Lotad": {
+   "id": 270,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Lombre",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Lombre": {
+   "id": 271,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ludicolo",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Seedot": {
+   "id": 273,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Nuzleaf",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Nuzleaf": {
+   "id": 274,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Shiftry",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Taillow": {
+   "id": 276,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Swellow",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Wingull": {
+   "id": 278,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Pelipper",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Ralts": {
+   "id": 280,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Kirlia",
+     "nivel": 40,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Kirlia": {
+   "id": 281,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gardevoir",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    },
+    {
+     "nome": "Gallade",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Gardevoir": {
+   "id": 282,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Gardevoir",
+    "pedra": "Gardevoirite",
+    "tipos": [
+     "PSYCHIC",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 68,
+     "atk": 85,
+     "def": 65,
+     "spAtk": 165,
+     "spDef": 135,
+     "speed": 100
+    }
+   }
+  },
+  "Slakoth": {
+   "id": 287,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Vigoroth",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Vigoroth": {
+   "id": 288,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Slaking",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Whismur": {
+   "id": 293,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Loudred",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Loudred": {
+   "id": 294,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Exploud",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Makuhita": {
+   "id": 296,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Hariyama",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Sableye": {
+   "id": 302,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Sableye",
+    "pedra": "Sablenite",
+    "tipos": [
+     "DARK",
+     "GHOST"
+    ],
+    "bases": {
+     "hp": 50,
+     "atk": 85,
+     "def": 125,
+     "spAtk": 85,
+     "spDef": 115,
+     "speed": 20
+    }
+   }
+  },
+  "Mawile": {
+   "id": 303,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Mawile",
+    "pedra": "Mawilite",
+    "tipos": [
+     "STEEL",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 50,
+     "atk": 105,
+     "def": 125,
+     "spAtk": 55,
+     "spDef": 95,
+     "speed": 50
+    }
+   }
+  },
+  "Aron": {
+   "id": 304,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Lairon",
+     "nivel": 40,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Lairon": {
+   "id": 305,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Aggron",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Aggron": {
+   "id": 306,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Aggron",
+    "pedra": "Aggronite",
+    "tipos": [
+     "STEEL",
+     "ROCK"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 140,
+     "def": 230,
+     "spAtk": 60,
+     "spDef": 80,
+     "speed": 50
+    }
+   }
+  },
+  "Meditite": {
+   "id": 307,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Medicham",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Medicham": {
+   "id": 308,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Medicham",
+    "pedra": "Medichamite",
+    "tipos": [
+     "FIGHTING",
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 100,
+     "def": 85,
+     "spAtk": 80,
+     "spDef": 85,
+     "speed": 100
+    }
+   }
+  },
+  "Electrike": {
+   "id": 309,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Manectric",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Manectric": {
+   "id": 310,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Manectric",
+    "pedra": "Manectite",
+    "tipos": [
+     "ELECTRIC"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 75,
+     "def": 80,
+     "spAtk": 135,
+     "spDef": 80,
+     "speed": 135
+    }
+   }
+  },
+  "Numel": {
+   "id": 322,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Camerupt",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Camerupt": {
+   "id": 323,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Camerupt",
+    "pedra": "Cameruptite",
+    "tipos": [
+     "FIRE",
+     "GROUND"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 120,
+     "def": 100,
+     "spAtk": 145,
+     "spDef": 105,
+     "speed": 20
+    }
+   }
+  },
+  "Spoink": {
+   "id": 325,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Grumpig",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Trapinch": {
+   "id": 328,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Vibrava",
+     "nivel": 40,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Vibrava": {
+   "id": 329,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Flygon",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Swablu": {
+   "id": 333,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Altaria",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Altaria": {
+   "id": 334,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Altaria",
+    "pedra": "Altarianite",
+    "tipos": [
+     "DRAGON",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 75,
+     "atk": 110,
+     "def": 110,
+     "spAtk": 110,
+     "spDef": 105,
+     "speed": 80
+    }
+   }
+  },
+  "Corphish": {
+   "id": 341,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Crawdaunt",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Baltoy": {
+   "id": 343,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Claydol",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Feebas": {
+   "id": 349,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Milotic",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Banette": {
+   "id": 354,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Banette",
+    "pedra": "Banettite",
+    "tipos": [
+     "GHOST"
+    ],
+    "bases": {
+     "hp": 64,
+     "atk": 165,
+     "def": 75,
+     "spAtk": 93,
+     "spDef": 83,
+     "speed": 75
+    }
+   }
+  },
+  "Duskull": {
+   "id": 355,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dusclops",
+     "nivel": 40,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Dusclops": {
+   "id": 356,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dusknoir",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Absol": {
+   "id": 359,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Absol",
+    "pedra": "Absolite",
+    "tipos": [
+     "DARK"
+    ],
+    "bases": {
+     "hp": 65,
+     "atk": 150,
+     "def": 60,
+     "spAtk": 115,
+     "spDef": 60,
+     "speed": 115
+    }
+   }
+  },
+  "Snorunt": {
+   "id": 361,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Glalie",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    },
+    {
+     "nome": "Froslass",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Glalie": {
+   "id": 362,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Glalie",
+    "pedra": "Glalitite",
+    "tipos": [
+     "ICE"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 120,
+     "def": 80,
+     "spAtk": 120,
+     "spDef": 80,
+     "speed": 100
+    }
+   }
+  },
+  "Spheal": {
+   "id": 363,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Sealeo",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Sealeo": {
+   "id": 364,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Walrein",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Bagon": {
+   "id": 371,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Shelgon",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Shelgon": {
+   "id": 372,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Salamence",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Beldum": {
+   "id": 374,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Metang",
+     "nivel": 40,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Metang": {
+   "id": 375,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Metagross",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Metagross": {
+   "id": 376,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Metagross",
+    "pedra": "Metagrossite",
+    "tipos": [
+     "STEEL",
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 80,
+     "atk": 145,
+     "def": 150,
+     "spAtk": 105,
+     "spDef": 110,
+     "speed": 110
+    }
+   }
+  },
+  "Shieldon": {
+   "id": 410,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Bastiodon",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Riolu": {
+   "id": 447,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lucario",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Lucario": {
+   "id": 448,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Lucario",
+    "pedra": "Lucarionite",
+    "tipos": [
+     "FIGHTING",
+     "STEEL"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 145,
+     "def": 88,
+     "spAtk": 140,
+     "spDef": 70,
+     "speed": 112
+    }
+   }
+  },
+  "Tirtouga": {
+   "id": 564,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Carracosta",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Archen": {
+   "id": 566,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Archeops",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Larvesta": {
+   "id": 636,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Volcarona",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Flabebe": {
+   "id": 669,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Floette",
+     "nivel": 40,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Floette": {
+   "id": 670,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Florges",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Pancham": {
+   "id": 674,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Pangoro",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Skrelp": {
+   "id": 690,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dragalge",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Dragalge": {
+   "id": 691,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Dragalge",
+    "pedra": "Dragalgite",
+    "tipos": [
+     "POISON",
+     "DRAGON"
+    ],
+    "bases": {
+     "hp": 65,
+     "atk": 85,
+     "def": 105,
+     "spAtk": 132,
+     "spDef": 163,
+     "speed": 44
+    }
+   }
+  },
+  "Mega Blastoise": {
+   "id": 14009,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Blastoise",
+    "pedra": "Blastoisinite",
+    "tipos": [
+     "WATER"
+    ],
+    "bases": {
+     "hp": 79,
+     "atk": 103,
+     "def": 120,
+     "spAtk": 135,
+     "spDef": 115,
+     "speed": 78
+    }
+   }
+  },
+  "Mega Alakazam": {
+   "id": 14065,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Alakazam",
+    "pedra": "Alakazite",
+    "tipos": [
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 55,
+     "atk": 50,
+     "def": 65,
+     "spAtk": 175,
+     "spDef": 105,
+     "speed": 150
+    }
+   }
+  },
+  "Mega Gardevoir": {
+   "id": 14282,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Gardevoir",
+    "pedra": "Gardevoirite",
+    "tipos": [
+     "PSYCHIC",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 68,
+     "atk": 85,
+     "def": 65,
+     "spAtk": 165,
+     "spDef": 135,
+     "speed": 100
+    }
+   }
+  },
+  "Mega Sableye": {
+   "id": 14302,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Sableye",
+    "pedra": "Sablenite",
+    "tipos": [
+     "DARK",
+     "GHOST"
+    ],
+    "bases": {
+     "hp": 50,
+     "atk": 85,
+     "def": 125,
+     "spAtk": 85,
+     "spDef": 115,
+     "speed": 20
+    }
+   }
+  },
+  "Mega Altaria": {
+   "id": 14334,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Altaria",
+    "pedra": "Altarianite",
+    "tipos": [
+     "DRAGON",
+     "FAIRY"
+    ],
+    "bases": {
+     "hp": 75,
+     "atk": 110,
+     "def": 110,
+     "spAtk": 110,
+     "spDef": 105,
+     "speed": 80
+    }
+   }
+  },
+  "Mega Lucario": {
+   "id": 14448,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Lucario",
+    "pedra": "Lucarionite",
+    "tipos": [
+     "FIGHTING",
+     "STEEL"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 145,
+     "def": 88,
+     "spAtk": 140,
+     "spDef": 70,
+     "speed": 112
+    }
+   }
+  },
+  "Zigzagoon": {
+   "id": 263,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Linoone",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Linoone": {
+   "id": 264,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Obstagoon",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Wurmple": {
+   "id": 265,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Silcoon",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    },
+    {
+     "nome": "Cascoon",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Silcoon": {
+   "id": 266,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Beautifly",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Cascoon": {
+   "id": 268,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dustox",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Surskit": {
+   "id": 283,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Masquerain",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Shroomish": {
+   "id": 285,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Breloom",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Nincada": {
+   "id": 290,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ninjask",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    },
+    {
+     "nome": "Shedinja",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Azurill": {
+   "id": 298,
+   "nivel": 20,
+   "destinos": [
+    {
+     "nome": "Marill",
+     "nivel": 20,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Nosepass": {
+   "id": 299,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Probopass",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Skitty": {
+   "id": 300,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Delcatty",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Roselia": {
+   "id": 315,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Roserade",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Gulpin": {
+   "id": 316,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Swalot",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Carvanha": {
+   "id": 318,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Sharpedo",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Sharpedo": {
+   "id": 319,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Sharpedo",
+    "pedra": "Sharpedonite",
+    "tipos": [
+     "WATER",
+     "DARK"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 140,
+     "def": 70,
+     "spAtk": 110,
+     "spDef": 65,
+     "speed": 105
+    }
+   }
+  },
+  "Wailmer": {
+   "id": 320,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Wailord",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Cacnea": {
+   "id": 331,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cacturne",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Barboach": {
+   "id": 339,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Whiscash",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Lileep": {
+   "id": 345,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cradily",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Anorith": {
+   "id": 347,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Armaldo",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Shuppet": {
+   "id": 353,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Banette",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Chimecho": {
+   "id": 358,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Chimecho",
+    "pedra": "Chimechite",
+    "tipos": [
+     "PSYCHIC",
+     "STEEL"
+    ],
+    "bases": {
+     "hp": 75,
+     "atk": 50,
+     "def": 110,
+     "spAtk": 135,
+     "spDef": 120,
+     "speed": 65
+    }
+   }
+  },
+  "Wynaut": {
+   "id": 360,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Wobbuffet",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Clamperl": {
+   "id": 366,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Huntail",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    },
+    {
+     "nome": "Gorebyss",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Turtwig": {
+   "id": 387,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Grotle",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Grotle": {
+   "id": 388,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Torterra",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Chimchar": {
+   "id": 390,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Monferno",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Monferno": {
+   "id": 391,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Infernape",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Piplup": {
+   "id": 393,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Prinplup",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Prinplup": {
+   "id": 394,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Empoleon",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Starly": {
+   "id": 396,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Staravia",
+     "nivel": 40,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Staravia": {
+   "id": 397,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Staraptor",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Bidoof": {
+   "id": 399,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Bibarel",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Kricketot": {
+   "id": 401,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Kricketune",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Shinx": {
+   "id": 403,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Luxio",
+     "nivel": 40,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Luxio": {
+   "id": 404,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Luxray",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Budew": {
+   "id": 406,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Roselia",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Cranidos": {
+   "id": 408,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Rampardos",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Burmy": {
+   "id": 412,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Wormadam",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    },
+    {
+     "nome": "Mothim",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Combee": {
+   "id": 415,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Vespiquen",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Buizel": {
+   "id": 418,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Floatzel",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Cherubi": {
+   "id": 420,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cherrim",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Shellos": {
+   "id": 422,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gastrodon",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Drifloon": {
+   "id": 425,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Drifblim",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Buneary": {
+   "id": 427,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lopunny",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Glameow": {
+   "id": 431,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Purugly",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Chingling": {
+   "id": 433,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Chimecho",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Stunky": {
+   "id": 434,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Skuntank",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Bronzor": {
+   "id": 436,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Bronzong",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Bonsly": {
+   "id": 438,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Sudowoodo",
+     "nivel": 40,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Mime Jr.": {
+   "id": 439,
+   "nivel": 80,
+   "destinos": [
+    {
+     "nome": "Mr. Mime",
+     "nivel": 80,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Happiny": {
+   "id": 440,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Chansey",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Gible": {
+   "id": 443,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Gabite",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Gabite": {
+   "id": 444,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Garchomp",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Garchomp": {
+   "id": 445,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Garchomp",
+    "pedra": "Garchompite",
+    "tipos": [
+     "DRAGON",
+     "GROUND"
+    ],
+    "bases": {
+     "hp": 108,
+     "atk": 170,
+     "def": 115,
+     "spAtk": 120,
+     "spDef": 95,
+     "speed": 92
+    }
+   }
+  },
+  "Munchlax": {
+   "id": 446,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Snorlax",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Hippopotas": {
+   "id": 449,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Hippowdon",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Skorupi": {
+   "id": 451,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Drapion",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Croagunk": {
+   "id": 453,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Toxicroak",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Finneon": {
+   "id": 456,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lumineon",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Mantyke": {
+   "id": 458,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mantine",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Snover": {
+   "id": 459,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Abomasnow",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Abomasnow": {
+   "id": 460,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Abomasnow",
+    "pedra": "Abomasite",
+    "tipos": [
+     "GRASS",
+     "ICE"
+    ],
+    "bases": {
+     "hp": 90,
+     "atk": 132,
+     "def": 105,
+     "spAtk": 132,
+     "spDef": 105,
+     "speed": 30
+    }
+   }
+  },
+  "Gallade": {
+   "id": 475,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Gallade",
+    "pedra": "Galladite",
+    "tipos": [
+     "PSYCHIC",
+     "FIGHTING"
+    ],
+    "bases": {
+     "hp": 68,
+     "atk": 165,
+     "def": 95,
+     "spAtk": 65,
+     "spDef": 115,
+     "speed": 110
+    }
+   }
+  },
+  "Froslass": {
+   "id": 478,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Froslass",
+    "pedra": "Froslassite",
+    "tipos": [
+     "ICE",
+     "GHOST"
+    ],
+    "bases": {
+     "hp": 70,
+     "atk": 80,
+     "def": 70,
+     "spAtk": 140,
+     "spDef": 100,
+     "speed": 120
+    }
+   }
+  },
+  "Phione": {
+   "id": 489,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Manaphy",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Snivy": {
+   "id": 495,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Servine",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Servine": {
+   "id": 496,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Serperior",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Tepig": {
+   "id": 498,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Pignite",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Pignite": {
+   "id": 499,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Emboar",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Oshawott": {
+   "id": 501,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dewott",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Dewott": {
+   "id": 502,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Samurott",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Patrat": {
+   "id": 504,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Watchog",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Lillipup": {
+   "id": 506,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Herdier",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Herdier": {
+   "id": 507,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Stoutland",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Purrloin": {
+   "id": 509,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Liepard",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Pansage": {
+   "id": 511,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Simisage",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Pansear": {
+   "id": 513,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Simisear",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Panpour": {
+   "id": 515,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Simipour",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Munna": {
+   "id": 517,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Musharna",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Pidove": {
+   "id": 519,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Tranquill",
+     "nivel": 40,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Tranquill": {
+   "id": 520,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Unfezant",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Blitzle": {
+   "id": 522,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Zebstrika",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Roggenrola": {
+   "id": 524,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Boldore",
+     "nivel": 40,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Boldore": {
+   "id": 525,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gigalith",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Woobat": {
+   "id": 527,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Swoobat",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Drilbur": {
+   "id": 529,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Excadrill",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Excadrill": {
+   "id": 530,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Excadrill",
+    "pedra": "Excadrite",
+    "tipos": [
+     "GROUND",
+     "STEEL"
+    ],
+    "bases": {
+     "hp": 110,
+     "atk": 165,
+     "def": 100,
+     "spAtk": 65,
+     "spDef": 65,
+     "speed": 103
+    }
+   }
+  },
+  "Timburr": {
+   "id": 532,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Gurdurr",
+     "nivel": 40,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Gurdurr": {
+   "id": 533,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Conkeldurr",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Tympole": {
+   "id": 535,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Palpitoad",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Palpitoad": {
+   "id": 536,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Seismitoad",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Sewaddle": {
+   "id": 540,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Swadloon",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Swadloon": {
+   "id": 541,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Leavanny",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Venipede": {
+   "id": 543,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Whirlipede",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Whirlipede": {
+   "id": 544,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Scolipede",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Scolipede": {
+   "id": 545,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Scolipede",
+    "pedra": "Scolipite",
+    "tipos": [
+     "BUG",
+     "POISON"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 140,
+     "def": 149,
+     "spAtk": 75,
+     "spDef": 99,
+     "speed": 62
+    }
+   }
+  },
+  "Cottonee": {
+   "id": 546,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Whimsicott",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Petilil": {
+   "id": 548,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lilligant",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Basculin": {
+   "id": 550,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Basculegion",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Sandile": {
+   "id": 551,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Krokorok",
+     "nivel": 40,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Krokorok": {
+   "id": 552,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Krookodile",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Darumaka": {
+   "id": 554,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Darmanitan",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Dwebble": {
+   "id": 557,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Crustle",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Scraggy": {
+   "id": 559,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Scrafty",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Yamask": {
+   "id": 562,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cofagrigus",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Trubbish": {
+   "id": 568,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Garbodor",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Zorua": {
+   "id": 570,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Zoroark",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Minccino": {
+   "id": 572,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cinccino",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Gothita": {
+   "id": 574,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Gothorita",
+     "nivel": 40,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Gothorita": {
+   "id": 575,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gothitelle",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Solosis": {
+   "id": 577,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Duosion",
+     "nivel": 40,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Duosion": {
+   "id": 578,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Reuniclus",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Ducklett": {
+   "id": 580,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Swanna",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Vanillite": {
+   "id": 582,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Vanillish",
+     "nivel": 40,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Vanillish": {
+   "id": 583,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Vanilluxe",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Deerling": {
+   "id": 585,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Sawsbuck",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Karrablast": {
+   "id": 588,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Escavalier",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Foongus": {
+   "id": 590,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Amoonguss",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Frillish": {
+   "id": 592,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Jellicent",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Joltik": {
+   "id": 595,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Galvantula",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Ferroseed": {
+   "id": 597,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ferrothorn",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Klink": {
+   "id": 599,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Klang",
+     "nivel": 40,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Klang": {
+   "id": 600,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Klinklang",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Tynamo": {
+   "id": 602,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Eelektrik",
+     "nivel": 40,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Eelektrik": {
+   "id": 603,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Eelektross",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Eelektross": {
+   "id": 604,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Eelektross",
+    "pedra": "Eelektrossite",
+    "tipos": [
+     "ELECTRIC"
+    ],
+    "bases": {
+     "hp": 85,
+     "atk": 145,
+     "def": 80,
+     "spAtk": 135,
+     "spDef": 90,
+     "speed": 80
+    }
+   }
+  },
+  "Elgyem": {
+   "id": 605,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Beheeyem",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Litwick": {
+   "id": 607,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Lampent",
+     "nivel": 40,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Lampent": {
+   "id": 608,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Chandelure",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Chandelure": {
+   "id": 609,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Chandelure",
+    "pedra": "Chandelurite",
+    "tipos": [
+     "GHOST",
+     "FIRE"
+    ],
+    "bases": {
+     "hp": 60,
+     "atk": 75,
+     "def": 110,
+     "spAtk": 175,
+     "spDef": 110,
+     "speed": 90
+    }
+   }
+  },
+  "Axew": {
+   "id": 610,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Fraxure",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Fraxure": {
+   "id": 611,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Haxorus",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Cubchoo": {
+   "id": 613,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Beartic",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Shelmet": {
+   "id": 616,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Accelgor",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Mienfoo": {
+   "id": 619,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mienshao",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Golett": {
+   "id": 622,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Golurk",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Pawniard": {
+   "id": 624,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Bisharp",
+     "nivel": 40,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Bisharp": {
+   "id": 625,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Kingambit",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Rufflet": {
+   "id": 627,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Braviary",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Vullaby": {
+   "id": 629,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mandibuzz",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Deino": {
+   "id": 633,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Zweilous",
+     "nivel": 40,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Zweilous": {
+   "id": 634,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Hydreigon",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Chespin": {
+   "id": 650,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Quilladin",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Quilladin": {
+   "id": 651,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Chesnaught",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Fennekin": {
+   "id": 653,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Braixen",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Braixen": {
+   "id": 654,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Delphox",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Froakie": {
+   "id": 656,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Frogadier",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Frogadier": {
+   "id": 657,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Greninja",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Greninja": {
+   "id": 658,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Greninja",
+    "pedra": "Greninjite",
+    "tipos": [
+     "WATER",
+     "DARK"
+    ],
+    "bases": {
+     "hp": 72,
+     "atk": 125,
+     "def": 77,
+     "spAtk": 133,
+     "spDef": 81,
+     "speed": 142
+    }
+   }
+  },
+  "Bunnelby": {
+   "id": 659,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Diggersby",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Fletchling": {
+   "id": 661,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Fletchinder",
+     "nivel": 40,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Fletchinder": {
+   "id": 662,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Talonflame",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Scatterbug": {
+   "id": 664,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Spewpa",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Spewpa": {
+   "id": 665,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Vivillon",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Litleo": {
+   "id": 667,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Pyroar",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Pyroar": {
+   "id": 668,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Pyroar",
+    "pedra": "Pyroarite",
+    "tipos": [
+     "FIRE",
+     "NORMAL"
+    ],
+    "bases": {
+     "hp": 86,
+     "atk": 88,
+     "def": 92,
+     "spAtk": 129,
+     "spDef": 86,
+     "speed": 126
+    }
+   }
+  },
+  "Skiddo": {
+   "id": 672,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gogoat",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Espurr": {
+   "id": 677,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Meowstic",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Honedge": {
+   "id": 679,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Doublade",
+     "nivel": 40,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Doublade": {
+   "id": 680,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Aegislash",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Spritzee": {
+   "id": 682,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Aromatisse",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Swirlix": {
+   "id": 684,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Slurpuff",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Inkay": {
+   "id": 686,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Malamar",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Malamar": {
+   "id": 687,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Malamar",
+    "pedra": "Malamarite",
+    "tipos": [
+     "DARK",
+     "PSYCHIC"
+    ],
+    "bases": {
+     "hp": 86,
+     "atk": 102,
+     "def": 88,
+     "spAtk": 98,
+     "spDef": 120,
+     "speed": 88
+    }
+   }
+  },
+  "Binacle": {
+   "id": 688,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Barbaracle",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Barbaracle": {
+   "id": 689,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Barbaracle",
+    "pedra": "Barbaracite",
+    "tipos": [
+     "ROCK",
+     "FIGHTING"
+    ],
+    "bases": {
+     "hp": 72,
+     "atk": 140,
+     "def": 130,
+     "spAtk": 64,
+     "spDef": 106,
+     "speed": 88
+    }
+   }
+  },
+  "Clauncher": {
+   "id": 692,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Clawitzer",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Helioptile": {
+   "id": 694,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Heliolisk",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Tyrunt": {
+   "id": 696,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Tyrantrum",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Amaura": {
+   "id": 698,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Aurorus",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Hawlucha": {
+   "id": 701,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Hawlucha",
+    "pedra": "Hawluchanite",
+    "tipos": [
+     "FIGHTING",
+     "FLYING"
+    ],
+    "bases": {
+     "hp": 78,
+     "atk": 137,
+     "def": 100,
+     "spAtk": 74,
+     "spDef": 93,
+     "speed": 118
+    }
+   }
+  },
+  "Goomy": {
+   "id": 704,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Sliggoo",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Sliggoo": {
+   "id": 705,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Goodra",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Phantump": {
+   "id": 708,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Trevenant",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Pumpkaboo": {
+   "id": 710,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gourgeist",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Bergmite": {
+   "id": 712,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Avalugg",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Noibat": {
+   "id": 714,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Noivern",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Rowlet": {
+   "id": 722,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dartrix",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Dartrix": {
+   "id": 723,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Decidueye",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Litten": {
+   "id": 725,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Torracat",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Torracat": {
+   "id": 726,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Incineroar",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Popplio": {
+   "id": 728,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Brionne",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Brionne": {
+   "id": 729,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Primarina",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Pikipek": {
+   "id": 731,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Trumbeak",
+     "nivel": 40,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Trumbeak": {
+   "id": 732,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Toucannon",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Yungoos": {
+   "id": 734,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gumshoos",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Grubbin": {
+   "id": 736,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Charjabug",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Charjabug": {
+   "id": 737,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Vikavolt",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Crabrawler": {
+   "id": 739,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Crabominable",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Cutiefly": {
+   "id": 742,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Ribombee",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Rockruff": {
+   "id": 744,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lycanroc",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Mareanie": {
+   "id": 747,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Toxapex",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Mudbray": {
+   "id": 749,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mudsdale",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Dewpider": {
+   "id": 751,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Araquanid",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Fomantis": {
+   "id": 753,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lurantis",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Morelull": {
+   "id": 755,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Shiinotic",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Salandit": {
+   "id": 757,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Salazzle",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Stufful": {
+   "id": 759,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Bewear",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Bounsweet": {
+   "id": 761,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Steenee",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Steenee": {
+   "id": 762,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Tsareena",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Wimpod": {
+   "id": 767,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Golisopod",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Sandygast": {
+   "id": 769,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Palossand",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Type: Null": {
+   "id": 772,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Silvally",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Drampa": {
+   "id": 780,
+   "nivel": 0,
+   "destinos": [],
+   "mega": {
+    "nome": "Mega Drampa",
+    "pedra": "Drampanite",
+    "tipos": [
+     "NORMAL",
+     "DRAGON"
+    ],
+    "bases": {
+     "hp": 78,
+     "atk": 85,
+     "def": 110,
+     "spAtk": 160,
+     "spDef": 116,
+     "speed": 36
+    }
+   }
+  },
+  "Jangmo-o": {
+   "id": 782,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Hakamo-o",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Hakamo-o": {
+   "id": 783,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Kommo-o",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Cosmog": {
+   "id": 789,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Cosmoem",
+     "nivel": 40,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Cosmoem": {
+   "id": 790,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Solgaleo",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Poipole": {
+   "id": 803,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Naganadel",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Grookey": {
+   "id": 810,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Thwackey",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Thwackey": {
+   "id": 811,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Rillaboom",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Scorbunny": {
+   "id": 813,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Raboot",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Raboot": {
+   "id": 814,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cinderace",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Sobble": {
+   "id": 816,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Drizzile",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Drizzile": {
+   "id": 817,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Inteleon",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Skwovet": {
+   "id": 819,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Greedent",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Rookidee": {
+   "id": 821,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Corvisquire",
+     "nivel": 40,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Corvisquire": {
+   "id": 822,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Corviknight",
+     "nivel": 100,
+     "tipoPedra": "FLYING"
+    }
+   ]
+  },
+  "Blipbug": {
+   "id": 824,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dottler",
+     "nivel": 40,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Dottler": {
+   "id": 825,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Orbeetle",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Nickit": {
+   "id": 827,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Thievul",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Gossifleur": {
+   "id": 829,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Eldegoss",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Wooloo": {
+   "id": 831,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dubwool",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Chewtle": {
+   "id": 833,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Drednaw",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Yamper": {
+   "id": 835,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Boltund",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Rolycoly": {
+   "id": 837,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Carkol",
+     "nivel": 40,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Carkol": {
+   "id": 838,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Coalossal",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Applin": {
+   "id": 840,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Flapple",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Silicobra": {
+   "id": 843,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Sandaconda",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Arrokuda": {
+   "id": 846,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Barraskewda",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Toxel": {
+   "id": 848,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Toxtricity",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Sizzlipede": {
+   "id": 850,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Centiskorch",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Clobbopus": {
+   "id": 852,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Grapploct",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Sinistea": {
+   "id": 854,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Polteageist",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Hatenna": {
+   "id": 856,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Hattrem",
+     "nivel": 40,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Hattrem": {
+   "id": 857,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Hatterene",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Impidimp": {
+   "id": 859,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Morgrem",
+     "nivel": 40,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Morgrem": {
+   "id": 860,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Grimmsnarl",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Milcery": {
+   "id": 868,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Alcremie",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Snom": {
+   "id": 872,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Frosmoth",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Cufant": {
+   "id": 878,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Copperajah",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Duraludon": {
+   "id": 884,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Archaludon",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Dreepy": {
+   "id": 885,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Drakloak",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Drakloak": {
+   "id": 886,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dragapult",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Kubfu": {
+   "id": 891,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Urshifu",
+     "nivel": 100,
+     "tipoPedra": "FIGHTING"
+    }
+   ]
+  },
+  "Sprigatito": {
+   "id": 906,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Floragato",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Floragato": {
+   "id": 907,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Meowscarada",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Fuecoco": {
+   "id": 909,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Crocalor",
+     "nivel": 40,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Crocalor": {
+   "id": 910,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Skeledirge",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Quaxly": {
+   "id": 912,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Quaxwell",
+     "nivel": 40,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Quaxwell": {
+   "id": 913,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Quaquaval",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Lechonk": {
+   "id": 915,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Oinkologne",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Tarountula": {
+   "id": 917,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Spidops",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Nymble": {
+   "id": 919,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Lokix",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Pawmi": {
+   "id": 921,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Pawmo",
+     "nivel": 40,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Pawmo": {
+   "id": 922,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Pawmot",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Tandemaus": {
+   "id": 924,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Maushold",
+     "nivel": 100,
+     "tipoPedra": "NORMAL"
+    }
+   ]
+  },
+  "Fidough": {
+   "id": 926,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Dachsbun",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Smoliv": {
+   "id": 928,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Dolliv",
+     "nivel": 40,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Dolliv": {
+   "id": 929,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Arboliva",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Nacli": {
+   "id": 932,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Naclstack",
+     "nivel": 40,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Naclstack": {
+   "id": 933,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Garganacl",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Charcadet": {
+   "id": 935,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Armarouge",
+     "nivel": 100,
+     "tipoPedra": "FIRE"
+    }
+   ]
+  },
+  "Tadbulb": {
+   "id": 938,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Bellibolt",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Wattrel": {
+   "id": 940,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Kilowattrel",
+     "nivel": 100,
+     "tipoPedra": "ELECTRIC"
+    }
+   ]
+  },
+  "Maschiff": {
+   "id": 942,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Mabosstiff",
+     "nivel": 100,
+     "tipoPedra": "DARK"
+    }
+   ]
+  },
+  "Shroodle": {
+   "id": 944,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Grafaiai",
+     "nivel": 100,
+     "tipoPedra": "POISON"
+    }
+   ]
+  },
+  "Bramblin": {
+   "id": 946,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Brambleghast",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Toedscool": {
+   "id": 948,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Toedscruel",
+     "nivel": 100,
+     "tipoPedra": "GROUND"
+    }
+   ]
+  },
+  "Capsakid": {
+   "id": 951,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Scovillain",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Rellor": {
+   "id": 953,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Rabsca",
+     "nivel": 100,
+     "tipoPedra": "BUG"
+    }
+   ]
+  },
+  "Flittle": {
+   "id": 955,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Espathra",
+     "nivel": 100,
+     "tipoPedra": "PSYCHIC"
+    }
+   ]
+  },
+  "Tinkatink": {
+   "id": 957,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Tinkatuff",
+     "nivel": 40,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Tinkatuff": {
+   "id": 958,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Tinkaton",
+     "nivel": 100,
+     "tipoPedra": "FAIRY"
+    }
+   ]
+  },
+  "Wiglett": {
+   "id": 960,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Wugtrio",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Finizen": {
+   "id": 963,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Palafin",
+     "nivel": 100,
+     "tipoPedra": "WATER"
+    }
+   ]
+  },
+  "Varoom": {
+   "id": 965,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Revavroom",
+     "nivel": 100,
+     "tipoPedra": "STEEL"
+    }
+   ]
+  },
+  "Glimmet": {
+   "id": 969,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Glimmora",
+     "nivel": 100,
+     "tipoPedra": "ROCK"
+    }
+   ]
+  },
+  "Greavard": {
+   "id": 971,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Houndstone",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Cetoddle": {
+   "id": 974,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Cetitan",
+     "nivel": 100,
+     "tipoPedra": "ICE"
+    }
+   ]
+  },
+  "Frigibax": {
+   "id": 996,
+   "nivel": 40,
+   "destinos": [
+    {
+     "nome": "Arctibax",
+     "nivel": 40,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Arctibax": {
+   "id": 997,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Baxcalibur",
+     "nivel": 100,
+     "tipoPedra": "DRAGON"
+    }
+   ]
+  },
+  "Gimmighoul": {
+   "id": 999,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Gholdengo",
+     "nivel": 100,
+     "tipoPedra": "GHOST"
+    }
+   ]
+  },
+  "Dipplin": {
+   "id": 1011,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Hydrapple",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  },
+  "Poltchageist": {
+   "id": 1012,
+   "nivel": 100,
+   "destinos": [
+    {
+     "nome": "Sinistcha",
+     "nivel": 100,
+     "tipoPedra": "GRASS"
+    }
+   ]
+  }
+ }
+}
