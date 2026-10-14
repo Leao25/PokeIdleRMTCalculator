@@ -633,7 +633,7 @@ function grafico(f, kept, est, fimMin) {
   svg += `</svg>`;
   box.innerHTML = `<div class="head-row"><div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(list[0].species)}</h2></div><span class="muted small">${list.length} vendas ${grupo} · escala logarítmica</span></div>
     <div class="chart">${svg}</div>
-    <div class="legend"><span><i class="sw" style="background:${f.shiny ? "var(--coin)" : "var(--muted)"}"></i>venda ${f.shiny ? "shiny" : "comum"} (maior = mesma potência que o seu)</span><span><i class="sw" style="background:var(--ink);border-radius:2px;height:3px"></i>mediana do ${porQue}</span><span><i class="sw" style="background:var(--acc);border-radius:2px;height:3px"></i>preço justo do seu</span><span><i class="sw" style="background:var(--acc);opacity:.55;border-radius:2px"></i>vendas por ${porQue}</span></div>`;
+    <div class="legend"><span><i class="sw" style="background:${f.shiny ? "var(--coin)" : "var(--muted)"}"></i>venda ${f.shiny ? "shiny" : "comum"} (maior = mesma potência que o seu)</span><span><i class="sw" style="background:var(--ink);border-radius:2px;height:3px"></i>mediana ${passo === 1440 ? "do dia" : "da semana"}</span><span><i class="sw" style="background:var(--acc);border-radius:2px;height:3px"></i>preço justo do seu</span><span><i class="sw" style="background:var(--acc);opacity:.55;border-radius:2px"></i>vendas por ${porQue}</span></div>`;
 }
 
 // ---------- render ----------
