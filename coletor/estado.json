@@ -1,5 +1,5 @@
 {
-  "ultimaPrincipal": "2026-10-14T20:24:05.008Z",
+  "ultimaPrincipal": "2026-10-14T22:24:30.711Z",
   "fila": [
     {
       "tipo": "pokemon",
@@ -83,5 +83,6 @@
       "cortado": false,
       "em": "2026-10-14T21:24:17.007Z"
     }
-  ]
+  ],
+  "explorado": "2026-10-14T22:24:30.614Z"
 }
