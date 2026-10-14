@@ -203,6 +203,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .82rem; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; font-family: var(--f-mono); text-align: right; }
+.pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+.aviso { color: var(--warn); cursor: help; }
+.spark { width: 80px; height: 20px; display: block; }
+.mini input { width: 130px; }
 .cot { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: end; }
 .cot .big { font: 700 1.8rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
 .foot { font-size: .8rem; color: var(--muted); display: grid; gap: 6px; max-width: 82ch; }
@@ -239,6 +243,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   <nav class="abas" role="tablist" aria-label="Seções">
     <button role="tab" data-aba="avaliar" aria-selected="true">Avaliar</button>
     <button role="tab" data-aba="comprar" aria-selected="false">Comprar</button>
+    <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
+    <button role="tab" data-aba="itens" aria-selected="false">Itens</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -301,6 +307,43 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
           <p class="muted small">No Mercado, abra a ficha do pokémon anunciado, clique em <b>Copiar p/ ChatGPT</b> e cole na caixa ao lado. Depois digite o preço do anúncio.</p>
           <label class="calc-linha compra-linha" for="c-anuncio">Está anunciado por <input id="c-anuncio" inputmode="numeric" placeholder="3.000" aria-label="Preço do anúncio"> <span class="u">Gemas</span></label>
           <div id="compra-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="sniper" hidden>
+        <section class="panel" id="sniper">
+          <div class="head-row">
+            <div><span class="lbl">Oportunidades</span><h2>Sniper do Mercado</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Desconto mínimo
+                <select id="sn-desc"><option value="0.2">20% abaixo</option><option value="0.25">25% abaixo</option><option value="0.3" selected>30% abaixo</option><option value="0.4">40% abaixo</option><option value="0.5">50% abaixo</option></select>
+              </label>
+              <label class="mini">Grupo
+                <select id="sn-grupo"><option value="todos">Todos</option><option value="shiny">Só shiny</option><option value="comum">Só comuns</option></select>
+              </label>
+              <label class="mini">Avaliação
+                <select id="sn-conf"><option value="1" selected>Confiável</option><option value="2">Muito confiável</option><option value="0">Qualquer</option></select>
+              </label>
+              <label class="mini">Ordenar
+                <select id="sn-ordem"><option value="lucro" selected>Maior lucro</option><option value="desc">Maior desconto</option><option value="recentes">Mais recentes</option></select>
+              </label>
+              <label class="mini">Buscar <input id="sn-busca" placeholder="espécie" autocomplete="off"></label>
+            </div>
+          </div>
+          <div id="sniper-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="itens" hidden>
+        <section class="panel" id="itens">
+          <div class="head-row">
+            <div><span class="lbl">Pedras, caixas e mais</span><h2>Preço dos itens</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Categoria <select id="it-cat"><option value="">Todas as categorias</option></select></label>
+              <label class="mini">Buscar <input id="it-busca" placeholder="Fire Stone" autocomplete="off"></label>
+            </div>
+          </div>
+          <div id="itens-out"></div>
         </section>
       </div>
 
@@ -765,6 +808,8 @@ function render() {
   renderComparar();
   if (state.aba === "farmar") renderFarm();
   if (state.aba === "mercado") renderCotacao();
+  if (state.aba === "sniper") renderSniper();
+  if (state.aba === "itens") renderItens();
 
   if (temFicha) {
   grafico(f, kept, est, fim);
@@ -843,7 +888,7 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 
 // ---------- abas ----------
 function abrirAba(aba) {
-  if (!["avaliar", "comprar", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (!["avaliar", "comprar", "sniper", "itens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
@@ -851,6 +896,8 @@ function abrirAba(aba) {
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") renderCotacao();
   if (aba === "comprar") renderCompra();
+  if (aba === "sniper") renderSniper();
+  if (aba === "itens") renderItens();
 }
 
 // ---------- calculadoras ----------
@@ -1123,6 +1170,121 @@ async function renderFarm() {
   });
 }
 
+// ---------- sniper ----------
+let anunciosDados = null;
+async function carregarAnuncios() {
+  if (anunciosDados) return anunciosDados;
+  const d = await (await fetch("dados/anuncios.json", { cache: "no-cache" })).json();
+  const c = Object.fromEntries(d.campos.map((k, i) => [k, i]));
+  anunciosDados = { em: d.em, lista: d.a.map((r) => ({
+    id: r[c.id], species: r[c.nome], lvl: r[c.nivel], shiny: !!r[c.shiny], pot: r[c.potencia] || 1, q: r[c.qualidade],
+    iv: r[c.ivTotal], nota: r[c.nota], preco: r[c.preco], moeda: r[c.moeda] === "gold" ? "coins" : "gemas",
+    criadoEm: r[c.criadoEm], compravelEm: r[c.compravelEm], tm: r[c.tmElemental], aoe: r[c.tmAoe], refino: r[c.refino],
+  })) };
+  return anunciosDados;
+}
+const fmtIdade = (ms) => { const m = Math.max(0, Math.round((Date.now() - ms) / 60000)); return m < 60 ? `${m} min` : m < 48 * 60 ? `${Math.round(m / 60)} h` : `${Math.round(m / 1440)} dias`; };
+let sniperCache = null;
+async function renderSniper() {
+  const out = $("sniper-out");
+  if (!state.kept) return;
+  if (!anunciosDados) out.innerHTML = '<p class="muted">Carregando os anúncios…</p>';
+  let A;
+  try { A = await carregarAnuncios(); } catch (e) { out.innerHTML = '<p class="muted">Os anúncios ainda não foram coletados. Eles chegam com a próxima coleta.</p>'; return; }
+  // avalia cada anúncio uma vez por conjunto de dados (a conta é a mesma do Avaliar)
+  const chave = `${state.dias}|${state.rate}|${state.kept.length}`;
+  if (sniperCache?.chave !== chave) {
+    const linhas = [];
+    for (const a of A.lista) {
+      const f = { species: a.species, mega: /^mega\s/i.test(a.species), lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny };
+      const est = estimate(f, state.kept, state.fim);
+      if (!est.items.length || !(est.p50 > 0)) continue;
+      const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+      const confianca = est.ess >= 6 && !est.fallback ? 2 : est.ess >= 3 && !est.fallback ? 1 : 0;
+      linhas.push({ a, est, precoGem, desc: 1 - precoGem / est.p50, lucro: liquidoGemas(est.p50) - precoGem, confianca });
+    }
+    sniperCache = { chave, linhas };
+  }
+  const minDesc = +$("sn-desc").value, grupo = $("sn-grupo").value, ordem = $("sn-ordem").value, busca = norm($("sn-busca").value || "");
+  const conf = +$("sn-conf").value;
+  let lista = sniperCache.linhas.filter((x) => x.desc >= minDesc && x.confianca >= conf
+    && (grupo === "todos" || (grupo === "shiny") === x.a.shiny) && (!busca || norm(x.a.species).includes(busca)));
+  lista.sort(ordem === "lucro" ? (a, b) => b.lucro - a.lucro : ordem === "recentes" ? (a, b) => b.a.criadoEm - a.a.criadoEm : (a, b) => b.desc - a.desc);
+  const total = lista.length;
+  lista = lista.slice(0, state.snTodos ? 150 : 40);
+  const valor = (gem) => state.moeda === "gemas" ? nf(0).format(gem) : short(gem * state.rate);
+  out.innerHTML = `<p class="muted small">${nf(0).format(A.lista.length)} anúncios abertos, lidos ${fmtIdade(Date.parse(A.em))} atrás. Cada um é avaliado como no Avaliar (espécie, nível, potência, nota, qualidade, IV) e comparado com o preço pedido. <b>${nf(0).format(total)}</b> estão ${nf(0).format(minDesc * 100)}% ou mais abaixo do preço justo.</p>
+    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Desconto</th><th>Pokémon</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r">Preço (${unit()})</th><th class="r">Justo</th><th class="r" title="O que sobra revendendo pelo preço justo, já com a comissão">Lucro</th><th class="r">Anunciado</th></tr></thead>
+    <tbody>${lista.map((x) => { const a = x.a, foto = urlFoto(a.species, a.shiny);
+      const suspeito = x.desc >= 0.9;
+      const original = a.moeda !== state.moeda ? `<div class="orig">${a.moeda === "gemas" ? nf(0).format(a.preco) + " Gemas" : short(a.preco) + " Coins"}</div>` : "";
+      return `<tr class="click" data-sn="${a.id}" tabindex="0">
+        <td><span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>${suspeito ? ' <span class="aviso" title="Desconto grande demais: pode ser um anúncio combinado entre amigos, que some na hora">⚠</span>' : ""}${x.confianca < 2 ? ' <span class="muted small" title="Poucas vendas parecidas para comparar">~</span>' : ""}</td>
+        <td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${a.tm ? ' <span class="tag">TM</span>' : ""}</td>
+        <td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
+        <td class="r n"><b>${valor(x.precoGem)}</b>${original}</td><td class="r n muted">${valor(x.est.p50)}</td>
+        <td class="r n">${x.lucro > 0 ? "+" + valor(x.lucro) : "—"}</td>
+        <td class="r n muted">${a.criadoEm ? fmtIdade(a.criadoEm) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
+    ${total > 40 ? `<button class="btn" id="sn-todos">${state.snTodos ? "Mostrar menos" : `Mostrar mais (${nf(0).format(Math.min(total, 150))})`}</button>` : ""}`
+    : '<p class="muted">Nenhum anúncio com esse desconto agora. Tente um desconto menor ou outro grupo.</p>'}
+    <p class="muted small">Os anúncios são lidos a cada coleta (de hora em hora), então uma pechincha pode já ter sido vendida. ⚠ marca descontos de 90% ou mais, que costumam ser vendas combinadas entre amigos; ~ marca avaliações com poucas vendas parecidas. Clique numa linha para ver o laudo completo.</p>`;
+  const bt = $("sn-todos"); if (bt) bt.onclick = () => { state.snTodos = !state.snTodos; renderSniper(); };
+  out.querySelectorAll("tr[data-sn]").forEach((tr) => {
+    const a = A.lista.find((x) => String(x.id) === tr.dataset.sn);
+    const go = () => {
+      $("ficha").value = ""; state.ivs = null;
+      fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
+      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      abrirAba("comprar"); render();
+    };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
+  });
+}
+
+// ---------- itens ----------
+let itensDados = null, itensSerie = null;
+async function renderItens() {
+  const out = $("itens-out");
+  if (!itensDados) {
+    out.innerHTML = '<p class="muted">Carregando os itens…</p>';
+    try {
+      itensDados = await (await fetch("dados/itens.json", { cache: "no-cache" })).json();
+      itensSerie = await (await fetch("dados/itens-serie.json", { cache: "no-cache" })).json().catch(() => null);
+    } catch (e) { out.innerHTML = '<p class="muted">Os preços dos itens ainda não foram coletados.</p>'; return; }
+  }
+  const CATS = { stone: "Pedras", box: "Caixas", tm: "TMs", fragment: "Fragmentos", ball: "Bolas" };
+  const lista0 = Object.entries(itensDados.itens).map(([id, x]) => ({ id: +id, ...x }));
+  const cats = [...new Set(lista0.map((x) => x.categoria || "outros"))].sort();
+  const sel = $("it-cat");
+  if (sel.options.length <= 1) sel.innerHTML = `<option value="">Todas as categorias</option>${cats.map((c) => `<option value="${esc(c)}">${esc(CATS[c] || c)}</option>`).join("")}`;
+  const cat = sel.value, busca = norm($("it-busca").value || "");
+  const moeda = state.moeda === "gemas" ? "Orb" : "Gold";
+  // Em Gemas, pedra vale frações de Gema: o preço que interessa é o em Coins. Mostra a moeda em que
+  // o item de fato circula (a com mais unidades vendidas) e a outra só como referência.
+  const serieDe = (id) => (itensSerie?.s || []).filter((r) => r[1] === id).map((r) => ({ t: r[0], v: state.moeda === "gemas" ? r[5] : r[4] })).filter((p) => p.v > 0);
+  const linhas = lista0.filter((x) => (!cat || (x.categoria || "outros") === cat) && (!busca || norm(x.nome).includes(busca)))
+    .map((x) => {
+      const min = x["min" + moeda], media = x["media" + moeda], vendidos = x["vendidos" + moeda];
+      return { ...x, min, media, vendidos, desc: min > 0 && media > 0 ? 1 - min / media : null };
+    })
+    .sort((a, b) => (b.vendidos || 0) - (a.vendidos || 0));
+  const spark = (pts) => {
+    if (pts.length < 2) return "";
+    const vs = pts.map((p) => p.v), lo = Math.min(...vs), hi = Math.max(...vs), t0 = pts[0].t, t1 = pts.at(-1).t;
+    const xy = pts.map((p) => `${(2 + (p.t - t0) / Math.max(1, t1 - t0) * 76).toFixed(1)},${(18 - (hi > lo ? (p.v - lo) / (hi - lo) : 0.5) * 14).toFixed(1)}`).join(" ");
+    return `<svg class="spark" viewBox="0 0 80 20" aria-hidden="true"><polyline points="${xy}" fill="none" stroke="var(--acc)" stroke-width="1.5"/></svg>`;
+  };
+  const v = (n) => n == null ? "—" : state.moeda === "gemas" ? nf(n < 10 ? 1 : 0).format(n) : short(n);
+  out.innerHTML = `<p class="muted small">${lista0.length} itens do Mercado, lidos ${fmtIdade(Date.parse(itensDados.em))} atrás. "Média 7 dias" é a que o próprio jogo calcula; "agora" é o anúncio mais barato aberto. Em ${unit()}${state.moeda === "gemas" ? " (troque para Coins para ver pedras e itens baratos)" : ""}.</p>
+    <div class="tbl"><table><thead><tr><th>Item</th><th class="r">Agora</th><th class="r">Média 7 dias</th><th class="r" title="Menor anúncio contra a média">Agora × média</th><th class="r">Vendidos 7d</th><th class="r">Anúncios</th><th>Tendência</th></tr></thead>
+    <tbody>${linhas.map((x) => `<tr><td>${esc(x.nome)} <span class="muted small">${esc(CATS[x.categoria] || x.categoria || "")}</span></td>
+      <td class="r n"><b>${v(x.min)}</b></td><td class="r n">${v(x.media)}</td>
+      <td class="r">${x.desc == null ? '<span class="muted">—</span>' : x.desc >= 0.2 ? `<span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>` : x.desc <= -0.2 ? `<span class="tend desce">+${nf(0).format(-x.desc * 100)}%</span>` : `<span class="muted">${x.desc >= 0 ? "−" : "+"}${nf(0).format(Math.abs(x.desc) * 100)}%</span>`}</td>
+      <td class="r n">${x.vendidos != null ? nf(0).format(x.vendidos) : "—"}</td><td class="r n">${nf(0).format(x.anuncios || 0)}</td>
+      <td>${spark(serieDe(x.id))}</td></tr>`).join("")}</tbody></table></div>
+    <p class="muted small">A tendência é o preço médio a cada coleta; ela se forma com o tempo. Um menor anúncio bem abaixo da média é oportunidade de compra; bem acima, quase ninguém vende naquela moeda.</p>`;
+}
+
 // ---------- eventos ----------
 $("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
@@ -1139,6 +1301,12 @@ try { const n = localStorage.getItem("rtm-nivel"); if (n) $("farm-nivel").value 
 let timerF = 0;
 $("farm-nivel").addEventListener("input", () => { try { localStorage.setItem("rtm-nivel", $("farm-nivel").value); } catch (e) {} clearTimeout(timerF); timerF = setTimeout(renderFarm, 300); });
 $("farm-bola").addEventListener("change", renderFarm);
+["sn-desc", "sn-grupo", "sn-ordem", "sn-conf"].forEach((id) => $(id).addEventListener("change", () => { state.snTodos = false; renderSniper(); }));
+let timerSn = 0;
+$("sn-busca").addEventListener("input", () => { clearTimeout(timerSn); timerSn = setTimeout(renderSniper, 250); });
+$("it-cat").addEventListener("change", renderItens);
+let timerIt = 0;
+$("it-busca").addEventListener("input", () => { clearTimeout(timerIt); timerIt = setTimeout(renderItens, 200); });
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
 $("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("coins");
 document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
