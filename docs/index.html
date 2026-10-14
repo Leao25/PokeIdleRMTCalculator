@@ -210,7 +210,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
     </div>
     <div class="controls">
       <div class="seg" role="group" aria-label="Período">
-        <button data-dias="30" aria-pressed="true">30 dias</button>
+        <button data-dias="7" aria-pressed="false">7 dias</button>
+        <button data-dias="30" aria-pressed="true">30</button>
         <button data-dias="60" aria-pressed="false">60</button>
         <button data-dias="90" aria-pressed="false">90</button>
         <button data-dias="0" aria-pressed="false">Tudo</button>
@@ -349,7 +350,7 @@ const DIA = 864e5;
 const state = { moeda: "gemas", rate: 3e6, dias: 30, base: [], meta: null, grupoRank: "shiny", showAll: false };
 try {
   const m = localStorage.getItem("rtm-moeda"); if (m === "coins" || m === "gemas") state.moeda = m;
-  const d = localStorage.getItem("rtm-dias"); if (d != null && ["0", "30", "60", "90"].includes(d)) state.dias = +d;
+  const d = localStorage.getItem("rtm-dias"); if (d != null && ["0", "7", "30", "60", "90"].includes(d)) state.dias = +d;
 } catch (e) {}
 
 // ---------- números ----------
