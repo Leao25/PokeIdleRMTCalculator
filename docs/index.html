@@ -203,6 +203,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .82rem; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; font-family: var(--f-mono); text-align: right; }
+.grid.sem-ficha { grid-template-columns: minmax(0, 1fr); }
+.grid.sem-ficha > aside { display: none; }
 .pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
 .aviso { color: var(--warn); cursor: help; }
 .spark { width: 80px; height: 20px; display: block; }
@@ -892,6 +894,8 @@ function abrirAba(aba) {
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
+  // a ficha só serve onde se avalia um pokémon
+  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "itens", "mercado"].includes(aba));
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") renderCotacao();
