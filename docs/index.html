@@ -157,6 +157,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .rate small { flex-basis: 100%; font-size: .72rem; }
 .panel, .vista { grid-template-columns: minmax(0, 1fr); }
 .panel > *, .vista > * { min-width: 0; }
+.tema { border: 1px solid var(--line); background: var(--sunk); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 600 .85rem var(--f-body); display: inline-flex; gap: 6px; align-items: center; }
+.tema:hover { border-color: var(--acc); }
 .abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .abas button { border: 0; background: none; padding: 8px 14px 10px; font: 600 .95rem var(--f-display); color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
 .abas button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--acc); }
@@ -242,6 +244,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
         <button id="m-gemas" aria-pressed="true"><span class="dot gem"></span>Gemas</button>
         <button id="m-coins" aria-pressed="false"><span class="dot coin"></span>Coins</button>
       </div>
+      <button class="tema" id="tema" type="button" aria-label="Alternar entre modo claro e escuro"></button>
       <div class="rate" id="rate-box">1 Gema ≈ <b id="rate">3.000.000</b> Coins</div>
     </div>
   </header>
@@ -1470,7 +1473,8 @@ async function renderInvestir() {
 
   // 1. upar
   const L = Number.isFinite(f.lvl) ? f.lvl : 100;
-  const niveis = [...new Set([L + 100, L * 2, L + 500].map((n) => Math.round(n / 10) * 10))].filter((n) => n > L).slice(0, 3);
+  const niveis = [L + 100, L * 2, L + 500].map((n) => Math.round(n / 10) * 10).filter((n) => n > L).sort((a, b) => a - b)
+    .filter((n, i, a) => i === 0 || n > a[i - 1] * 1.1).slice(0, 3);
   const linhasUp = niveis.map((n) => { const ff = { ...f, lvl: n }; const v = valorDe(ff); const fm = forcaFarm(voceDe(E, especie, ff, state.ivs), ctx, E); return { n, v, fm }; });
   const ganhoUp = linhasUp.length ? dif(linhasUp[0].v, agoraV) : null;
   cartoes.push(`<div class="inv-card"><span class="lbl">Upar</span><h3>${ganhoUp == null ? "Sem dados para comparar" : ganhoUp > 0.15 ? "Vale: o preço sobe com o nível" : "Pouco efeito no preço"}</h3>
@@ -1580,6 +1584,27 @@ async function renderTrocar() {
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
 }
+
+// ---------- tema claro / escuro ----------
+// Sem escolha salva, segue o sistema (prefers-color-scheme); o botão grava a escolha da pessoa.
+const temaEscuroSistema = () => matchMedia("(prefers-color-scheme: dark)").matches;
+function aplicarTema(t) {
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  const escuro = t ? t === "dark" : temaEscuroSistema();
+  $("tema").innerHTML = escuro ? "☀️ Modo claro" : "🌙 Modo escuro";
+  $("tema").setAttribute("aria-pressed", escuro);
+}
+let temaSalvo = null;
+try { temaSalvo = localStorage.getItem("rtm-tema"); } catch (e) {}
+aplicarTema(temaSalvo);
+$("tema").onclick = () => {
+  const escuroAgora = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : temaEscuroSistema();
+  const novo = escuroAgora ? "light" : "dark";
+  try { localStorage.setItem("rtm-tema", novo); } catch (e) {}
+  aplicarTema(novo);
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (!document.documentElement.dataset.theme) aplicarTema(null); });
 
 // ---------- eventos ----------
 $("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
