@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PokeIdle RTM Calculator</title>
+<meta name="description" content="Quanto vale o seu pokémon no Mercado do PokeIdle: preço sugerido pelas vendas reais, líquido da comissão e nota de mercado por espécie.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: bancada de feira — ficha à esquerda (fixa no desktop), laudo de preço e gráfico à direita, ranking embaixo */
+:root {
+  --bg: #f5f3f8; --surface: #ffffff; --sunk: #ece8f2; --ink: #1d1726; --muted: #675e75; --line: #ddd6e7;
+  --gem: #b8146f; --gem-soft: #fbe3f0; --coin: #9a6200; --coin-soft: #fbefd6;
+  --good: #23824a; --warn: #b4561b; --bad: #b42335;
+  --acc: var(--gem); --acc-soft: var(--gem-soft);
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141019; --surface: #1d1826; --sunk: #17121f; --ink: #eee9f5; --muted: #a59cb4; --line: #342c42;
+  --gem: #f36cb8; --gem-soft: #3a1830; --coin: #f2b53a; --coin-soft: #3a2c10;
+  --good: #5cc77d; --warn: #f08a4b; --bad: #ff6b7d; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #141019; --surface: #1d1826; --sunk: #17121f; --ink: #eee9f5; --muted: #a59cb4; --line: #342c42;
+  --gem: #f36cb8; --gem-soft: #3a1830; --coin: #f2b53a; --coin-soft: #3a2c10;
+  --good: #5cc77d; --warn: #f08a4b; --bad: #ff6b7d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); }
+body[data-moeda="coins"] { --acc: var(--coin); --acc-soft: var(--coin-soft); }
+[hidden] { display: none !important; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 24px 48px; display: grid; gap: 22px; }
+@media (max-width: 480px) { .wrap { padding-inline: 16px; } }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h1 { font-size: 1.9rem; font-weight: 700; }
+h2 { font-size: 1.15rem; font-weight: 600; }
+.lbl { font: 600 .72rem/1.2 var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.muted { color: var(--muted); }
+.small { font-size: .82rem; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+p { margin: 0; }
+
+header.top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+header.top p { margin-top: 4px; color: var(--muted); max-width: 62ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .88rem; display: inline-flex; gap: 6px; align-items: center; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 0 0 1.5px var(--acc); color: var(--acc); }
+.seg button:disabled { opacity: .45; cursor: not-allowed; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.gem { background: var(--gem); transform: rotate(45deg); border-radius: 2px; }
+.dot.coin { background: var(--coin); }
+.rate { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; color: var(--muted); }
+.rate input { width: 120px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-family: var(--f-mono); }
+.status { font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.status b { color: var(--ink); font-weight: 600; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+aside.panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { aside.panel { position: static; } }
+textarea { width: 100%; min-height: 120px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); padding: 10px; font: .8rem/1.4 var(--f-mono); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--sunk); border-radius: 999px; padding: 4px 11px; font-size: .8rem; cursor: pointer; }
+.chip:hover { border-color: var(--acc); }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields label { display: grid; gap: 3px; font-size: .75rem; color: var(--muted); font-weight: 600; }
+.fields label.wide { grid-column: 1 / -1; }
+.fields input, .fields select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font: .9rem var(--f-mono); color: var(--ink); width: 100%; }
+.fields label.check { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--ink); }
+.fields label.check input { width: auto; }
+.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 12px; font-size: .85rem; display: grid; gap: 8px; }
+.drop.over { border-color: var(--acc); background: var(--acc-soft); }
+.btn { border: 1px solid var(--acc); color: var(--acc); background: transparent; border-radius: 7px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: .85rem; justify-self: start; }
+.btn:hover { background: var(--acc-soft); }
+
+main { display: grid; gap: 18px; min-width: 0; }
+.who { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.who h2 { font-size: 1.5rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font: 600 .72rem var(--f-body); padding: 2px 8px; border-radius: 4px; background: var(--sunk); border: 1px solid var(--line); }
+.tag.shiny { background: var(--coin-soft); color: var(--coin); border-color: transparent; }
+.prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .prices { grid-template-columns: minmax(0, 1fr); } }
+.price { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; background: var(--sunk); align-content: start; }
+.price.mid { border-color: var(--acc); background: var(--acc-soft); }
+.price .v { font: 700 1.7rem/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.price.mid .v { color: var(--acc); }
+.price .net { font-size: .8rem; color: var(--muted); }
+.price .net b { color: var(--ink); font-family: var(--f-mono); font-weight: 500; }
+.alert { border-left: 3px solid var(--warn); background: var(--sunk); padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: .88rem; }
+.alert.bad { border-color: var(--bad); }
+.alert.ok { border-color: var(--good); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 700px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: end; }
+
+.stars { position: relative; display: inline-block; font-size: 1.5rem; line-height: 1; letter-spacing: 2px; color: var(--line); }
+.stars::before { content: "★★★★★"; }
+.stars span { position: absolute; inset: 0 auto 0 0; overflow: hidden; color: var(--coin); white-space: nowrap; }
+.stars span::before { content: "★★★★★"; }
+.stars.sm { font-size: 1rem; letter-spacing: 1px; }
+.score { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score .big { font: 700 2rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; font-size: .82rem; }
+.bar .track { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.bar .fill { display: block; height: 100%; background: var(--acc); }
+.bar .why { grid-column: 1 / -1; color: var(--muted); font-size: .75rem; margin-top: -5px; }
+
+.pct { display: grid; gap: 10px; }
+.pct .row { display: grid; grid-template-columns: 7em minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; font-size: .85rem; }
+.scale { position: relative; height: 18px; }
+.scale::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--line); }
+.scale i { position: absolute; top: 2px; width: 3px; height: 14px; background: var(--acc); border-radius: 2px; transform: translateX(-1px); }
+.scale b { position: absolute; top: 5px; width: 2px; height: 8px; background: var(--muted); opacity: .4; }
+
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 520px; height: auto; }
+.chart text { font: 11px var(--f-mono); fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .78rem; color: var(--muted); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+th { text-align: left; font: 600 .7rem var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.r, th.r { text-align: right; }
+td.n { font-family: var(--f-mono); }
+tr.click { cursor: pointer; }
+tr.click:hover td, tr.click:focus-visible td { background: var(--sunk); }
+.simbar { display: inline-block; width: 46px; height: 6px; background: var(--sunk); border-radius: 3px; vertical-align: middle; margin-right: 6px; overflow: hidden; border: 1px solid var(--line); }
+.simbar i { display: block; height: 100%; background: var(--acc); }
+.orig { color: var(--muted); font-size: .75rem; }
+details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
+.foot { font-size: .8rem; color: var(--muted); display: grid; gap: 6px; max-width: 82ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="lbl">PokeIdle · Mercado da Comunidade</div>
+      <h1>RTM Calculator</h1>
+      <p>Quanto vale o seu pokémon: cole a ficha e veja o preço pelas vendas reais do Mercado, já com a comissão descontada.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Período">
+        <button data-dias="30" aria-pressed="true">30 dias</button>
+        <button data-dias="60" aria-pressed="false">60</button>
+        <button data-dias="90" aria-pressed="false">90</button>
+        <button data-dias="0" aria-pressed="false">Tudo</button>
+      </div>
+      <div class="seg" role="group" aria-label="Moeda">
+        <button id="m-gemas" aria-pressed="true"><span class="dot gem"></span>Gemas</button>
+        <button id="m-coins" aria-pressed="false"><span class="dot coin"></span>Coins</button>
+      </div>
+      <label class="rate">1 Gema = <input id="rate" inputmode="numeric" value="3.000.000"> Coins</label>
+    </div>
+  </header>
+  <div class="status" id="status">Carregando o histórico de vendas…</div>
+
+  <div class="grid">
+    <aside class="panel">
+      <div>
+        <h2>Ficha do pokémon</h2>
+        <p class="muted small" style="margin-top:4px">No jogo, abra a ficha e clique em <b>Copiar p/ ChatGPT</b>. Cole aqui e confira os campos; dá para corrigir à mão.</p>
+      </div>
+      <div class="chips">
+        <button class="chip" id="ex1">Exemplo shiny</button>
+        <button class="chip" id="ex2">Exemplo comum</button>
+      </div>
+      <textarea id="ficha" aria-label="Texto da ficha" spellcheck="false"></textarea>
+      <div class="fields">
+        <label class="wide">Espécie <input id="f-sp" list="sp-list" autocomplete="off"></label>
+        <label>Nível <input id="f-lvl" inputmode="numeric"></label>
+        <label>Potência
+          <select id="f-pot"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </label>
+        <label>Nota (0–10) <input id="f-nota" inputmode="decimal"></label>
+        <label>Qualidade <input id="f-q" inputmode="decimal"></label>
+        <label>IV somado <input id="f-iv" inputmode="numeric"></label>
+        <label class="check"><input type="checkbox" id="f-shiny"> Shiny</label>
+      </div>
+      <datalist id="sp-list"></datalist>
+      <details class="drop" id="drop">
+        <summary>Somar uma planilha sua</summary>
+        <p class="small muted">Tem uma planilha do botão “Exportar planilha” mais nova que o site? Ela entra só na sua tela, não é enviada a lugar nenhum.</p>
+        <label class="btn" for="csv">Escolher arquivo .csv</label>
+        <input type="file" id="csv" accept=".csv,text/csv" hidden>
+        <div class="small muted" id="csv-msg"></div>
+      </details>
+    </aside>
+
+    <main>
+      <section class="panel" id="verdict"></section>
+      <section class="panel" id="grafico"></section>
+      <div class="two">
+        <section class="panel" id="stars"></section>
+        <section class="panel" id="pcts"></section>
+      </div>
+      <section class="panel" id="similar"></section>
+    </main>
+  </div>
+
+  <section class="panel" id="ranking"></section>
+
+  <footer class="foot">
+    <p><b>De onde vêm os dados.</b> As vendas de pokémon do Mercado da Comunidade, coletadas a cada 2 horas da Tabela de preços do jogo e guardadas sem apagar as antigas. Os nomes dos jogadores viram códigos.</p>
+    <p><b>Como a conta é feita.</b> Cada venda recebe um peso pela semelhança com a sua ficha: shiny e potência pesam mais, depois nota, qualidade, IV, nível e mega. Vendas recentes pesam um pouco mais. O preço justo é a mediana ponderada; rápido e paciente são os quartis de 25% e 75%.</p>
+    <p><b>Descartadas.</b> Vendas abaixo de 20 Gemas (transferências) e vendas 6× abaixo ou 12× acima da mediana da espécie, quando ela tem 4 vendas ou mais.</p>
+    <p><b>Comissão.</b> Pokémon em Gema: 13% até 500, 10% até 5.000, 7,5% acima, por faixa. Em Coins: 15%. A diária do anúncio (100.000 Coins por dia) não entra no líquido.</p>
+    <p><b>Nota de mercado.</b> De 0 a 5 estrelas, comparando a espécie com as outras do mesmo grupo (shiny ou comum) no período: liquidez 35%, valor 25%, ritmo recente 15%, preço estável 15% e compradores diferentes 10%. Mede procura e preço, não quantos estão à venda agora.</p>
+    <p>Ferramenta de fã, sem ligação com o PokeIdle. Pokémon é marca da Nintendo, Game Freak e The Pokémon Company.</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+const $ = (id) => document.getElementById(id);
+const EX1 = `# Charizard — ficha do PokeIdle
+
+## O pokémon
+
+- Espécie: Charizard (#6) — FIRE / FLYING
+- Shiny: sim
+- Nível: 200
+- Potência: P2 (+5% em todos os stats)
+- Qualidade: 1.32
+- IV somado: 125 de 192
+- Nota da Calculadora: 6.2 de 10`;
+const EX2 = `# Gyarados — ficha do PokeIdle
+
+## O pokémon
+
+- Espécie: Gyarados (#130) — WATER / FLYING
+- Shiny: não
+- Nível: 100
+- Potência: P4 (+25% em todos os stats)
+- Qualidade: 1.2
+- IV somado: 130 de 192
+- Nota da Calculadora: 4.9 de 10`;
+
+const DIA = 864e5;
+const state = { moeda: "gemas", rate: 3e6, dias: 30, base: [], extra: [], meta: null, grupoRank: "shiny", showAll: false };
+try {
+  const m = localStorage.getItem("rtm-moeda"); if (m === "coins" || m === "gemas") state.moeda = m;
+  const r = +localStorage.getItem("rtm-rate"); if (r > 0) state.rate = r;
+  const d = localStorage.getItem("rtm-dias"); if (d != null && ["0", "30", "60", "90"].includes(d)) state.dias = +d;
+} catch (e) {}
+
+// ---------- números ----------
+const nf = (d = 0) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const parseBR = (s) => { if (s == null) return NaN; s = String(s).trim(); if (!s) return NaN; return parseFloat(s.replace(/\./g, "").replace(",", ".")); };
+const parseEN = (s) => { if (s == null) return NaN; s = String(s).trim(); if (!s) return NaN; return parseFloat(s.replace(/,/g, "")); };
+function short(v) {
+  const a = Math.abs(v);
+  const f = (x, u) => nf(x < 10 ? 2 : x < 100 ? 1 : 0).format(x).replace(/,0+$/, "").replace(/(,\d*?)0+$/, "$1") + u;
+  if (a >= 1e9) return f(v / 1e9, "B");
+  if (a >= 1e6) return f(v / 1e6, "M");
+  if (a >= 1e4) return f(v / 1e3, "K");
+  return nf(0).format(v);
+}
+const niceGem = (v) => { const step = v >= 5000 ? 100 : v >= 1000 ? 50 : v >= 200 ? 10 : 1; return Math.round(v / step) * step; };
+const niceCoin = (v) => { if (v <= 0) return 0; const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / p) * p; };
+const toShow = (gem) => state.moeda === "gemas" ? niceGem(gem) : niceCoin(gem * state.rate);
+const fmtVal = (v) => state.moeda === "gemas" ? nf(0).format(v) : short(v);
+const fmtShow = (gem) => fmtVal(toShow(gem));
+const unit = () => state.moeda === "gemas" ? "Gemas" : "Coins";
+function liquido(price) {
+  if (state.moeda === "coins") return price * 0.85;
+  const t1 = Math.min(price, 500), t2 = Math.min(Math.max(price - 500, 0), 4500), t3 = Math.max(price - 5000, 0);
+  return t1 * 0.87 + t2 * 0.90 + t3 * 0.925;
+}
+const quant = (s, p) => { if (!s.length) return NaN; const i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
+const pctRank = (arr, x) => { if (!arr.length) return 0.5; let lt = 0, eq = 0; for (const v of arr) { if (v < x) lt++; else if (v === x) eq++; } return (lt + eq / 2) / arr.length; };
+const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtDate = (d) => isNaN(d) ? "—" : d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+// ---------- vendas ----------
+const speciesOf = (desc) => String(desc).replace(/\s+Nv\.?\s*\d[\d.]*\s*$/i, "").replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+function venda(min, desc, lvl, shiny, nota, iv, pot, q, moeda, valor, vend, comp) {
+  const species = speciesOf(desc);
+  return { date: new Date(min * 60000), min, desc, species, mega: /^mega\s/i.test(species),
+    base: species.replace(/^mega\s+/i, "").replace(/\s+[XY]$/, ""), lvl, shiny: !!shiny, nota, iv, pot: pot || 1, q,
+    moeda: moeda === "gold" ? "coins" : "gemas", price: valor, seller: vend, buyer: comp };
+}
+const chave = (s) => [s.min, s.desc, s.price, s.moeda].join("|");
+const gemOf = (s) => s.moeda === "gemas" ? s.price : s.price / state.rate;
+
+async function carregarHistorico() {
+  const idx = await (await fetch("dados/indice.json", { cache: "no-cache" })).json();
+  const meses = await Promise.all(idx.meses.map((m) => fetch(`dados/${m}.json`, { cache: "no-cache" }).then((r) => r.json())));
+  state.meta = idx;
+  state.base = meses.flatMap((m) => m.vendas.map((v) => venda(...v)));
+}
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) throw new Error("O arquivo está vazio.");
+  const sep = lines[0].includes(";") ? ";" : ",";
+  const head = lines[0].split(sep).map(norm);
+  const c = (n) => head.indexOf(n);
+  if (c("item") < 0 || c("moeda") < 0) throw new Error("Esse arquivo não parece a planilha da Tabela de preços (aba Pokémon).");
+  const out = [];
+  for (const l of lines.slice(1)) {
+    const r = l.split(sep);
+    if (c("tipo") >= 0 && !/pok/i.test(r[c("tipo")] || "")) continue;
+    const [d, h] = (r[c("data")] || "").split(" ");
+    const em = Date.parse(`${d}T${h}:00-03:00`); if (!Number.isFinite(em)) continue;
+    const qtd = parseBR(r[c("quantidade")]) || 1;
+    out.push(venda(Math.floor(em / 60000), r[c("item")], parseBR(r[c("nivel")]), /^sim$/i.test((r[c("shiny")] || "").trim()),
+      parseBR(r[c("nota")]), parseBR(r[c("iv total")]), parseBR(r[c("potencia")]), parseBR(r[c("qualidade")]),
+      /coin|ouro/i.test(r[c("moeda")] || "") ? "gold" : "orb", parseBR(r[c("valor total")]) / qtd, "", ""));
+  }
+  if (!out.length) throw new Error("Nenhuma venda de pokémon no arquivo.");
+  return out;
+}
+function todas() {
+  if (!state.extra.length) return state.base;
+  const vistas = new Set(state.base.map(chave));
+  return state.base.concat(state.extra.filter((s) => !vistas.has(chave(s))));
+}
+function noPeriodo(lista) {
+  const fim = Math.max(...lista.map((s) => s.min));
+  if (!state.dias) return { lista, fim };
+  const ini = fim - state.dias * 1440;
+  return { lista: lista.filter((s) => s.min >= ini), fim };
+}
+function limpar(raw) {
+  const kept = [], gone = [], by = {};
+  raw.forEach((s) => { s.gem = gemOf(s); (by[s.species + (s.shiny ? "*" : "")] ||= []).push(s); });
+  for (const k in by) {
+    const list = by[k], med = quant(list.map((s) => s.gem).sort((a, b) => a - b), 0.5);
+    for (const s of list) {
+      if (!(s.gem >= 20)) gone.push({ s, why: "valor simbólico" });
+      // Para cima a margem é maior: um P4/P5 ou um mega vale muitas vezes a mediana de verdade.
+      else if (list.length >= 4 && (s.gem < med / 6 || s.gem > med * 12)) gone.push({ s, why: "fora da curva" });
+      else kept.push(s);
+    }
+  }
+  return { kept, gone };
+}
+
+// ---------- estrelas ----------
+function speciesStats(sales, fimMin) {
+  const by = {};
+  sales.forEach((s) => (by[s.species] ||= []).push(s));
+  const rows = Object.entries(by).map(([sp, list]) => {
+    const g = list.map((s) => s.gem).sort((a, b) => a - b);
+    const n = list.length, med = quant(g, 0.5), q1 = quant(g, 0.25), q3 = quant(g, 0.75);
+    const last7 = list.filter((s) => fimMin - s.min <= 7 * 1440).length;
+    const buyers = new Set(list.map((s) => s.buyer).filter(Boolean)).size;
+    const ids = {};
+    list.forEach((s) => (ids[[s.base, s.nota, s.iv, s.q, s.pot].join("|")] ||= []).push(s));
+    const flips = [];
+    Object.values(ids).forEach((v) => { v.sort((a, b) => a.min - b.min); for (let i = 1; i < v.length; i++) flips.push(v[i].gem / v[i - 1].gem - 1); });
+    return { sp, n, med, q1, q3, last7, buyers, flips, list };
+  });
+  const dias = state.dias || Math.max(30, (fimMin - Math.min(...sales.map((s) => s.min))) / 1440);
+  const ns = rows.map((r) => Math.log(r.n)), meds = rows.map((r) => Math.log(r.med));
+  rows.forEach((r) => {
+    const liq = pctRank(ns, Math.log(r.n)), val = pctRank(meds, Math.log(r.med));
+    const expected = r.n * 7 / dias;
+    const trend = r.n < 3 ? 0.4 : Math.max(0, Math.min(1, r.last7 / expected / 2));
+    const estab = r.n < 3 ? 0.3 : Math.max(0, Math.min(1, 1 - (r.q3 - r.q1) / r.med));
+    const proc = r.buyers ? (r.buyers / r.n) * Math.min(1, r.n / 5) : Math.min(1, r.n / 5) * 0.6;
+    r.parts = [
+      { k: "Liquidez", w: 0.35, v: liq, why: `${r.n} vendas no período; vende mais que ${Math.round(liq * 100)}% das espécies` },
+      { k: "Valor", w: 0.25, v: val, why: `mediana acima de ${Math.round(val * 100)}% das espécies` },
+      { k: "Ritmo recente", w: 0.15, v: trend, why: r.n < 3 ? "poucas vendas para medir" : `${r.last7} vendas nos últimos 7 dias (esperado ${nf(1).format(expected)})` },
+      { k: "Preço estável", w: 0.15, v: estab, why: r.n < 3 ? "poucas vendas para medir" : `metade das vendas fica entre ${fmtShow(r.q1)} e ${fmtShow(r.q3)}` },
+      { k: "Compradores", w: 0.10, v: proc, why: r.buyers ? `${r.buyers} compradores diferentes` : "sem compradores identificados" },
+    ];
+    r.score = 5 * r.parts.reduce((a, p) => a + p.w * p.v, 0);
+  });
+  rows.sort((a, b) => b.score - a.score || b.n - a.n);
+  return rows;
+}
+
+// ---------- ficha ----------
+function parseFicha(t) {
+  const f = {};
+  const gpt = /ficha do PokeIdle|PokeIdle sheet|ficha de PokeIdle/i.test(t) || /^\s*-\s*(Esp[ée]cie|Species)\s*:/im.test(t);
+  const g = (re) => { const m = t.match(re); return m ? m[1].trim() : null; };
+  if (gpt) {
+    f.species = g(/^\s*-\s*(?:Esp[ée]cie|Species)\s*:\s*([^(\n—]+)/im) || "";
+    const sh = g(/^\s*-\s*Shiny\s*:\s*(\S+)/im);
+    f.shiny = !!sh && /^(sim|yes|s[ií])$/i.test(sh);
+    f.lvl = parseEN(g(/^\s*-\s*(?:N[íi]vel|Level)\s*:\s*([\d,.]+)/im));
+    f.pot = +g(/^\s*-\s*(?:Pot[êe]ncia|Potency)\s*:\s*P(\d)/im) || 1;
+    f.q = parseEN(g(/^\s*-\s*(?:Qualidade|Calidad|Quality)\s*:\s*([\d.]+)/im));
+    f.iv = parseEN(g(/^\s*-\s*(?:IV somado|IV total|Total IV)\s*:\s*([\d,]+)/im));
+    f.nota = parseEN(g(/^\s*-\s*(?:Nota da Calculadora|Nota de la Calculadora|Calculator Score)\s*:\s*([\d.]+)/im));
+  } else {
+    // Texto copiado da tela da ficha: números no formato brasileiro.
+    const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const known = new Set(state.base.map((s) => norm(s.species)));
+    const esp = g(/Esp[ée]cie\s*#?\d*\s+([^\n]+)/i);
+    const hit = lines.find((l) => known.has(norm(l.replace(/^[×✨\s]+|[×✨\s]+$/g, ""))));
+    f.species = (esp || hit || lines[0] || "").replace(/^[×✨\s]+|[×✨\s]+$/g, "").replace(/^shiny\s+/i, "");
+    f.lvl = parseBR(g(/\bNv\.?\s*(\d[\d.]*)/i));
+    f.pot = +g(/Pot[êe]ncia\s*:?\s*P?\s*(\d)/i) || 1;
+    f.q = parseBR(g(/qualidade\s*:?\s*([\d.,]+)/i));
+    f.iv = parseBR(g(/IV\s*(?:somado|total)\s*:?\s*(\d+)/i));
+    f.nota = parseBR(g(/(\d+,\d+)\s*\/\s*10/));
+    f.shiny = /✨\s*shiny|\bshiny\b/i.test(t);
+  }
+  return f;
+}
+function fichaToFields(f) {
+  $("f-sp").value = f.species || ""; $("f-lvl").value = Number.isFinite(f.lvl) ? f.lvl : "";
+  $("f-pot").value = String(f.pot || 1); $("f-nota").value = Number.isFinite(f.nota) ? nf(3).format(f.nota) : "";
+  $("f-q").value = Number.isFinite(f.q) ? nf(3).format(f.q) : ""; $("f-iv").value = Number.isFinite(f.iv) ? f.iv : "";
+  $("f-shiny").checked = !!f.shiny;
+}
+function fieldsToFicha() {
+  const sp = $("f-sp").value.trim();
+  return { species: sp, mega: /^mega\s/i.test(sp), lvl: parseBR($("f-lvl").value), pot: +$("f-pot").value,
+    nota: parseBR($("f-nota").value), q: parseBR($("f-q").value), iv: parseBR($("f-iv").value), shiny: $("f-shiny").checked };
+}
+
+// ---------- estimativa ----------
+function dist(f, s) {
+  const d = (a, b, sc) => Number.isFinite(a) && Number.isFinite(b) ? Math.abs(a - b) / sc : 0.5;
+  return d(f.pot, s.pot, 1) * 1.2 + d(f.nota, s.nota, 0.5) + d(f.q, s.q, 0.2) * 0.6 + d(f.iv, s.iv, 25) * 0.6
+    + d(Math.log2(f.lvl || 1), Math.log2(s.lvl || 1), 1.5) * 0.6 + (!!f.mega !== s.mega ? 2 : 0) + (f.shiny !== s.shiny ? 4 : 0)
+    + (norm(f.species) !== norm(s.species) ? 2.5 : 0);
+}
+function wQuant(items, p) {
+  const tot = items.reduce((a, x) => a + x.w, 0); let acc = 0;
+  for (const x of items) { acc += x.w; if (acc >= tot * p) return x.s.gem; }
+  return items.length ? items[items.length - 1].s.gem : NaN;
+}
+function estimate(f, kept, fimMin) {
+  const same = kept.filter((s) => norm(s.species) === norm(f.species));
+  const sameMatch = same.filter((s) => s.shiny === f.shiny);
+  const anyMatch = kept.filter((s) => s.shiny === f.shiny);
+  const pool = sameMatch.length >= 3 ? sameMatch : anyMatch;
+  const janela = state.dias || 90;
+  const items = pool.map((s) => {
+    const d = dist(f, s), age = (fimMin - s.min) / 1440;
+    return { s, d, w: Math.exp(-d) * (1 - Math.min(Math.max(age, 0), janela) / (janela * 2)) };
+  }).filter((x) => x.w > 0).sort((a, b) => a.s.gem - b.s.gem);
+  const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
+  return { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0,
+    p25: wQuant(items, 0.25), p50: wQuant(items, 0.5), p75: wQuant(items, 0.75) };
+}
+
+// ---------- gráfico ----------
+function grafico(f, kept, est, fimMin) {
+  const list = kept.filter((s) => norm(s.species) === norm(f.species)).sort((a, b) => a.min - b.min);
+  const box = $("grafico");
+  if (list.length < 2) {
+    box.innerHTML = `<div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(f.species || "—")}</h2></div><p class="muted">Precisa de pelo menos 2 vendas desta espécie no período para desenhar.</p>`;
+    return;
+  }
+  const W = 680, H = 260, L = 64, R = 12, T = 12, B = 70, ch = H - T - B, bh = 34;
+  const ini = state.dias ? fimMin - state.dias * 1440 : list[0].min - 1440;
+  const x = (m) => L + (m - ini) / Math.max(1, fimMin - ini) * (W - L - R);
+  const vals = list.map((s) => toShow(s.gem)).filter((v) => v > 0);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (Number.isFinite(est.p50) && est.items.length) { lo = Math.min(lo, toShow(est.p50)); hi = Math.max(hi, toShow(est.p50)); }
+  const llo = Math.log10(lo * 0.85), lhi = Math.log10(hi * 1.15);
+  const y = (v) => T + ch - (Math.log10(v) - llo) / (lhi - llo) * ch;
+  // marcas no eixo: 1, 2, 5 × potências de 10 dentro da faixa
+  const ticks = [];
+  for (let e = Math.floor(llo); e <= Math.ceil(lhi); e++) for (const k of [1, 2, 5]) { const v = k * 10 ** e; if (Math.log10(v) >= llo && Math.log10(v) <= lhi) ticks.push(v); }
+  const tick = ticks.length > 6 ? ticks.filter((v, i) => i % 2 === 0) : ticks;
+  // semanas
+  const semanas = [];
+  for (let s = fimMin; s > ini; s -= 7 * 1440) semanas.unshift([Math.max(ini, s - 7 * 1440), s]);
+  const porSemana = semanas.map(([a, b]) => list.filter((v) => v.min > a && v.min <= b));
+  const maxN = Math.max(1, ...porSemana.map((w) => w.length));
+  const med = porSemana.map((w, i) => {
+    const g = w.filter((v) => v.shiny === f.shiny).map((v) => toShow(v.gem)).sort((a, b) => a - b);
+    return g.length ? [x((semanas[i][0] + semanas[i][1]) / 2), y(quant(g, 0.5))] : null;
+  }).filter(Boolean);
+  const yb = H - 8;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Preços de venda de ${esc(f.species)} ao longo do tempo">`;
+  tick.forEach((v) => { svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmtVal(v)}</text>`; });
+  // datas: início, meio, fim
+  [ini, (ini + fimMin) / 2, fimMin].forEach((m, i) => { svg += `<text x="${x(m)}" y="${T + ch + 16}" text-anchor="${["start", "middle", "end"][i]}">${fmtDate(new Date(m * 60000))}</text>`; });
+  if (Number.isFinite(est.p50) && est.items.length) {
+    const yv = y(toShow(est.p50));
+    svg += `<line x1="${L}" x2="${W - R}" y1="${yv}" y2="${yv}" stroke="var(--acc)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  }
+  if (med.length > 1) svg += `<polyline points="${med.map((p) => p.join(",")).join(" ")}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" opacity=".75"/>`;
+  list.forEach((s) => {
+    const v = toShow(s.gem); if (!(v > 0)) return;
+    const cor = s.shiny ? "var(--coin)" : "var(--muted)";
+    svg += `<circle cx="${x(s.min).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${s.shiny === f.shiny ? 4 : 3}" fill="${cor}" fill-opacity="${s.shiny === f.shiny ? .85 : .35}" stroke="var(--surface)" stroke-width="1"><title>${fmtDate(s.date)} · ${s.shiny ? "shiny " : ""}P${s.pot} · nota ${nf(2).format(s.nota)} · ${fmtVal(v)} ${unit()}</title></circle>`;
+  });
+  // barras de vendas por semana
+  porSemana.forEach((w, i) => {
+    const [a, b] = semanas[i], x0 = x(a) + 2, x1 = x(b) - 2, h = w.length / maxN * bh;
+    svg += `<rect x="${x0.toFixed(1)}" y="${(yb - h).toFixed(1)}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${h.toFixed(1)}" fill="var(--acc)" opacity=".55" rx="2"><title>${w.length} vendas na semana até ${fmtDate(new Date(b * 60000))}</title></rect>`;
+  });
+  svg += `<text x="${L - 6}" y="${yb - 2}" text-anchor="end">${maxN}/sem</text><line x1="${L}" x2="${W - R}" y1="${yb}" y2="${yb}" stroke="var(--line)"/>`;
+  svg += `</svg>`;
+  box.innerHTML = `<div class="head-row"><div><span class="lbl">Linha do tempo</span><h2>Preço de ${esc(list[0].species)}</h2></div><span class="muted small">${list.length} vendas no período · escala logarítmica</span></div>
+    <div class="chart">${svg}</div>
+    <div class="legend"><span><i class="sw" style="background:var(--coin)"></i>shiny</span><span><i class="sw" style="background:var(--muted)"></i>comum</span><span><i class="sw" style="background:var(--ink);border-radius:2px;height:3px"></i>mediana da semana (${f.shiny ? "shiny" : "comum"})</span><span><i class="sw" style="background:var(--acc);border-radius:2px;height:3px"></i>preço justo do seu</span><span><i class="sw" style="background:var(--acc);opacity:.55;border-radius:2px"></i>vendas por semana</span></div>`;
+}
+
+// ---------- render ----------
+const starHTML = (v, sm) => `<span class="stars${sm ? " sm" : ""}" role="img" aria-label="${nf(1).format(v)} de 5 estrelas"><span style="width:${(Math.round(v * 2) / 2) / 5 * 100}%"></span></span>`;
+
+function render() {
+  document.body.dataset.moeda = state.moeda;
+  $("m-gemas").setAttribute("aria-pressed", state.moeda === "gemas"); $("m-coins").setAttribute("aria-pressed", state.moeda === "coins");
+  const tudo = todas();
+  if (!tudo.length) return;
+  const primeiro = Math.min(...tudo.map((s) => s.min)), ultimo = Math.max(...tudo.map((s) => s.min));
+  const diasHist = (ultimo - primeiro) / 1440;
+  document.querySelectorAll("[data-dias]").forEach((b) => {
+    const d = +b.dataset.dias;
+    b.setAttribute("aria-pressed", d === state.dias);
+    b.title = d && d > diasHist + 1 ? `O histórico só tem ${Math.ceil(diasHist)} dias até agora` : "";
+  });
+  const { lista, fim } = noPeriodo(tudo);
+  const { kept, gone } = limpar(lista);
+  const f = fieldsToFicha();
+  const up = state.meta?.atualizadoEm ? new Date(state.meta.atualizadoEm) : null;
+  $("status").innerHTML = `<span><b>${nf(0).format(lista.length)}</b> vendas no período</span><span>histórico desde ${fmtDate(new Date(primeiro * 60000))}${state.dias && state.dias > diasHist + 1 ? ` (ainda não chega a ${state.dias} dias)` : ""}</span>`
+    + (up ? `<span>atualizado ${up.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>` : "")
+    + (state.extra.length ? `<span>+ sua planilha (${state.extra.length} linhas)</span>` : "")
+    + (gone.length ? `<span>${gone.length} descartadas</span>` : "");
+
+  const spAll = [...new Set(kept.map((s) => s.species))].sort();
+  $("sp-list").innerHTML = spAll.map((s) => `<option value="${esc(s)}">`).join("");
+
+  // veredito
+  const est = estimate(f, kept, fim);
+  const tags = [`P${f.pot}`, Number.isFinite(f.lvl) ? `Nv ${nf(0).format(f.lvl)}` : null, Number.isFinite(f.nota) ? `nota ${nf(3).format(f.nota)}` : null,
+    Number.isFinite(f.q) ? `Q ${nf(3).format(f.q)}` : null, Number.isFinite(f.iv) ? `IV ${f.iv}/192` : null].filter(Boolean);
+  let h = `<div class="who"><span class="lbl">Laudo</span><h2>${esc(f.species || "Espécie?")}</h2><div class="tags">${f.shiny ? '<span class="tag shiny">✨ Shiny</span>' : ""}${tags.map((t) => `<span class="tag num">${esc(t)}</span>`).join("")}</div></div>`;
+  if (!f.species) h += `<div class="alert">Cole a ficha ou escreva a espécie para começar.</div>`;
+  else if (!est.items.length) {
+    const outro = est.same.filter((s) => s.shiny !== f.shiny).map((s) => s.gem).sort((a, b) => a - b);
+    h += `<div class="alert bad"><b>Sem vendas ${f.shiny ? "shiny" : "de pokémon comum"} no período.</b> Tente um período maior.`
+      + (outro.length ? ` As ${outro.length} vendas de ${esc(f.species)} ${f.shiny ? "comum" : "shiny"} ficaram entre ${fmtShow(outro[0])} e ${fmtShow(outro[outro.length - 1])} ${unit()}, mas não servem de referência.` : "") + `</div>`;
+  } else {
+    const conf = est.ess >= 6 && !est.fallback ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
+    const box = (cls, name, gem, hint) => { const v = toShow(gem), l = liquido(v);
+      return `<div class="price ${cls}"><span class="lbl">${name}</span><span class="v">${fmtVal(v)}</span><span class="net">você recebe <b>${fmtVal(Math.floor(l))}</b> (${nf(1).format((1 - l / v) * 100)}% de taxa)</span><span class="net">${hint}</span></div>`; };
+    h += `<div class="prices">${box("", "Vender rápido", est.p25, "abaixo de 3/4 dos parecidos")}${box("mid", "Preço justo", est.p50, `mediana ponderada · ${unit()}`)}${box("", "Com paciência", est.p75, "acima de 3/4 dos parecidos")}</div>`;
+    const why = est.fallback
+      ? `${esc(f.species)} tem só ${est.sameMatch.length} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período; completei com outras espécies de potência e nota parecidas.`
+      : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
+    h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
+    if (f.shiny && state.moeda === "coins") h += `<div class="alert">Shiny só pode ser anunciado em Gemas. Os valores em Coins aqui são só conversão.</div>`;
+    if (!f.shiny && f.pot < 5 && ((Number.isFinite(f.lvl) && f.lvl < 50) || (Number.isFinite(f.nota) && f.nota < 3.5)))
+      h += `<div class="alert bad">Este pokémon não pode ser anunciado: o Mercado pede nível 50+ e nota 3,5+ (shiny e P5 entram em qualquer nível e nota).</div>`;
+  }
+  $("verdict").innerHTML = h;
+
+  grafico(f, kept, est, fim);
+
+  // estrelas, no grupo da ficha (shiny ou comum)
+  const grupo = kept.filter((s) => s.shiny === f.shiny);
+  const statsF = grupo.length ? speciesStats(grupo, fim) : [];
+  const st = statsF.find((r) => norm(r.sp) === norm(f.species));
+  if (st) {
+    $("stars").innerHTML = `<div><span class="lbl">Nota de mercado · ${f.shiny ? "shiny" : "comum"}</span><h2>${esc(st.sp)}</h2></div>
+      <div class="score"><span class="big">${nf(1).format(st.score)}</span>${starHTML(st.score)}<span class="muted small">${statsF.indexOf(st) + 1}º de ${statsF.length} espécies</span></div>
+      <div class="bars">${st.parts.map((p) => `<div class="bar"><span>${p.k} <span class="muted">${Math.round(p.w * 100)}%</span></span><span class="track"><span class="fill" style="width:${Math.round(p.v * 100)}%"></span></span><span class="num">${nf(1).format(p.v * 5)}</span><span class="why">${esc(p.why)}</span></div>`).join("")}</div>
+      ${st.flips.length ? `<p class="muted small">${st.flips.length} revenda${st.flips.length > 1 ? "s" : ""} do mesmo pokémon no período, variação média de ${nf(0).format(st.flips.reduce((a, b) => a + b, 0) / st.flips.length * 100)}%.</p>` : ""}`;
+  } else $("stars").innerHTML = `<div><span class="lbl">Nota de mercado</span><h2>${esc(f.species || "—")}</h2></div><p class="muted">Nenhuma venda ${f.shiny ? "shiny" : "comum"} desta espécie no período.</p>`;
+
+  // percentis
+  const refSp = st ? st.list : [];
+  const rowP = (name, x, key, dec) => {
+    if (!Number.isFinite(x)) return "";
+    const a = grupo.map((s) => s[key]).filter(Number.isFinite), b = refSp.map((s) => s[key]).filter(Number.isFinite);
+    if (!a.length) return "";
+    const lo = Math.min(...a, x), hi = Math.max(...a, x), pos = (v) => hi > lo ? (v - lo) / (hi - lo) * 100 : 50;
+    const pb = b.length >= 3 ? pctRank(b, x) : null;
+    return `<div class="row"><span>${name} <span class="num muted">${nf(dec).format(x)}</span></span><span class="scale">${a.map((v) => `<b style="left:${pos(v)}%"></b>`).join("")}<i style="left:${pos(x)}%"></i></span><span class="num">${Math.round(pctRank(a, x) * 100)}%</span></div>`
+      + (pb != null ? `<div class="muted" style="font-size:.75rem;margin-top:-6px">entre os ${esc(f.species)}: melhor que ${Math.round(pb * 100)}%</div>` : "");
+  };
+  const pRows = rowP("Nota", f.nota, "nota", 2) + rowP("Qualidade", f.q, "q", 3) + rowP("IV", f.iv, "iv", 0) + rowP("Potência", f.pot, "pot", 0);
+  $("pcts").innerHTML = `<div><span class="lbl">Percentil</span><h2>Onde ele fica no mercado</h2></div>`
+    + (pRows ? `<p class="muted" style="font-size:.8rem">Cada risco é uma venda ${f.shiny ? "shiny" : "comum"} do período; o traço colorido é o seu. A % diz quantas vendas ele supera.</p><div class="pct">${pRows}</div>`
+      : `<p class="muted">Sem vendas ${f.shiny ? "shiny" : "comuns"} para comparar.</p>`);
+
+  // parecidas
+  const sim = [...est.items].sort((a, b) => a.d - b.d).slice(0, 10);
+  $("similar").innerHTML = `<div><span class="lbl">Comparação</span><h2>Vendas mais parecidas</h2></div>` + (sim.length ? `<div class="tbl"><table>
+    <thead><tr><th>Semelhança</th><th>Data</th><th>Pokémon</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r">Q</th><th class="r">IV</th><th class="r">Preço (${unit()})</th></tr></thead>
+    <tbody>${sim.map(({ s, d }) => { const sc = Math.round(Math.exp(-d / 2) * 100);
+      const shown = state.moeda === "gemas" ? nf(0).format(s.gem) : short(s.gem * state.rate);
+      const orig = s.moeda !== state.moeda ? `<div class="orig">${s.moeda === "gemas" ? nf(0).format(s.price) + " Gemas" : short(s.price) + " Coins"}</div>` : "";
+      return `<tr><td><span class="simbar"><i style="width:${sc}%"></i></span><span class="num">${sc}%</span></td><td class="n">${fmtDate(s.date)}</td><td>${s.shiny ? "✨ " : ""}${esc(s.species)}</td><td class="r n">${nf(0).format(s.lvl)}</td><td class="r n">${s.pot}</td><td class="r n">${Number.isFinite(s.nota) ? nf(2).format(s.nota) : "—"}</td><td class="r n">${Number.isFinite(s.q) ? nf(3).format(s.q) : "—"}</td><td class="r n">${s.iv ?? "—"}</td><td class="r n">${shown}${orig}</td></tr>`; }).join("")}</tbody></table></div>`
+    : `<p class="muted">Nada para comparar.</p>`)
+    + (gone.length ? `<details><summary>${gone.length} venda${gone.length > 1 ? "s" : ""} descartada${gone.length > 1 ? "s" : ""} no período</summary><div class="tbl"><table><tbody>${gone.map(({ s, why }) => `<tr><td class="n">${fmtDate(s.date)}</td><td>${esc(s.species)}</td><td class="r n">${s.moeda === "gemas" ? nf(0).format(s.price) + " Gemas" : short(s.price) + " Coins"}</td><td class="muted">${why}</td></tr>`).join("")}</tbody></table></div></details>` : "");
+
+  // ranking
+  const gr = state.grupoRank;
+  const rk = speciesStats(kept.filter((s) => gr === "shiny" ? s.shiny : !s.shiny), fim);
+  const show = state.showAll ? rk : rk.slice(0, 15);
+  $("ranking").innerHTML = `<div class="head-row"><div><span class="lbl">Espécies vendidas no período</span><h2>Ranking de mercado</h2></div>
+      <div class="seg" role="group" aria-label="Grupo do ranking"><button data-gr="shiny" aria-pressed="${gr === "shiny"}">✨ Shiny</button><button data-gr="comum" aria-pressed="${gr === "comum"}">Comuns</button></div></div>
+    ${rk.length ? `<p class="muted small">Clique numa linha para levar a espécie para a ficha.</p><div class="tbl"><table><thead><tr><th>#</th><th>Espécie</th><th>Estrelas</th><th class="r">Vendas</th><th class="r">Últimos 7d</th><th class="r">Mediana (${unit()})</th><th class="r">Metade das vendas entre</th><th class="r">Revendas</th></tr></thead>
+    <tbody>${show.map((r, i) => `<tr class="click" data-sp="${esc(r.sp)}" tabindex="0"><td class="n muted">${i + 1}</td><td>${esc(r.sp)}</td><td>${starHTML(r.score, true)} <span class="num muted">${nf(1).format(r.score)}</span></td><td class="r n">${r.n}</td><td class="r n">${r.last7}</td><td class="r n">${fmtShow(r.med)}</td><td class="r n">${r.n >= 3 ? fmtShow(r.q1) + " – " + fmtShow(r.q3) : "—"}</td><td class="r n">${r.flips.length || ""}</td></tr>`).join("")}</tbody></table></div>
+    ${rk.length > 15 ? `<button class="btn" id="toggle-all">${state.showAll ? "Mostrar só as 15 primeiras" : `Mostrar as ${rk.length} espécies`}</button>` : ""}`
+    : `<p class="muted">Nenhuma venda ${gr === "shiny" ? "shiny" : "de pokémon comum"} no período.</p>`}`;
+  const tg = $("toggle-all"); if (tg) tg.onclick = () => { state.showAll = !state.showAll; render(); };
+  document.querySelectorAll("[data-gr]").forEach((b) => b.onclick = () => { state.grupoRank = b.dataset.gr; render(); });
+  document.querySelectorAll("#ranking tr.click").forEach((tr) => {
+    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; render();
+      $("verdict").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
+  });
+}
+
+// ---------- eventos ----------
+$("csv").onchange = (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => { try { state.extra = parseCSV(fr.result); $("csv-msg").textContent = `${file.name}: ${state.extra.length} vendas somadas à sua tela.`; render(); }
+    catch (err) { $("csv-msg").textContent = err.message; } };
+  fr.readAsText(file, "utf-8");
+};
+const drop = $("drop");
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) { const dt = new DataTransfer(); dt.items.add(f); $("csv").files = dt.files; $("csv").onchange({ target: $("csv") }); } };
+$("ficha").oninput = () => { const f = parseFicha($("ficha").value); fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
+["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
+$("ex1").onclick = () => { $("ficha").value = EX1; $("ficha").oninput(); };
+$("ex2").onclick = () => { $("ficha").value = EX2; $("ficha").oninput(); };
+const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
+$("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("coins");
+document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
+$("rate").value = nf(0).format(state.rate);
+$("rate").onchange = () => { const v = parseBR($("rate").value); if (v > 0) { state.rate = v; try { localStorage.setItem("rtm-rate", v); } catch (e) {} } $("rate").value = nf(0).format(state.rate); render(); };
+
+carregarHistorico()
+  .then(() => { $("ficha").value = EX1; $("ficha").oninput(); })
+  .catch(() => { $("status").textContent = "Não consegui carregar o histórico de vendas. Recarregue a página; se continuar, o site pode estar sendo atualizado."; });
+})();
+</script>
+</body>
+</html>

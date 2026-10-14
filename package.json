@@ -1,0 +1,12 @@
+{
+  "name": "poke-market-calculator",
+  "private": true,
+  "type": "module",
+  "description": "Coletor de vendas do Mercado do PokeIdle e site da Balança de Preços",
+  "scripts": {
+    "coletar": "node coletor/coletar.mjs",
+    "importar": "node coletor/importar-csv.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": { "ws": "8.18.0" }
+}
