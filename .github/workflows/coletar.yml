@@ -2,7 +2,7 @@ name: Coletar vendas
 
 on:
   schedule:
-    - cron: '0 * * * *'    # de hora em hora, na virada (o GitHub pode atrasar alguns minutos)
+    - cron: '23 * * * *'   # de hora em hora no minuto 23 (fora dos minutos redondos, em que o GitHub atrasa mais)
   workflow_dispatch:         # botão "Run workflow" para rodar na hora
 
 permissions:
