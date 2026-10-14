@@ -155,6 +155,45 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .vazio ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; color: var(--muted); }
 .rate { flex-wrap: wrap; }
 .rate small { flex-basis: 100%; font-size: .72rem; }
+.panel, .vista { grid-template-columns: minmax(0, 1fr); }
+.panel > *, .vista > * { min-width: 0; }
+.abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.abas button { border: 0; background: none; padding: 8px 14px 10px; font: 600 .95rem var(--f-display); color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.abas button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--acc); }
+.abas button:hover { color: var(--ink); }
+.vista { display: grid; gap: 18px; min-width: 0; }
+.panel.calcs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 640px) { .calcs { grid-template-columns: minmax(0, 1fr); } }
+.calc { display: grid; gap: 6px; align-content: start; }
+.calc-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .9rem; }
+.calc input, .mini input, .mini select { width: 110px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font: .9rem var(--f-mono); color: var(--ink); }
+.calc .u { color: var(--muted); font-size: .85rem; }
+.calc-out { font-size: .85rem; color: var(--muted); }
+.calc-out b { color: var(--ink); font-family: var(--f-mono); font-weight: 600; }
+.calc-out .bom { color: var(--good); font-weight: 600; }
+.calc-out .ruim { color: var(--bad); font-weight: 600; }
+.calc-out .meio { color: var(--warn); font-weight: 600; }
+.farm-ctrl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.mini { display: grid; gap: 3px; font-size: .75rem; color: var(--muted); font-weight: 600; }
+.mini select { width: auto; }
+.sp-mini { width: 32px; height: 32px; image-rendering: pixelated; vertical-align: middle; margin: -6px 6px -6px -4px; }
+.ef { font: 600 .75rem var(--f-mono); padding: 1px 6px; border-radius: 4px; background: var(--sunk); }
+.ef.forte { background: var(--gem-soft); color: var(--gem); }
+.ef.fraco { color: var(--bad); }
+.tend { font: 600 .78rem var(--f-mono); }
+.tend.sobe { color: var(--good); }
+.tend.desce { color: var(--bad); }
+.comp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.comp-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 6px; background: var(--sunk); align-content: start; }
+.comp-card.melhor { border-color: var(--acc); background: var(--acc-soft); }
+.comp-card .v { font: 700 1.4rem/1.1 var(--f-display); }
+.comp-top { display: flex; gap: 10px; align-items: center; }
+.comp-top img { width: 56px; height: 56px; image-rendering: pixelated; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .82rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--f-mono); text-align: right; }
+.cot { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: end; }
+.cot .big { font: 700 1.8rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
 .foot { font-size: .8rem; color: var(--muted); display: grid; gap: 6px; max-width: 82ch; }
 </style>
 </head>
@@ -185,6 +224,12 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   </header>
   <div class="status" id="status">Carregando o histórico de vendas…</div>
 
+  <nav class="abas" role="tablist" aria-label="Seções">
+    <button role="tab" data-aba="avaliar" aria-selected="true">Avaliar</button>
+    <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
+    <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
+  </nav>
+
   <div class="grid">
     <aside class="panel">
       <div>
@@ -212,19 +257,57 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
     </aside>
 
     <main>
-      <section class="panel" id="verdict"></section>
-      <div class="detalhes" id="detalhes" hidden>
-        <section class="panel" id="grafico"></section>
-        <div class="two">
-          <section class="panel" id="stars"></section>
-          <section class="panel" id="pcts"></section>
+      <div class="vista" data-vista="avaliar">
+        <section class="panel" id="verdict"></section>
+        <section class="panel calcs" id="calcs">
+          <label class="calc" for="c-liq">
+            <span class="lbl">Quanto anunciar</span>
+            <span class="calc-linha">Quero receber <input id="c-liq" inputmode="numeric" placeholder="5.000" aria-label="Valor líquido desejado"> <span class="u">Gemas</span></span>
+            <span class="calc-out" id="c-liq-out">Digite quanto quer receber depois da comissão.</span>
+          </label>
+          <label class="calc" for="c-anuncio">
+            <span class="lbl">Vi um anúncio</span>
+            <span class="calc-linha">Está anunciado por <input id="c-anuncio" inputmode="numeric" placeholder="3.000" aria-label="Preço do anúncio"> <span class="u">Gemas</span></span>
+            <span class="calc-out" id="c-anuncio-out">Cole a ficha do pokémon anunciado e digite o preço.</span>
+          </label>
+        </section>
+        <div class="detalhes" id="detalhes" hidden>
+          <section class="panel" id="grafico"></section>
+          <div class="two">
+            <section class="panel" id="stars"></section>
+            <section class="panel" id="pcts"></section>
+          </div>
+          <section class="panel" id="similar"></section>
+          <section class="panel" id="comparar">
+            <div class="head-row"><div><span class="lbl">Comparar</span><h2>Este ou outro?</h2></div></div>
+            <p class="muted small">Cole aqui a ficha de um segundo pokémon para ver os dois lado a lado.</p>
+            <textarea id="ficha-b" aria-label="Texto da ficha do segundo pokémon" spellcheck="false" rows="4"></textarea>
+            <div id="comp-out"></div>
+          </section>
         </div>
-        <section class="panel" id="similar"></section>
+      </div>
+
+      <div class="vista" data-vista="farmar" hidden>
+        <section class="panel" id="farm">
+          <div class="head-row">
+            <div><span class="lbl">Shiny por hora</span><h2>Onde farmar</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Nível do treinador <input id="farm-nivel" inputmode="numeric" placeholder="461"></label>
+              <label class="mini">Bola
+                <select id="farm-bola"><option value="4">Ultra Ball</option><option value="8">Beast Ball</option><option value="3">Super Ball</option><option value="2">Great Ball</option></select>
+              </label>
+            </div>
+          </div>
+          <div id="farm-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="mercado" hidden>
+        <section class="panel" id="cotacao"></section>
+        <section class="panel" id="ranking"></section>
       </div>
     </main>
   </div>
-
-  <section class="panel" id="ranking"></section>
 
   <footer class="foot">
     <p><b>De onde vêm os dados.</b> As vendas de pokémon do Mercado da Comunidade, coletadas a cada 2 horas da Tabela de preços do jogo e guardadas sem apagar as antigas. Os nomes dos jogadores viram códigos.</p>
@@ -366,7 +449,11 @@ function speciesStats(sales, fimMin) {
     list.forEach((s) => (ids[[s.base, s.nota, s.iv, s.q, s.pot].join("|")] ||= []).push(s));
     const flips = [];
     Object.values(ids).forEach((v) => { v.sort((a, b) => a.min - b.min); for (let i = 1; i < v.length; i++) flips.push(v[i].gem / v[i - 1].gem - 1); });
-    return { sp, n, med, q1, q3, last7, buyers, flips, list };
+    // Tendência: mediana dos últimos 7 dias contra a dos 7 anteriores (3 vendas em cada, no mínimo)
+    const g7 = list.filter((s) => fimMin - s.min <= 7 * 1440).map((s) => s.gem).sort((a, b) => a - b);
+    const gp = list.filter((s) => fimMin - s.min > 7 * 1440 && fimMin - s.min <= 14 * 1440).map((s) => s.gem).sort((a, b) => a - b);
+    const tend = g7.length >= 3 && gp.length >= 3 ? quant(g7, 0.5) / quant(gp, 0.5) - 1 : null;
+    return { sp, n, med, q1, q3, last7, buyers, flips, list, tend };
   });
   const dias = state.dias || Math.max(30, (fimMin - Math.min(...sales.map((s) => s.min))) / 1440);
   const ns = rows.map((r) => Math.log(r.n)), meds = rows.map((r) => Math.log(r.med));
@@ -403,6 +490,13 @@ function parseFicha(t) {
     f.q = parseEN(g(/^\s*-\s*(?:Qualidade|Calidad|Quality)\s*:\s*([\d.]+)/im));
     f.iv = parseEN(g(/^\s*-\s*(?:IV somado|IV total|Total IV)\s*:\s*([\d,]+)/im));
     f.nota = parseEN(g(/^\s*-\s*(?:Nota da Calculadora|Nota de la Calculadora|Calculator Score)\s*:\s*([\d.]+)/im));
+    // A tabela de stats: | Stat | Base | IV (1–32) | Stat atual |
+    const tab = t.split(/\r?\n/).filter((l) => /^\s*\|/.test(l)).map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
+    const iIv = tab.length ? tab[0].findIndex((c) => /^IV/i.test(c)) : -1;
+    if (iIv > 0) {
+      const ivs = ["HP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"].map((k) => parseEN((tab.find((r) => r[0] === k) || [])[iIv]));
+      if (ivs.every(Number.isFinite)) f.ivs = ivs;
+    }
   } else {
     // Texto copiado da tela da ficha: números no formato brasileiro.
     const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -417,6 +511,9 @@ function parseFicha(t) {
     f.iv = parseBR(g(/IV\s*(?:somado|total)\s*:?\s*(\d+)/i));
     f.nota = parseBR(g(/(\d+,\d+)\s*\/\s*10/));
     f.shiny = /✨\s*shiny|\bshiny\b/i.test(t);
+    // "HP988IV 30" na tela da ficha
+    const ivs = ["HP", "ATK", "DEF", "SP\\.ATK", "SP\\.DEF", "SPD"].map((k) => +(t.match(new RegExp("^" + k + "[\\d.]+IV (\\d+)", "m")) || [])[1]);
+    if (ivs.every((v) => v > 0)) f.ivs = ivs;
   }
   return f;
 }
@@ -580,6 +677,11 @@ function render() {
       h += `<div class="alert bad">Este pokémon não pode ser anunciado: o Mercado pede nível 50+ e nota 3,5+ (shiny e P5 entram em qualquer nível e nota).</div>`;
   }
   $("verdict").innerHTML = h;
+  Object.assign(state, { f, est, kept, fim });
+  atualizarCalcs();
+  renderComparar();
+  if (state.aba === "farmar") renderFarm();
+  if (state.aba === "mercado") renderCotacao();
 
   if (temFicha) {
   grafico(f, kept, est, fim);
@@ -629,14 +731,14 @@ function render() {
   const show = state.showAll ? rk : rk.slice(0, 15);
   $("ranking").innerHTML = `<div class="head-row"><div><span class="lbl">Espécies vendidas no período</span><h2>Ranking de mercado</h2></div>
       <div class="seg" role="group" aria-label="Grupo do ranking"><button data-gr="shiny" aria-pressed="${gr === "shiny"}">✨ Shiny</button><button data-gr="comum" aria-pressed="${gr === "comum"}">Comuns</button></div></div>
-    ${rk.length ? `<p class="muted small">Clique numa linha para levar a espécie para a ficha.</p><div class="tbl"><table><thead><tr><th>#</th><th>Espécie</th><th>Estrelas</th><th class="r">Vendas</th><th class="r">Últimos 7d</th><th class="r">Mediana (${unit()})</th><th class="r">Metade das vendas entre</th><th class="r">Revendas</th></tr></thead>
-    <tbody>${show.map((r, i) => `<tr class="click" data-sp="${esc(r.sp)}" tabindex="0"><td class="n muted">${i + 1}</td><td>${esc(r.sp)}</td><td>${starHTML(r.score, true)} <span class="num muted">${nf(1).format(r.score)}</span></td><td class="r n">${r.n}</td><td class="r n">${r.last7}</td><td class="r n">${fmtShow(r.med)}</td><td class="r n">${r.n >= 3 ? fmtShow(r.q1) + " – " + fmtShow(r.q3) : "—"}</td><td class="r n">${r.flips.length || ""}</td></tr>`).join("")}</tbody></table></div>
+    ${rk.length ? `<p class="muted small">Clique numa linha para levar a espécie para a ficha.</p><div class="tbl"><table><thead><tr><th>#</th><th>Espécie</th><th>Estrelas</th><th class="r">Vendas</th><th class="r">Últimos 7d</th><th class="r">Mediana (${unit()})</th><th class="r">Metade das vendas entre</th><th class="r" title="Mediana dos últimos 7 dias contra a dos 7 anteriores">Tendência</th><th class="r">Revendas</th></tr></thead>
+    <tbody>${show.map((r, i) => `<tr class="click" data-sp="${esc(r.sp)}" tabindex="0"><td class="n muted">${i + 1}</td><td>${esc(r.sp)}</td><td>${starHTML(r.score, true)} <span class="num muted">${nf(1).format(r.score)}</span></td><td class="r n">${r.n}</td><td class="r n">${r.last7}</td><td class="r n">${fmtShow(r.med)}</td><td class="r n">${r.n >= 3 ? fmtShow(r.q1) + " – " + fmtShow(r.q3) : "—"}</td><td class="r">${tendHTML(r.tend)}</td><td class="r n">${r.flips.length || ""}</td></tr>`).join("")}</tbody></table></div>
     ${rk.length > 15 ? `<button class="btn" id="toggle-all">${state.showAll ? "Mostrar só as 15 primeiras" : `Mostrar as ${rk.length} espécies`}</button>` : ""}`
     : `<p class="muted">Nenhuma venda ${gr === "shiny" ? "shiny" : "de pokémon comum"} no período.</p>`}`;
   const tg = $("toggle-all"); if (tg) tg.onclick = () => { state.showAll = !state.showAll; render(); };
   document.querySelectorAll("[data-gr]").forEach((b) => b.onclick = () => { state.grupoRank = b.dataset.gr; render(); });
   document.querySelectorAll("#ranking tr.click").forEach((tr) => {
-    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; render();
+    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; state.ivs = null; abrirAba("avaliar"); render();
       $("verdict").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
@@ -651,18 +753,287 @@ function mostrarCotacao() {
   s.textContent = `pelo preço do diamante (${c.janela ?? "7 dias"}): ${nf(c.gemasPorDiamante < 20 ? 1 : 0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins`;
 }
 
+// ---------- tendência ----------
+const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
+  : `<span class="tend ${t > 0.03 ? "sobe" : t < -0.03 ? "desce" : ""}" title="mediana da última semana contra a anterior">${t > 0.03 ? "▲" : t < -0.03 ? "▼" : "■"} ${nf(0).format(Math.abs(t) * 100)}%</span>`;
+
+// ---------- abas ----------
+function abrirAba(aba) {
+  if (!["avaliar", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  state.aba = aba;
+  document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
+  document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
+  if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
+  if (aba === "farmar") renderFarm();
+  if (aba === "mercado") renderCotacao();
+}
+
+// ---------- calculadoras ----------
+/** O preço de anúncio que deixa `liq` para o vendedor (o inverso da comissão por faixa). */
+function precoParaReceber(liq) {
+  if (state.moeda === "coins") return Math.ceil(liq / 0.85);
+  if (liq <= 435) return Math.ceil(liq / 0.87);
+  if (liq <= 4485) return Math.ceil(500 + (liq - 435) / 0.90);
+  return Math.ceil(5000 + (liq - 4485) / 0.925);
+}
+function atualizarCalcs() {
+  document.querySelectorAll("#calcs .u").forEach((u) => { u.textContent = unit(); });
+  const liq = parseBR($("c-liq").value);
+  if (liq > 0) {
+    const p = precoParaReceber(liq);
+    $("c-liq-out").innerHTML = `Anuncie por <b>${fmtVal(p)}</b>: a comissão leva ${fmtVal(p - liquido(p))} (${nf(1).format((1 - liquido(p) / p) * 100)}%).`;
+  } else $("c-liq-out").textContent = "Digite quanto quer receber depois da comissão.";
+  const preco = parseBR($("c-anuncio").value);
+  const est = state.est;
+  if (!(preco > 0)) { $("c-anuncio-out").textContent = "Cole a ficha do pokémon anunciado e digite o preço."; return; }
+  if (!state.f?.species || !est?.items?.length) { $("c-anuncio-out").textContent = "Cole a ficha do pokémon anunciado para comparar com as vendas."; return; }
+  const j = toShow(est.p50), dif = preco / j - 1;
+  const cls = preco <= toShow(est.p25) ? "bom" : preco <= toShow(est.p75) ? "meio" : "ruim";
+  const txt = cls === "bom" ? "Barato" : cls === "meio" ? "Dentro do normal" : "Caro";
+  $("c-anuncio-out").innerHTML = `<span class="${cls}">${txt}:</span> ${nf(0).format(Math.abs(dif) * 100)}% ${dif < 0 ? "abaixo" : "acima"} do preço justo (<b>${fmtVal(j)}</b>). A faixa normal vai de ${fmtVal(toShow(est.p25))} a ${fmtVal(toShow(est.p75))}.`;
+}
+
+// ---------- comparar ----------
+function renderComparar() {
+  const out = $("comp-out");
+  const txt = $("ficha-b").value.trim();
+  if (!txt || !state.f?.species) { out.innerHTML = ""; return; }
+  const b = parseFicha(txt);
+  if (!b.species) { out.innerHTML = '<p class="muted small">Não reconheci a espécie desse texto.</p>'; return; }
+  b.mega = /^mega\s/i.test(b.species);
+  const a = state.f;
+  const eb = estimate(b, state.kept, state.fim);
+  const cards = [[a, state.est], [b, eb]].map(([f, e]) => ({ f, e, v: e.items.length ? e.p50 : NaN }));
+  const melhor = cards[0].v > cards[1].v ? 0 : cards[1].v > cards[0].v ? 1 : -1;
+  const estrela = (f) => {
+    const st = speciesStats(state.kept.filter((s) => s.shiny === f.shiny), state.fim).find((r) => norm(r.sp) === norm(f.species));
+    return st ? st.score : null;
+  };
+  out.innerHTML = `<div class="comp">${cards.map(({ f, e, v }, i) => {
+    const foto = urlFoto(f.species, f.shiny), sc = estrela(f);
+    return `<div class="comp-card${melhor === i ? " melhor" : ""}">
+      <div class="comp-top">${foto ? `<img src="${foto}" alt="" width="56" height="56" onerror="this.remove()">` : ""}<div><span class="lbl">${i ? "B" : "A · a ficha ao lado"}</span><h3>${f.shiny ? "✨ " : ""}${esc(f.species)}</h3></div></div>
+      <span class="v">${Number.isFinite(v) ? fmtShow(v) + " " + unit() : "sem vendas"}</span>
+      <dl class="kv">
+        <dt>Você recebe</dt><dd>${Number.isFinite(v) ? fmtVal(Math.floor(liquido(toShow(v)))) : "—"}</dd>
+        <dt>Faixa normal</dt><dd>${e.items.length ? fmtShow(e.p25) + " – " + fmtShow(e.p75) : "—"}</dd>
+        <dt>Potência · Nível</dt><dd>P${f.pot} · ${Number.isFinite(f.lvl) ? nf(0).format(f.lvl) : "—"}</dd>
+        <dt>Nota · Q · IV</dt><dd>${Number.isFinite(f.nota) ? nf(2).format(f.nota) : "—"} · ${Number.isFinite(f.q) ? nf(3).format(f.q) : "—"} · ${f.iv ?? "—"}</dd>
+        <dt>Nota de mercado</dt><dd>${sc != null ? starHTML(sc, true) + " " + nf(1).format(sc) : "—"}</dd>
+      </dl>
+    </div>`; }).join("")}</div>`
+    + (melhor >= 0 && Number.isFinite(cards[0].v) && Number.isFinite(cards[1].v)
+      ? `<p class="small" style="margin-top:10px"><b>${melhor ? "B" : "A"}</b> vale cerca de <b>${nf(0).format((Math.max(cards[0].v, cards[1].v) / Math.min(cards[0].v, cards[1].v) - 1) * 100)}%</b> mais pelo mercado.</p>` : "");
+}
+
+// ---------- cotação ----------
+let diamantes = null;
+async function renderCotacao() {
+  const box = $("cotacao");
+  const c = state.meta?.cotacao;
+  if (diamantes === null) {
+    diamantes = false;
+    try { diamantes = await (await fetch("dados/diamantes.json", { cache: "no-cache" })).json(); } catch (e) { diamantes = { cotacoes: [] }; }
+  }
+  const serie = ((diamantes && diamantes.cotacoes) || []).filter((x) => x.coinsPorGema > 0).map((x) => ({ t: Date.parse(x.em), v: x.coinsPorGema }));
+  let svg = "";
+  if (serie.length >= 2) {
+    const W = 680, H = 150, L = 64, R = 12, T = 10, B = 24;
+    const t0 = serie[0].t, t1 = serie.at(-1).t, vs = serie.map((p) => p.v);
+    const lo = Math.min(...vs) * 0.97, hi = Math.max(...vs) * 1.03;
+    const x = (t) => L + (t - t0) / Math.max(1, t1 - t0) * (W - L - R), y = (v) => T + (hi - v) / (hi - lo) * (H - T - B);
+    const pts = serie.map((p) => `${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
+    const dataHora = (t) => new Date(t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    svg = `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cotação da Gema em Coins ao longo do tempo">
+      ${[lo, (lo + hi) / 2, hi].map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${short(v)}</text>`).join("")}
+      <polygon points="${x(t0)},${H - B} ${pts} ${x(t1)},${H - B}" fill="var(--coin)" opacity=".12"/>
+      <polyline points="${pts}" fill="none" stroke="var(--coin)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="${x(t1)}" cy="${y(serie.at(-1).v)}" r="4" fill="var(--coin)"/>
+      <text x="${L}" y="${H - 6}">${dataHora(t0)}</text>
+      <text x="${W - R}" y="${H - 6}" text-anchor="end">${dataHora(t1)}</text>
+    </svg></div>`;
+  }
+  const dia = serie.filter((p) => p.t >= Date.now() - 864e5);
+  const var24 = dia.length >= 2 ? dia.at(-1).v / dia[0].v - 1 : null;
+  box.innerHTML = `<div class="head-row"><div><span class="lbl">Gema ↔ Coins</span><h2>Cotação do diamante</h2></div></div>
+    <div class="cot"><span class="big">1 Gema ≈ ${nf(0).format(state.rate)} Coins</span>
+      ${var24 != null ? `<span class="small">${tendHTML(var24)} nas últimas 24 h</span>` : ""}
+      ${c ? `<span class="muted small">diamante a ${nf(c.gemasPorDiamante < 20 ? 1 : 0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins (${c.janela ?? "7 dias"})</span>` : ""}</div>
+    ${svg || '<p class="muted small">O gráfico aparece depois das próximas coletas: cada uma registra a cotação do momento.</p>'}
+    <p class="muted small">Gema acima do normal favorece vender em Gemas; abaixo, em Coins.</p>`;
+}
+
+// ---------- onde farmar ----------
+const TAB = { // linha = golpe; da wiki ("A tabela completa"), só o que não é ×1, fora a diagonal
+  NORMAL: { ROCK: .5, GHOST: 0, STEEL: .5 },
+  FIRE: { WATER: .5, GRASS: 2, ICE: 2, BUG: 2, ROCK: .5, DRAGON: .5, STEEL: 2 },
+  WATER: { FIRE: 2, GRASS: .5, GROUND: 2, ROCK: 2, DRAGON: .5 },
+  GRASS: { FIRE: .5, WATER: 2, POISON: .5, GROUND: 2, FLYING: .5, BUG: .5, ROCK: 2, DRAGON: .5, STEEL: .5 },
+  ELECTRIC: { WATER: 2, GRASS: .5, GROUND: 0, FLYING: 2, DRAGON: .5 },
+  ICE: { FIRE: .5, WATER: .5, GRASS: 2, GROUND: 2, FLYING: 2, DRAGON: 2, STEEL: .5 },
+  FIGHTING: { NORMAL: 2, ICE: 2, POISON: .5, FLYING: .5, PSYCHIC: .5, BUG: .5, ROCK: 2, GHOST: 0, DARK: 2, STEEL: 2, FAIRY: .5 },
+  POISON: { GRASS: 2, GROUND: .5, ROCK: .5, GHOST: .5, STEEL: 0, FAIRY: 2 },
+  GROUND: { FIRE: 2, GRASS: .5, ELECTRIC: 2, POISON: 2, FLYING: 0, BUG: .5, ROCK: 2, STEEL: 2 },
+  FLYING: { GRASS: 2, ELECTRIC: .5, FIGHTING: 2, BUG: 2, ROCK: .5, STEEL: .5 },
+  PSYCHIC: { FIGHTING: 2, POISON: 2, DARK: 0, STEEL: .5 },
+  BUG: { FIRE: .5, GRASS: 2, FIGHTING: .5, POISON: .5, FLYING: .5, PSYCHIC: 2, GHOST: .5, DARK: 2, STEEL: .5, FAIRY: .5 },
+  ROCK: { FIRE: 2, ICE: 2, FIGHTING: .5, GROUND: .5, FLYING: 2, BUG: 2, STEEL: .5 },
+  GHOST: { NORMAL: 0, PSYCHIC: 2, DARK: .5 },
+  DRAGON: { STEEL: .5, FAIRY: 0 },
+  DARK: { FIGHTING: .5, PSYCHIC: 2, GHOST: 2, FAIRY: .5 },
+  STEEL: { FIRE: .5, WATER: .5, ELECTRIC: .5, ICE: 2, ROCK: 2, FAIRY: 2 },
+  FAIRY: { FIRE: .5, FIGHTING: 2, POISON: .5, DRAGON: 2, DARK: 2, STEEL: .5 },
+};
+function mult1(a, d) {
+  if (a === d) { const c = TAB[a]?.[d]; if (c != null) return c; if (a === 'GHOST' || a === 'DRAGON') return 2; if (a === 'NORMAL' || a === 'GROUND' || a === 'FLYING') return 1; return .5; }
+  return TAB[a]?.[d] ?? 1;
+}
+const NA_HUNT = (m) => m === 0 ? 0 : m <= .25 ? .167 : m <= .5 ? .333 : m <= 1 ? 1 : m <= 2 ? 2.5 : 5.5;
+const efet = (a, d1, d2) => NA_HUNT(mult1(a, d1) * (d2 && d2 !== d1 ? mult1(a, d2) : 1));
+const BONUS_POT = [0, .05, .1, .25, 1];
+const EXPO = { hp: .95, atk: .8, def: .8, spAtk: .8, spDef: .8, speed: .95 };
+const T_ANDAR = 2.65; // s andando entre um abate e outro (calibrado com a mesma medição)
+function stats(base, L, ivs, q, mult) {
+  const k = ['hp', 'atk', 'def', 'spAtk', 'spDef', 'speed'];
+  return Object.fromEntries(k.map((s, i) => [s, (base[i] + 2 * ivs[i]) * (L / 100) * Math.pow(q, EXPO[s]) * mult]));
+}
+function dano(L, power, A, D, stab, ef) { return ((((2 * L / 5 + 2) * power * A / D) / 50) + 2) * stab * ef * 0.925; }
+// Simula SIM_S segundos de hunt: anda até o alvo, ataca com o golpe pronto de mais dano (ou a
+// Investida a cada 2 s se nenhum estiver pronto; 0,9 s entre ataques), sobra de dano se perde.
+const SIM_S = 900;
+const HP_MULT = 12; // HP do selvagem = HP do stat × 12 (calibrado: Blastoise P2 Nv 150 no Pupitar ≈ 1.339/h medidos)
+function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
+  const me = stats(voce.base, voce.L, voce.ivs, voce.q, (1 + BONUS_POT[voce.pot - 1]) * (voce.shiny ? 3 : 1));
+  const tw = [tipos[alvo.t1], alvo.t2 >= 0 ? tipos[alvo.t2] : null];
+  const ele = stats(alvo.base, alvo.L, [16.5, 16.5, 16.5, 16.5, 16.5, 16.5], 1, 1);
+  const hp = ele.hp * HP_MULT;
+  const golpes = [];
+  let melhorEf = 0;
+  for (const [pw, cd, fis, ti, nv] of voce.golpes) {
+    if (nv > voce.L || !cd) continue;
+    const tipo = tipos[ti], ef = efet(tipo, tw[0], tw[1]);
+    const stab = voce.tipos.includes(tipo) ? 1.5 : 1;
+    golpes.push({ d: dano(voce.L, pw, fis ? me.atk : me.spAtk, fis ? ele.def : ele.spDef, stab, ef), cd, pronto: 0 });
+    melhorEf = Math.max(melhorEf, ef);
+  }
+  golpes.sort((a, b) => b.d - a.d);
+  let tb = voce.tipos[0]; if (efet(tb, tw[0], tw[1]) === 0 && voce.tipos[1]) tb = voce.tipos[1];
+  const basico = dano(voce.L, 30, me.atk, ele.def, 1.5, efet(tb, tw[0], tw[1]));
+  if (!(basico > 0) && !golpes.some((g) => g.d > 0)) return { porHora: 0, hp, melhorEf };
+  let t = 0, abates = 0, vida = hp, proxBasico = 0;
+  t += tAndar;
+  while (t < SIM_S) {
+    const g = golpes.find((x) => x.pronto <= t && x.d > 0);
+    let d;
+    if (g) { d = g.d; g.pronto = t + g.cd; }
+    else if (t >= proxBasico) { d = basico; proxBasico = t + 2; }
+    else { const prox = Math.min(proxBasico, ...golpes.filter((x) => x.d > 0).map((x) => x.pronto)); t = Math.max(t + 0.01, prox); continue; }
+    vida -= d;
+    if (vida <= 0) { abates++; vida = hp; t += tAndar; } else t += 0.9;
+  }
+  return { porHora: abates * 3600 / SIM_S, hp, melhorEf };
+}
+function chanceCaptura(npc, bola = 4) {
+  const r = Math.log10(Math.max(100, npc)) - 1, fator = 1 + r ** 3 / 17;
+  return Math.min(.10, Math.max(.003, .0075 * (bola / fator) * 1.4));
+}
+
+
+let especies = null;
+async function carregarEspecies() {
+  if (especies) return especies;
+  const d = await (await fetch("dados/especies.json")).json();
+  especies = { tipos: d.tipos, lista: d.e.map((x) => ({ nome: x[0], dex: x[1], t1: x[2], t2: x[3], base: x.slice(4, 10), L: x[10], npc: x[11], golpes: x[12] })) };
+  especies.porNome = new Map(especies.lista.map((e) => [norm(e.nome), e]));
+  return especies;
+}
+const fmtTempo = (h) => h < 48 ? `${nf(0).format(h)} h` : h < 24 * 60 ? `${nf(0).format(h / 24)} dias` : `${nf(1).format(h / 24 / 30)} meses`;
+const liquidoGemas = (p) => { const t1 = Math.min(p, 500), t2 = Math.min(Math.max(p - 500, 0), 4500), t3 = Math.max(p - 5000, 0); return t1 * 0.87 + t2 * 0.90 + t3 * 0.925; };
+async function renderFarm() {
+  const out = $("farm-out");
+  const f = state.f;
+  if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon que vai caçar, na caixa ao lado. A conta usa a espécie, o nível, a potência, a qualidade e o IV dele.</p>'; return; }
+  if (!especies) out.innerHTML = '<p class="muted">Carregando a Pokédex…</p>';
+  const E = await carregarEspecies();
+  const meu = E.porNome.get(norm(f.species)) || E.porNome.get(norm(f.species.replace(/^mega\s+/i, "")));
+  if (!meu) { out.innerHTML = `<p class="muted">Não achei ${esc(f.species)} na Pokédex do jogo.</p>`; return; }
+  const nivelT = parseBR($("farm-nivel").value);
+  const bola = +$("farm-bola").value;
+  const L = Number.isFinite(f.lvl) ? f.lvl : 100;
+  const ivMed = Number.isFinite(f.iv) ? f.iv / 6 : 16.5;
+  const voce = { tipos: [E.tipos[meu.t1], meu.t2 >= 0 ? E.tipos[meu.t2] : null].filter(Boolean), base: meu.base, L,
+    ivs: state.ivs || [ivMed, ivMed, ivMed, ivMed, ivMed, ivMed], q: Number.isFinite(f.q) ? f.q : 1, pot: f.pot || 1, shiny: f.shiny, golpes: meu.golpes };
+  // preço dos shiny de cada espécie no período
+  const shinyPor = new Map();
+  for (const s of state.kept.filter((x) => x.shiny)) { const k = norm(s.species); if (!shinyPor.has(k)) shinyPor.set(k, []); shinyPor.get(k).push(s.gem); }
+  // Espécie com 1 ou 2 vendas é sorte: o preço usado na conta puxa para a mediana de todos os shiny
+  // (como se houvesse mais 3 vendas "na média"), e só se solta quando a espécie tem vendas de sobra.
+  const todosShiny = [...shinyPor.values()].flat().sort((a, b) => a - b);
+  const medGeral = todosShiny.length ? quant(todosShiny, 0.5) : 0;
+  const PESO_GERAL = 3;
+  const alvos = E.lista.filter((e) => e.L > 0 && e.dex < 2000 && !/^mega\s/i.test(e.nome) && (!(nivelT > 0) || e.L <= nivelT));
+  const linhas = alvos.map((e) => {
+    const r = abatesPorHora(voce, e, E.tipos);
+    const cap = chanceCaptura(e.npc, bola);
+    const shinyH = r.porHora * cap / 24000;
+    const vendas = (shinyPor.get(norm(e.nome)) || []).sort((a, b) => a - b);
+    const med = vendas.length ? quant(vendas, 0.5) : null;
+    const ajustado = med != null ? (vendas.length * med + PESO_GERAL * medGeral) / (vendas.length + PESO_GERAL) : null;
+    return { e, abates: r.porHora, ef: r.melhorEf, shinyH, med, n: vendas.length, gemasH: ajustado != null ? shinyH * liquidoGemas(ajustado) : null };
+  }).filter((x) => x.abates > 0);
+  const melhorAbate = Math.max(0, ...linhas.map((x) => x.abates));
+  const ordem = state.farmOrdem || "valor";
+  const lista = linhas.filter((x) => ordem === "abates" || x.med != null)
+    .filter((x) => ordem !== "raros" || x.abates >= melhorAbate * 0.5)
+    .sort(ordem === "abates" ? (a, b) => b.abates - a.abates : ordem === "raros" ? (a, b) => (a.n - b.n) || (b.med - a.med) : (a, b) => b.gemasH - a.gemasH)
+    .slice(0, state.farmTodos ? 60 : 12);
+  const efTxt = (v) => v >= 5.5 ? "×5,5" : v >= 2.5 ? "×2,5" : v >= 1 ? "neutro" : v > 0 ? "×" + nf(2).format(v) : "imune";
+  const gemasHTxt = (g) => state.moeda === "gemas" ? nf(g < 10 ? 1 : 0).format(g) : short(g * state.rate);
+  out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. Shiny sai 1 em 24.000 arremessos, e a bola ainda precisa fechar.</p>
+    <div class="seg" role="group" aria-label="Ordenar">
+      <button data-fo="valor" aria-pressed="${ordem === "valor"}">Mais ${unit()} por hora</button>
+      <button data-fo="abates" aria-pressed="${ordem === "abates"}">Mais abates</button>
+      <button data-fo="raros" aria-pressed="${ordem === "raros"}">Shiny raro no Mercado</button>
+    </div>
+    <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th class="r">Abates/h</th><th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th></tr></thead>
+    <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, true);
+      return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}</span></td>
+        <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
+        <td class="r n">${nf(0).format(x.abates)}</td>
+        <td class="r n">${x.shinyH > 0 ? fmtTempo(1 / x.shinyH) : "—"}</td>
+        <td class="r n">${x.med != null ? `${fmtShow(x.med)} <span class="muted">(${x.n})</span>` : '<span class="muted">sem vendas</span>'}</td>
+        <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
+    ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
+    <p class="muted small">Estimativa: simula a hunt com a fórmula de dano da wiki (golpes, recargas, STAB e a tabela de tipos da hunt), calibrada com uma medição real. Não conta o dano que você toma, boosts nem a Outland, onde o shiny não rola. "Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.</p>`;
+  out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
+  const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
+  out.querySelectorAll("tr[data-farm]").forEach((tr) => {
+    const go = () => { $("ficha").value = ""; state.ivs = null; fichaToFields({ species: tr.dataset.farm, pot: 1, shiny: true }); abrirAba("avaliar"); render(); };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
+  });
+}
+
 // ---------- eventos ----------
-$("ficha").oninput = () => { const f = parseFicha($("ficha").value); fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
+$("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
 $("ex1").onclick = () => { $("ficha").value = EX1; $("ficha").oninput(); };
 $("ex2").onclick = () => { $("ficha").value = EX2; $("ficha").oninput(); };
-$("limpar").onclick = () => { $("ficha").value = ""; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
+$("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
+document.querySelectorAll("[data-aba]").forEach((b) => { b.onclick = () => abrirAba(b.dataset.aba); });
+window.addEventListener("hashchange", () => abrirAba(location.hash.slice(1)));
+["c-liq", "c-anuncio"].forEach((id) => $(id).addEventListener("input", atualizarCalcs));
+let timerB = 0;
+$("ficha-b").addEventListener("input", () => { clearTimeout(timerB); timerB = setTimeout(renderComparar, 250); });
+try { const n = localStorage.getItem("rtm-nivel"); if (n) $("farm-nivel").value = n; } catch (e) {}
+let timerF = 0;
+$("farm-nivel").addEventListener("input", () => { try { localStorage.setItem("rtm-nivel", $("farm-nivel").value); } catch (e) {} clearTimeout(timerF); timerF = setTimeout(renderFarm, 300); });
+$("farm-bola").addEventListener("change", renderFarm);
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
 $("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("coins");
 document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
 
 carregarHistorico()
-  .then(() => { fichaToFields({ pot: 1 }); mostrarCotacao(); render(); })
+  .then(() => { fichaToFields({ pot: 1 }); mostrarCotacao(); render(); abrirAba(location.hash.slice(1)); })
   .catch(() => { $("status").textContent = "Não consegui carregar o histórico de vendas. Recarregue a página; se continuar, o site pode estar sendo atualizado."; });
 })();
 </script>
