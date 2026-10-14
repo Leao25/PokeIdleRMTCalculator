@@ -1460,7 +1460,7 @@ async function renderInvestir() {
     <tr><td>Agora (Nv ${nf(0).format(L)})</td><td class="r n">${g(agoraV)}</td><td class="small">${farmTxt(agoraF)}</td></tr>
     ${linhasUp.map((x) => `<tr><td>Nv ${nf(0).format(x.n)}</td><td class="r n">${g(x.v)} ${pct(dif(x.v, agoraV))}</td><td class="small">${farmTxt(x.fm)} ${pct(dif(x.fm.media, agoraF.media))}</td></tr>`).join("")}
     </tbody></table></div>
-    <p class="muted small">${f.shiny ? "No shiny, o nível quase não mexe no preço: upar vale pelo farm, não pela revenda." : "No pokémon comum, o preço acompanha o nível. O tempo para upar não entra na conta."}</p></div>`);
+    <p class="muted small">${f.shiny ? "No shiny, o nível pesa bem menos que no comum; o valor acima vem das vendas parecidas naquele nível." : "No pokémon comum, o preço acompanha o nível."} O tempo e o custo para upar não entram na conta.</p></div>`);
 
   // 2. evoluir
   const ev = evolucoes[especie.nome] || evolucoes[f.species];
