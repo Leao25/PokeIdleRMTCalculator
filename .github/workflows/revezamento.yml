@@ -1,0 +1,75 @@
+name: Revezamento (recuperação do mês)
+
+# SOLUÇÃO DE CONTORNO, temporária: enquanto o agendador do GitHub não dispara o "Coletar vendas",
+# esta execução fica ~5h30 no ar, roda o coletor de hora em hora e, antes do limite de 6 horas do
+# GitHub, dispara a próxima. Para sozinha quando a fila de recuperação (coletor/estado.json) acaba.
+# Para desligar antes: Actions → este workflow → "..." → Disable workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+# Mesmo grupo do "Coletar vendas": os dois nunca rodam juntos. Se o agendador acordar e enfileirar
+# uma coleta, ela pode tomar o lugar da próxima volta do revezamento — e aí a corrente para, que é o
+# que queremos quando o agendador já funciona.
+concurrency:
+  group: coletar
+  cancel-in-progress: false
+
+jobs:
+  revezar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: Coletar de hora em hora
+        env:
+          POKEIDLE_NICK: ${{ secrets.POKEIDLE_NICK }}
+          POKEIDLE_TOKEN: ${{ secrets.POKEIDLE_TOKEN }}
+          NOMES_SAL: ${{ secrets.NOMES_SAL }}
+        run: |
+          git config user.name "coletor"
+          git config user.email "coletor@users.noreply.github.com"
+          fila() { node -e "console.log((require('./coletor/estado.json').fila||[]).length)"; }
+          comeco=$(date +%s)
+          LIMITE=$(( 5 * 3600 + 20 * 60 ))   # depois disso, passa o bastão
+          volta=0
+          while true; do
+            # espera fechar 1 hora desde a última coleta gravada (vale também na troca de bastão)
+            ultima=$(git log -1 --format=%ct --grep='^Vendas' || echo 0)
+            espera=$(( ultima + 3600 - $(date +%s) ))
+            if [ $(( $(date +%s) - comeco + (espera > 0 ? espera : 0) )) -gt "$LIMITE" ]; then break; fi
+            [ "$espera" -gt 0 ] && { echo "Próxima coleta em $(( espera / 60 )) min."; sleep "$espera"; }
+            volta=$(( volta + 1 ))
+            echo "::group::Volta $volta — $(date -u +'%H:%M') UTC"
+            git pull -q --rebase || true
+            npm run coletar || echo "Esta coleta falhou; a próxima volta tenta de novo."
+            git add docs/dados coletor/estado.json
+            if ! git diff --cached --quiet; then
+              git commit -q -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento)"
+              git pull -q --rebase && git push -q || echo "Não consegui enviar agora; vai junto na próxima volta."
+            else
+              # sem dados novos (ex.: hora sem nada a fazer): marca a hora para a espera seguinte
+              git commit -q --allow-empty -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento, sem novidade)" && git pull -q --rebase && git push -q || true
+            fi
+            echo "::endgroup::"
+            if [ "$(fila)" = "0" ]; then echo "Fila de recuperação vazia: o revezamento termina aqui."; exit 0; fi
+          done
+      - name: Passar o bastão
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          restam=$(node -e "console.log((require('./coletor/estado.json').fila||[]).length)")
+          if [ "$restam" != "0" ]; then
+            echo "Ainda há $restam pedido(s) na fila: disparando a próxima volta."
+            gh workflow run revezamento.yml --ref main
+          fi
