@@ -632,7 +632,7 @@ function mostrarCotacao() {
   const box = $("rate-box");
   let s = box.querySelector("small");
   if (!s) { s = document.createElement("small"); box.appendChild(s); }
-  s.textContent = `pela média do diamante (7 dias): ${nf(0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins`;
+  s.textContent = `pelo preço do diamante (${c.janela ?? "7 dias"}): ${nf(c.gemasPorDiamante < 20 ? 1 : 0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins`;
 }
 
 // ---------- eventos ----------

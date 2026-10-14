@@ -1,5 +1,5 @@
 // O COLETOR: entra no PokeIdle como um jogador, pede a planilha da Tabela de preços (aba Pokémon)
-// e junta ao histórico.
+// e junta ao histórico. Na mesma entrada, lê as vendas de diamante para a cotação Gema ↔ Coins.
 //
 // Usa o mesmo caminho do botão "Exportar planilha" do jogo (`csv.pedir` do tipo `mercado`), que o
 // servidor libera UMA vez por hora. O agendamento roda de hora em hora, e cada rodada decide:
@@ -22,9 +22,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
+import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
-const ESPERA_MAX_MS = 45000;
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
 const ARQ_ESTADO = path.join(path.dirname(fileURLToPath(import.meta.url)), 'estado.json');
 
@@ -39,60 +39,52 @@ async function lerEstado() {
 }
 const salvarEstado = (e) => writeFile(ARQ_ESTADO, JSON.stringify(e, null, 2) + '\n');
 
-/** Abre o socket, faz o "hello" e devolve a resposta da planilha (ou a recusa). */
-function pedirPlanilha({ nick, token, filtros }) {
+/**
+ * Entra no jogo e devolve uma sessão com `pedir(msg, aceita, ms)`: manda `msg` e espera a primeira
+ * mensagem do servidor em que `aceita(m)` for verdade.
+ */
+function abrirSessao({ nick, token }) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(URL_JOGO, {
       headers: { Origin: 'https://pokeidle.io', 'User-Agent': 'BalancaDePrecos-coletor/1.0 (+github)' },
     });
-    let pediu = false;
-    let acabou = false;
-    let planilha = null;
-    const media = {};
-    const fim = (fn, val) => { if (acabou) return; acabou = true; clearTimeout(relogio); try { ws.close(); } catch {} fn(val); };
-    let relogio = setTimeout(() => fim(reject, new Error(pediu
-      ? 'O jogo não respondeu ao pedido da planilha a tempo.'
-      : 'O jogo não confirmou a entrada da conta a tempo (token vencido?).')), ESPERA_MAX_MS);
+    const esperas = new Set();
+    let entrou = false;
+    let erroFatal = null;
+    const relogio = setTimeout(() => { reject(new Error('O jogo não confirmou a entrada da conta a tempo (token vencido?).')); try { ws.close(); } catch {} }, 45000);
 
-    ws.on('open', () => {
-      ws.send(JSON.stringify({ t: 'hello', nick, token, delta: 1, dispositivo: 'balanca-coletor' }));
-    });
+    const sessao = {
+      pedir(msg, aceita, ms = 15000) {
+        if (erroFatal) return Promise.reject(erroFatal);
+        return new Promise((ok, falha) => {
+          const e = { aceita, ok, falha, t: setTimeout(() => { esperas.delete(e); falha(new Error(`Sem resposta para ${msg.t}.`)); }, ms) };
+          esperas.add(e);
+          ws.send(JSON.stringify(msg));
+        });
+      },
+      fechar() { try { ws.close(); } catch {} },
+    };
+    const derrubar = (erro) => {
+      erroFatal = erro;
+      for (const e of esperas) { clearTimeout(e.t); e.falha(erro); }
+      esperas.clear();
+      if (!entrou) { clearTimeout(relogio); reject(erro); }
+    };
+
+    ws.on('open', () => ws.send(JSON.stringify({ t: 'hello', nick, token, delta: 1, dispositivo: 'balanca-coletor' })));
     ws.on('message', (bruto) => {
       let m;
       try { m = JSON.parse(bruto.toString()); } catch { return; }
-      if (m.t === 'erro') {
-        return fim(reject, new Error(`O jogo recusou: ${m.chave ?? m.msg ?? JSON.stringify(m).slice(0, 200)}`));
-      }
-      if (m.t === 'sessao.renovada') {
-        console.log('Aviso: o jogo renovou a sessão desta conta. Se o coletor começar a falhar, gere um token novo (README).');
-      }
-      if (m.t === 'welcome' && !pediu) {
-        pediu = true;
-        ws.send(JSON.stringify({ t: 'csv.pedir', tipo: 'mercado', filtros }));
-      }
-      if (m.t === 'csv' && m.tipo === 'mercado') {
-        // Com a planilha em mãos, pede também a vitrine de diamantes nas duas moedas: a resposta
-        // traz o preço médio do diamante nos últimos 7 dias, de onde sai a cotação Gema ↔ Coins.
-        // Não é planilha, então não gasta a vez de uma hora. Se não vier em 8 s, segue sem ela.
-        planilha = m;
-        for (const moeda of ['orb', 'gold']) {
-          ws.send(JSON.stringify({ t: 'market.listar', tipo: 'diamante', moeda, ordem: 'baratos', busca: '', pagina: 0, especieId: 0 }));
-        }
-        clearTimeout(relogio);
-        relogio = setTimeout(() => fim(resolve, { ...planilha, mediaDiamante: media }), 8000);
-      }
-      if (m.t === 'market' && m.mediaDiamante) {
-        for (const k of ['orb', 'gold']) if (m.mediaDiamante[k]?.media) media[k] = m.mediaDiamante[k];
-        if (planilha && media.orb && media.gold) fim(resolve, { ...planilha, mediaDiamante: media });
-      }
+      if (m.t === 'erro') return derrubar(new Error(`O jogo recusou: ${m.chave ?? m.msg ?? JSON.stringify(m).slice(0, 200)}`));
+      if (m.t === 'sessao.renovada') console.log('Aviso: o jogo renovou a sessão desta conta. Se o coletor começar a falhar, gere um token novo (README).');
+      if (m.t === 'welcome' && !entrou) { entrou = true; clearTimeout(relogio); resolve(sessao); }
+      for (const e of esperas) if (e.aceita(m)) { clearTimeout(e.t); esperas.delete(e); e.ok(m); }
     });
     ws.on('close', (code) => {
-      if (planilha) fim(resolve, { ...planilha, mediaDiamante: media });
-      else if (code === 4001) fim(reject, new Error('A conta foi aberta em outro lugar durante a coleta.'));
-      else if (code === 4003) fim(reject, new Error('O jogo bloqueou esta rede.'));
-      else fim(reject, new Error(`O jogo fechou a conexão (código ${code}).`));
+      derrubar(new Error(code === 4001 ? 'A conta foi aberta em outro lugar durante a coleta.'
+        : code === 4003 ? 'O jogo bloqueou esta rede.' : `O jogo fechou a conexão (código ${code}).`));
     });
-    ws.on('error', (e) => fim(reject, e));
+    ws.on('error', (e) => derrubar(e));
   });
 }
 
@@ -113,14 +105,41 @@ function converter(linhas, sal) {
   return out;
 }
 
-/** Gema ↔ Coins pelo diamante: o mesmo diamante vendido nas duas moedas (média de 7 dias do jogo). */
-function cotacaoDosDiamantes(md) {
-  const orb = Number(md?.orb?.media), gold = Number(md?.gold?.media);
-  if (!(orb > 0 && gold > 0)) return null;
-  return {
-    coinsPorGema: gold / orb, gemasPorDiamante: orb, coinsPorDiamante: gold,
-    unidades: { orb: md.orb.unidades ?? null, gold: md.gold.unidades ?? null }, em: new Date().toISOString(),
-  };
+/**
+ * As vendas de diamante das últimas ~26 horas, nas duas moedas, pela Tabela de preços (a mesma
+ * tela que o jogador abre: 30 linhas por página). Ler a tela não gasta a vez da planilha.
+ */
+async function lerVendasDeDiamante(sessao) {
+  const limite = Date.now() - 26 * 3600 * 1000;
+  const out = [];
+  let seq = 1000;
+  for (const moeda of ['orb', 'gold']) {
+    for (let pagina = 0; pagina < 20; pagina++) {
+      const s = ++seq;
+      const m = await sessao.pedir({ t: 'market.historicoGlobal', pagina, seq: s, tipo: 'diamante', moeda },
+        (x) => x.t === 'market' && x.aba === 'historicoGlobal' && x.seq === s, 10000);
+      const linhas = Array.isArray(m.linhas) ? m.linhas : [];
+      for (const l of linhas) {
+        const qtd = Number(l.qtd ?? l.quantidade) || Number(String(l.descricao ?? '').match(/(\d[\d.]*)\s*×/)?.[1]?.replace(/\./g, '')) || 1;
+        const em = Number(l.em) || Date.parse(l.em);
+        if (em && l.bruto != null) out.push({ em, moeda: l.moeda === 'gold' ? 'gold' : 'orb', bruto: Number(l.bruto), qtd });
+      }
+      const maisVelha = Math.min(...linhas.map((l) => Number(l.em) || Date.parse(l.em) || Infinity));
+      if (!m.temMais || !linhas.length || maisVelha < limite) break;
+    }
+  }
+  return out;
+}
+
+/** A média de 7 dias que o próprio jogo mostra na aba Diamantes — só como reserva. */
+async function lerMediaDoJogo(sessao) {
+  const media = {};
+  for (const moeda of ['orb', 'gold']) {
+    const m = await sessao.pedir({ t: 'market.listar', tipo: 'diamante', moeda, ordem: 'baratos', busca: '', pagina: 0, especieId: 0 },
+      (x) => x.t === 'market' && x.mediaDiamante, 8000).catch(() => null);
+    for (const k of ['orb', 'gold']) if (m?.mediaDiamante?.[k]?.media) media[k] = m.mediaDiamante[k];
+  }
+  return media;
 }
 
 const descrever = (f) => Object.entries(f).filter(([k]) => k !== 'tipo').map(([k, v]) => `${k}=${v}`).join(', ') || 'sem filtro';
@@ -142,19 +161,32 @@ async function main() {
     return;
   }
 
-  console.log(`Pedindo a planilha (${devePrincipal ? 'principal' : 'recuperação'}: ${descrever(filtros)}).`);
-  const resp = await pedirPlanilha({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN'), filtros });
+  const sessao = await abrirSessao({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN') });
+  let resp, diamantes = [], media7 = {};
+  try {
+    console.log(`Pedindo a planilha (${devePrincipal ? 'principal' : 'recuperação'}: ${descrever(filtros)}).`);
+    resp = await sessao.pedir({ t: 'csv.pedir', tipo: 'mercado', filtros }, (m) => m.t === 'csv' && m.tipo === 'mercado', 30000);
+    diamantes = await lerVendasDeDiamante(sessao).catch((e) => { console.log(`Vendas de diamante: ${e.message}`); return []; });
+    media7 = await lerMediaDoJogo(sessao);
+  } finally {
+    sessao.fechar();
+  }
+
+  // Cotação: a das últimas 24 h (ou a janela mais curta que tenha vendas suficientes).
+  const { novas: novasDiamante } = await juntarDiamantes(diamantes);
+  const cotacao = await calcularCotacao(media7);
+  console.log(`${diamantes.length} vendas de diamante lidas (${novasDiamante} novas).`);
+  if (cotacao) console.log(`Cotação (${cotacao.janela}): 1 Gema = ${Math.round(cotacao.coinsPorGema).toLocaleString('pt-BR')} Coins.`);
+
   if (resp.recusa) {
     // A espera de uma hora: não é erro do coletor, a próxima rodada tenta de novo.
-    console.log(`O jogo pediu para esperar (${resp.recusa.chave}). Nada coletado desta vez.`);
+    console.log(`O jogo pediu para esperar (${resp.recusa.chave}). Nenhuma venda de pokémon desta vez.`);
+    await juntarAoHistorico([], { fonte: 'só cotação', cotacao });
     return;
   }
   if (!resp.ok || !Array.isArray(resp.mercado?.linhas)) throw new Error('A resposta da planilha veio num formato que o coletor não conhece.');
 
   const vendas = converter(resp.mercado.linhas, sal);
-  const cotacao = cotacaoDosDiamantes(resp.mediaDiamante);
-  if (cotacao) console.log(`Cotação: 1 Gema = ${Math.round(cotacao.coinsPorGema).toLocaleString('pt-BR')} Coins (diamante: ${cotacao.gemasPorDiamante} Gemas / ${cotacao.coinsPorDiamante.toLocaleString('pt-BR')} Coins).`);
-  else console.log('Sem a média dos diamantes nesta rodada; o site mantém a última cotação.');
   const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})`, cotacao });
   console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
 
