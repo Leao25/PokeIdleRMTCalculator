@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
 import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
-import { explorar } from './explorar.mjs';
+import { gravarMercado, lerAnuncios, lerItens } from './mercado.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -163,17 +163,22 @@ async function main() {
   }
 
   const sessao = await abrirSessao({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN') });
-  let resp, diamantes = [], media7 = {};
+  let resp, diamantes = [], media7 = {}, aberto = {}, itens = null;
   try {
     console.log(`Pedindo a planilha (${devePrincipal ? 'principal' : 'recuperação'}: ${descrever(filtros)}).`);
     resp = await sessao.pedir({ t: 'csv.pedir', tipo: 'mercado', filtros }, (m) => m.t === 'csv' && m.tipo === 'mercado', 30000);
     diamantes = await lerVendasDeDiamante(sessao).catch((e) => { console.log(`Vendas de diamante: ${e.message}`); return []; });
     media7 = await lerMediaDoJogo(sessao);
-    // Reconhecimento das telas de anúncios e itens: uma vez só (fica marcado no estado).
-    if (!estado.explorado) { await explorar(sessao).catch((e) => console.log(`Reconhecimento: ${e.message}`)); estado.explorado = new Date().toISOString(); }
+    // O Mercado aberto: anúncios de pokémon e vitrine de itens (lê as telas; não gasta a vez da planilha)
+    const t0 = Date.now();
+    aberto = await lerAnuncios(sessao, sal).catch((e) => { console.log(`Anúncios: ${e.message}`); return {}; });
+    itens = await lerItens(sessao).catch((e) => { console.log(`Itens: ${e.message}`); return null; });
+    console.log(`Mercado aberto: ${aberto.anuncios?.length ?? 0} anúncios de pokémon e ${Object.keys(itens?.resumo ?? {}).length} itens, em ${Math.round((Date.now() - t0) / 1000)} s.`);
   } finally {
     sessao.fechar();
   }
+
+  await gravarMercado(aberto, itens, sessao.welcome).catch((e) => console.log(`Gravar mercado: ${e.message}`));
 
   // Cotação: a das últimas 24 h (ou a janela mais curta que tenha vendas suficientes).
   const { novas: novasDiamante } = await juntarDiamantes(diamantes);
