@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "WATER"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "DRAGON"
     },
     {
@@ -82,6 +78,14 @@
       "novas": 1616,
       "cortado": false,
       "em": "2026-10-14T21:24:17.007Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "WATER",
+      "linhas": 1075,
+      "novas": 578,
+      "cortado": false,
+      "em": "2026-10-14T23:25:39.814Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z"

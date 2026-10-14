@@ -1,0 +1,2002 @@
+{
+ "em": "2026-10-14T23:25:39.748Z",
+ "catalogo": [
+  {
+   "id": 70060,
+   "nome": "Founder Box",
+   "icone": "/img/itens/caixa-fundador.png",
+   "categoria": "box",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70061,
+   "nome": "Co-Founder Box",
+   "icone": "/img/itens/caixa-cofundador.png",
+   "categoria": "box",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70040,
+   "nome": "Common House",
+   "icone": "/img/itens/casa-comum.png",
+   "categoria": "casa",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70041,
+   "nome": "Uncommon House",
+   "icone": "/img/itens/casa-incomum.png",
+   "categoria": "casa",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70042,
+   "nome": "Rare House",
+   "icone": "/img/itens/casa-rara.png",
+   "categoria": "casa",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70043,
+   "nome": "Mythic House",
+   "icone": "/img/itens/casa-mitica.png",
+   "categoria": "casa",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70044,
+   "nome": "Legendary House",
+   "icone": "/img/itens/casa-lendaria.png",
+   "categoria": "casa",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70080,
+   "nome": "Common Bicycle",
+   "icone": "/img/itens/bicicleta-comum.png",
+   "categoria": "bicicleta",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70081,
+   "nome": "Uncommon Bicycle",
+   "icone": "/img/itens/bicicleta-incomum.png",
+   "categoria": "bicicleta",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70082,
+   "nome": "Rare Bicycle",
+   "icone": "/img/itens/bicicleta-rara.png",
+   "categoria": "bicicleta",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70083,
+   "nome": "Mythic Bicycle",
+   "icone": "/img/itens/bicicleta-mitica.png",
+   "categoria": "bicicleta",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70084,
+   "nome": "Legendary Bicycle",
+   "icone": "/img/itens/bicicleta-lendaria.png",
+   "categoria": "bicicleta",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73006,
+   "nome": "Blastoise Raphael Skin",
+   "icone": "/img/itens/skins/blastoise_raphael.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73003,
+   "nome": "Charizard Ender Skin",
+   "icone": "/img/itens/skins/charizard_ender.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73012,
+   "nome": "Dragonite Uchiha Skin",
+   "icone": "/img/itens/skins/dragonite_uchiha.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73008,
+   "nome": "Gengar Dracula Skin",
+   "icone": "/img/itens/skins/gengar_dracula.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73010,
+   "nome": "Gyarados Chinese Dragon Skin",
+   "icone": "/img/itens/skins/gyarados_dragao_chines.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73007,
+   "nome": "Mega Blastoise Raphael Skin",
+   "icone": "/img/itens/skins/mega_blastoise_raphael.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73004,
+   "nome": "Mega Charizard Y Dracula Skin",
+   "icone": "/img/itens/skins/mega_charizard_dracula.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73005,
+   "nome": "Mega Charizard Y Ender Skin",
+   "icone": "/img/itens/skins/mega_charizard_ender.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73013,
+   "nome": "Mega Dragonite Uchiha Skin",
+   "icone": "/img/itens/skins/mega_dragonite_uchiha.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73009,
+   "nome": "Mega Gengar Dracula Skin",
+   "icone": "/img/itens/skins/mega_gengar_dracula.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73011,
+   "nome": "Mega Gyarados Chinese Dragon Skin",
+   "icone": "/img/itens/skins/mega_gyarados_dragao_chines.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73015,
+   "nome": "Mega Tyranitar Jason Skin",
+   "icone": "/img/itens/skins/mega_tyranitar_jason.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73002,
+   "nome": "Mega Venusaur Robin Hood Skin",
+   "icone": "/img/itens/skins/mega_venusaur_robinhood.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73506,
+   "nome": "Shiny Blastoise Raphael Skin",
+   "icone": "/img/itens/skins/blastoise_raphael_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73503,
+   "nome": "Shiny Charizard Ender Skin",
+   "icone": "/img/itens/skins/charizard_ender_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73512,
+   "nome": "Shiny Dragonite Uchiha Skin",
+   "icone": "/img/itens/skins/dragonite_uchiha_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73508,
+   "nome": "Shiny Gengar Dracula Skin",
+   "icone": "/img/itens/skins/gengar_dracula_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73510,
+   "nome": "Shiny Gyarados Chinese Dragon Skin",
+   "icone": "/img/itens/skins/gyarados_dragao_chines_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73507,
+   "nome": "Shiny Mega Blastoise Raphael Skin",
+   "icone": "/img/itens/skins/mega_blastoise_raphael_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73504,
+   "nome": "Shiny Mega Charizard Y Dracula Skin",
+   "icone": "/img/itens/skins/mega_charizard_dracula_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73505,
+   "nome": "Shiny Mega Charizard Y Ender Skin",
+   "icone": "/img/itens/skins/mega_charizard_ender_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73513,
+   "nome": "Shiny Mega Dragonite Uchiha Skin",
+   "icone": "/img/itens/skins/mega_dragonite_uchiha_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73509,
+   "nome": "Shiny Mega Gengar Dracula Skin",
+   "icone": "/img/itens/skins/mega_gengar_dracula_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73511,
+   "nome": "Shiny Mega Gyarados Chinese Dragon Skin",
+   "icone": "/img/itens/skins/mega_gyarados_dragao_chines_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73515,
+   "nome": "Shiny Mega Tyranitar Jason Skin",
+   "icone": "/img/itens/skins/mega_tyranitar_jason_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73502,
+   "nome": "Shiny Mega Venusaur Robin Hood Skin",
+   "icone": "/img/itens/skins/mega_venusaur_robinhood_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73514,
+   "nome": "Shiny Tyranitar Jason Skin",
+   "icone": "/img/itens/skins/tyranitar_jason_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73501,
+   "nome": "Shiny Venusaur Halloween Skin",
+   "icone": "/img/itens/skins/venusaur_halloween_shiny.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73014,
+   "nome": "Tyranitar Jason Skin",
+   "icone": "/img/itens/skins/tyranitar_jason.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 73001,
+   "nome": "Venusaur Halloween Skin",
+   "icone": "/img/itens/skins/venusaur_halloween.png",
+   "categoria": "skin",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70094,
+   "nome": "Shiny Egg",
+   "icone": "/img/itens/ovo-shiny.png",
+   "categoria": "ovo",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70013,
+   "nome": "Bicycle Fragment",
+   "icone": "/img/itens/fragmento-bicicleta.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70011,
+   "nome": "Key Fragment",
+   "icone": "/img/itens/fragmento-chave.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70015,
+   "nome": "Mega Shiny Stone Fragment",
+   "icone": "/img/itens/fragmento-mega-shiny.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70014,
+   "nome": "Mega Stone Fragment",
+   "icone": "/img/itens/fragmento-mega.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70017,
+   "nome": "Shiny Egg Fragment",
+   "icone": "/img/itens/fragmento-ovo-shiny.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70012,
+   "nome": "Shiny Stone Fragment",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "fragment",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71460,
+   "nome": "Abomasite",
+   "icone": "/img/itens/mega/abomasite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71359,
+   "nome": "Absolite",
+   "icone": "/img/itens/mega/absolite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71142,
+   "nome": "Aerodactylite",
+   "icone": "/img/itens/mega/aerodactylite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71306,
+   "nome": "Aggronite",
+   "icone": "/img/itens/mega/aggronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71065,
+   "nome": "Alakazite",
+   "icone": "/img/itens/mega/alakazite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71334,
+   "nome": "Altarianite",
+   "icone": "/img/itens/mega/altarianite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71181,
+   "nome": "Ampharosite",
+   "icone": "/img/itens/mega/ampharosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71354,
+   "nome": "Banettite",
+   "icone": "/img/itens/mega/banettite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71689,
+   "nome": "Barbaracite",
+   "icone": "/img/itens/mega/barbaracite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71015,
+   "nome": "Beedrillite",
+   "icone": "/img/itens/mega/beedrillite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71009,
+   "nome": "Blastoisinite",
+   "icone": "/img/itens/mega/blastoisinite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71257,
+   "nome": "Blazikenite",
+   "icone": "/img/itens/mega/blazikenite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71323,
+   "nome": "Cameruptite",
+   "icone": "/img/itens/mega/cameruptite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71609,
+   "nome": "Chandelurite",
+   "icone": "/img/itens/mega/chandelurite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71006,
+   "nome": "Charizardite Y",
+   "icone": "/img/itens/mega/charizardite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71358,
+   "nome": "Chimechite",
+   "icone": "/img/itens/mega/chimechite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71036,
+   "nome": "Clefablite",
+   "icone": "/img/itens/mega/clefablite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71691,
+   "nome": "Dragalgite",
+   "icone": "/img/itens/mega/dragalgite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71149,
+   "nome": "Dragonitite",
+   "icone": "/img/itens/mega/dragonitite.png",
+   "categoria": "mega",
+   "tipo": "DRAGON",
+   "npc": 0
+  },
+  {
+   "id": 71780,
+   "nome": "Drampanite",
+   "icone": "/img/itens/mega/drampanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71604,
+   "nome": "Eelektrossite",
+   "icone": "/img/itens/mega/eelektrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71530,
+   "nome": "Excadrite",
+   "icone": "/img/itens/mega/excadrite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71160,
+   "nome": "Feraligite",
+   "icone": "/img/itens/mega/feraligite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71478,
+   "nome": "Froslassite",
+   "icone": "/img/itens/mega/froslassite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71475,
+   "nome": "Galladite",
+   "icone": "/img/itens/mega/galladite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71445,
+   "nome": "Garchompite",
+   "icone": "/img/itens/mega/garchompite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71282,
+   "nome": "Gardevoirite",
+   "icone": "/img/itens/mega/gardevoirite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71094,
+   "nome": "Gengarite",
+   "icone": "/img/itens/mega/gengarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71362,
+   "nome": "Glalitite",
+   "icone": "/img/itens/mega/glalitite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71658,
+   "nome": "Greninjite",
+   "icone": "/img/itens/mega/greninjite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71130,
+   "nome": "Gyaradosite",
+   "icone": "/img/itens/mega/gyaradosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71701,
+   "nome": "Hawluchanite",
+   "icone": "/img/itens/mega/hawluchanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71214,
+   "nome": "Heracronite",
+   "icone": "/img/itens/mega/heracronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71229,
+   "nome": "Houndoominite",
+   "icone": "/img/itens/mega/houndoominite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71115,
+   "nome": "Kangaskhanite",
+   "icone": "/img/itens/mega/kangaskhanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71448,
+   "nome": "Lucarionite",
+   "icone": "/img/itens/mega/lucarionite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71687,
+   "nome": "Malamarite",
+   "icone": "/img/itens/mega/malamarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71310,
+   "nome": "Manectite",
+   "icone": "/img/itens/mega/manectite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71303,
+   "nome": "Mawilite",
+   "icone": "/img/itens/mega/mawilite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71308,
+   "nome": "Medichamite",
+   "icone": "/img/itens/mega/medichamite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71154,
+   "nome": "Meganiumite",
+   "icone": "/img/itens/mega/meganiumite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71376,
+   "nome": "Metagrossite",
+   "icone": "/img/itens/mega/metagrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71018,
+   "nome": "Pidgeotite",
+   "icone": "/img/itens/mega/pidgeotite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71127,
+   "nome": "Pinsirite",
+   "icone": "/img/itens/mega/pinsirite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71668,
+   "nome": "Pyroarite",
+   "icone": "/img/itens/mega/pyroarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71026,
+   "nome": "Raichunite Y",
+   "icone": "/img/itens/mega/raichunite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71302,
+   "nome": "Sablenite",
+   "icone": "/img/itens/mega/sablenite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71254,
+   "nome": "Sceptilite",
+   "icone": "/img/itens/mega/sceptilite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71212,
+   "nome": "Scizorite",
+   "icone": "/img/itens/mega/scizorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71545,
+   "nome": "Scolipite",
+   "icone": "/img/itens/mega/scolipite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71319,
+   "nome": "Sharpedonite",
+   "icone": "/img/itens/mega/sharpedonite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72460,
+   "nome": "Shiny Abomasite",
+   "icone": "/img/itens/mega-shiny/abomasite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72359,
+   "nome": "Shiny Absolite",
+   "icone": "/img/itens/mega-shiny/absolite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72142,
+   "nome": "Shiny Aerodactylite",
+   "icone": "/img/itens/mega-shiny/aerodactylite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72306,
+   "nome": "Shiny Aggronite",
+   "icone": "/img/itens/mega-shiny/aggronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72065,
+   "nome": "Shiny Alakazite",
+   "icone": "/img/itens/mega-shiny/alakazite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72334,
+   "nome": "Shiny Altarianite",
+   "icone": "/img/itens/mega-shiny/altarianite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72181,
+   "nome": "Shiny Ampharosite",
+   "icone": "/img/itens/mega-shiny/ampharosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72354,
+   "nome": "Shiny Banettite",
+   "icone": "/img/itens/mega-shiny/banettite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72689,
+   "nome": "Shiny Barbaracite",
+   "icone": "/img/itens/mega-shiny/barbaracite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72015,
+   "nome": "Shiny Beedrillite",
+   "icone": "/img/itens/mega-shiny/beedrillite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72009,
+   "nome": "Shiny Blastoisinite",
+   "icone": "/img/itens/mega-shiny/blastoisinite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72257,
+   "nome": "Shiny Blazikenite",
+   "icone": "/img/itens/mega-shiny/blazikenite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72323,
+   "nome": "Shiny Cameruptite",
+   "icone": "/img/itens/mega-shiny/cameruptite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72609,
+   "nome": "Shiny Chandelurite",
+   "icone": "/img/itens/mega-shiny/chandelurite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72006,
+   "nome": "Shiny Charizardite Y",
+   "icone": "/img/itens/mega-shiny/charizardite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72358,
+   "nome": "Shiny Chimechite",
+   "icone": "/img/itens/mega-shiny/chimechite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72036,
+   "nome": "Shiny Clefablite",
+   "icone": "/img/itens/mega-shiny/clefablite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72691,
+   "nome": "Shiny Dragalgite",
+   "icone": "/img/itens/mega-shiny/dragalgite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72149,
+   "nome": "Shiny Dragonitite",
+   "icone": "/img/itens/mega-shiny/dragonitite.png",
+   "categoria": "mega",
+   "tipo": "DRAGON",
+   "npc": 0
+  },
+  {
+   "id": 72780,
+   "nome": "Shiny Drampanite",
+   "icone": "/img/itens/mega-shiny/drampanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72604,
+   "nome": "Shiny Eelektrossite",
+   "icone": "/img/itens/mega-shiny/eelektrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72530,
+   "nome": "Shiny Excadrite",
+   "icone": "/img/itens/mega-shiny/excadrite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72160,
+   "nome": "Shiny Feraligite",
+   "icone": "/img/itens/mega-shiny/feraligite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72478,
+   "nome": "Shiny Froslassite",
+   "icone": "/img/itens/mega-shiny/froslassite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72475,
+   "nome": "Shiny Galladite",
+   "icone": "/img/itens/mega-shiny/galladite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72445,
+   "nome": "Shiny Garchompite",
+   "icone": "/img/itens/mega-shiny/garchompite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72282,
+   "nome": "Shiny Gardevoirite",
+   "icone": "/img/itens/mega-shiny/gardevoirite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72094,
+   "nome": "Shiny Gengarite",
+   "icone": "/img/itens/mega-shiny/gengarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72362,
+   "nome": "Shiny Glalitite",
+   "icone": "/img/itens/mega-shiny/glalitite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72658,
+   "nome": "Shiny Greninjite",
+   "icone": "/img/itens/mega-shiny/greninjite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72130,
+   "nome": "Shiny Gyaradosite",
+   "icone": "/img/itens/mega-shiny/gyaradosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72701,
+   "nome": "Shiny Hawluchanite",
+   "icone": "/img/itens/mega-shiny/hawluchanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72214,
+   "nome": "Shiny Heracronite",
+   "icone": "/img/itens/mega-shiny/heracronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72229,
+   "nome": "Shiny Houndoominite",
+   "icone": "/img/itens/mega-shiny/houndoominite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72115,
+   "nome": "Shiny Kangaskhanite",
+   "icone": "/img/itens/mega-shiny/kangaskhanite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72448,
+   "nome": "Shiny Lucarionite",
+   "icone": "/img/itens/mega-shiny/lucarionite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72687,
+   "nome": "Shiny Malamarite",
+   "icone": "/img/itens/mega-shiny/malamarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72310,
+   "nome": "Shiny Manectite",
+   "icone": "/img/itens/mega-shiny/manectite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72303,
+   "nome": "Shiny Mawilite",
+   "icone": "/img/itens/mega-shiny/mawilite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72308,
+   "nome": "Shiny Medichamite",
+   "icone": "/img/itens/mega-shiny/medichamite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72154,
+   "nome": "Shiny Meganiumite",
+   "icone": "/img/itens/mega-shiny/meganiumite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72376,
+   "nome": "Shiny Metagrossite",
+   "icone": "/img/itens/mega-shiny/metagrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72018,
+   "nome": "Shiny Pidgeotite",
+   "icone": "/img/itens/mega-shiny/pidgeotite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72127,
+   "nome": "Shiny Pinsirite",
+   "icone": "/img/itens/mega-shiny/pinsirite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72668,
+   "nome": "Shiny Pyroarite",
+   "icone": "/img/itens/mega-shiny/pyroarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72026,
+   "nome": "Shiny Raichunite Y",
+   "icone": "/img/itens/mega-shiny/raichunite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72302,
+   "nome": "Shiny Sablenite",
+   "icone": "/img/itens/mega-shiny/sablenite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72254,
+   "nome": "Shiny Sceptilite",
+   "icone": "/img/itens/mega-shiny/sceptilite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72212,
+   "nome": "Shiny Scizorite",
+   "icone": "/img/itens/mega-shiny/scizorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72545,
+   "nome": "Shiny Scolipite",
+   "icone": "/img/itens/mega-shiny/scolipite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72319,
+   "nome": "Shiny Sharpedonite",
+   "icone": "/img/itens/mega-shiny/sharpedonite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72227,
+   "nome": "Shiny Skarmorite",
+   "icone": "/img/itens/mega-shiny/skarmorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72080,
+   "nome": "Shiny Slowbronite",
+   "icone": "/img/itens/mega-shiny/slowbronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72121,
+   "nome": "Shiny Starminite",
+   "icone": "/img/itens/mega-shiny/starminite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72208,
+   "nome": "Shiny Steelixite",
+   "icone": "/img/itens/mega-shiny/steelixite.png",
+   "categoria": "mega",
+   "tipo": "STEEL",
+   "npc": 0
+  },
+  {
+   "id": 72260,
+   "nome": "Shiny Swampertite",
+   "icone": "/img/itens/mega-shiny/swampertite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72248,
+   "nome": "Shiny Tyranitarite",
+   "icone": "/img/itens/mega-shiny/tyranitarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72003,
+   "nome": "Shiny Venusaurite",
+   "icone": "/img/itens/mega-shiny/venusaurite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72071,
+   "nome": "Shiny Victreebelite",
+   "icone": "/img/itens/mega-shiny/victreebelite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71227,
+   "nome": "Skarmorite",
+   "icone": "/img/itens/mega/skarmorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71080,
+   "nome": "Slowbronite",
+   "icone": "/img/itens/mega/slowbronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71121,
+   "nome": "Starminite",
+   "icone": "/img/itens/mega/starminite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71208,
+   "nome": "Steelixite",
+   "icone": "/img/itens/mega/steelixite.png",
+   "categoria": "mega",
+   "tipo": "STEEL",
+   "npc": 0
+  },
+  {
+   "id": 71260,
+   "nome": "Swampertite",
+   "icone": "/img/itens/mega/swampertite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71248,
+   "nome": "Tyranitarite",
+   "icone": "/img/itens/mega/tyranitarite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71003,
+   "nome": "Venusaurite",
+   "icone": "/img/itens/mega/venusaurite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71071,
+   "nome": "Victreebelite",
+   "icone": "/img/itens/mega/victreebelite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 2,
+   "nome": "Ancient Stone",
+   "icone": "/assets/stones/ancient_stone.gif",
+   "categoria": "stone",
+   "tipo": "DRAGON",
+   "npc": 0
+  },
+  {
+   "id": 70031,
+   "nome": "Bug Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "BUG",
+   "npc": 0
+  },
+  {
+   "id": 23,
+   "nome": "Cocoon Stone",
+   "icone": "cocoon_stone.gif",
+   "categoria": "stone",
+   "tipo": "BUG",
+   "npc": 0
+  },
+  {
+   "id": 28,
+   "nome": "Crystal Stone",
+   "icone": "crystal_stone.gif",
+   "categoria": "stone",
+   "tipo": "ICE",
+   "npc": 0
+  },
+  {
+   "id": 70035,
+   "nome": "Dark Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "DARK",
+   "npc": 0
+  },
+  {
+   "id": 31,
+   "nome": "Darkness Stone",
+   "icone": "darkness_stone.gif",
+   "categoria": "stone",
+   "tipo": "DARK",
+   "npc": 0
+  },
+  {
+   "id": 70034,
+   "nome": "Dragon Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "DRAGON",
+   "npc": 0
+  },
+  {
+   "id": 40,
+   "nome": "Earth Stone",
+   "icone": "earth_stone.gif",
+   "categoria": "stone",
+   "tipo": "GROUND",
+   "npc": 0
+  },
+  {
+   "id": 70024,
+   "nome": "Electric Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "ELECTRIC",
+   "npc": 0
+  },
+  {
+   "id": 45,
+   "nome": "Enigma Stone",
+   "icone": "enigma_stone.gif",
+   "categoria": "stone",
+   "tipo": "PSYCHIC",
+   "npc": 0
+  },
+  {
+   "id": 70037,
+   "nome": "Fairy Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "FAIRY",
+   "npc": 0
+  },
+  {
+   "id": 49,
+   "nome": "Feather Stone",
+   "icone": "/assets/stones/feather_stone.png",
+   "categoria": "stone",
+   "tipo": "FLYING",
+   "npc": 0
+  },
+  {
+   "id": 70026,
+   "nome": "Fighting Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "FIGHTING",
+   "npc": 0
+  },
+  {
+   "id": 70021,
+   "nome": "Fire Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "FIRE",
+   "npc": 0
+  },
+  {
+   "id": 53,
+   "nome": "Fire Stone",
+   "icone": "fire_stone.gif",
+   "categoria": "stone",
+   "tipo": "FIRE",
+   "npc": 0
+  },
+  {
+   "id": 70029,
+   "nome": "Flying Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "FLYING",
+   "npc": 0
+  },
+  {
+   "id": 70033,
+   "nome": "Ghost Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "GHOST",
+   "npc": 0
+  },
+  {
+   "id": 70023,
+   "nome": "Grass Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "GRASS",
+   "npc": 0
+  },
+  {
+   "id": 70028,
+   "nome": "Ground Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "GROUND",
+   "npc": 0
+  },
+  {
+   "id": 66,
+   "nome": "Heart Stone",
+   "icone": "heart_stone.gif",
+   "categoria": "stone",
+   "tipo": "NORMAL",
+   "npc": 0
+  },
+  {
+   "id": 70025,
+   "nome": "Ice Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "ICE",
+   "npc": 0
+  },
+  {
+   "id": 71,
+   "nome": "Ice Stone",
+   "icone": "ice_stone.gif",
+   "categoria": "stone",
+   "tipo": "ICE",
+   "npc": 0
+  },
+  {
+   "id": 76,
+   "nome": "Leaf Stone",
+   "icone": "leaf_stone.gif",
+   "categoria": "stone",
+   "tipo": "GRASS",
+   "npc": 0
+  },
+  {
+   "id": 87,
+   "nome": "Metal Stone",
+   "icone": "/assets/stones/metal_stone.png",
+   "categoria": "stone",
+   "tipo": "STEEL",
+   "npc": 0
+  },
+  {
+   "id": 70020,
+   "nome": "Normal Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "NORMAL",
+   "npc": 0
+  },
+  {
+   "id": 70027,
+   "nome": "Poison Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "POISON",
+   "npc": 0
+  },
+  {
+   "id": 70030,
+   "nome": "Psychic Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "PSYCHIC",
+   "npc": 0
+  },
+  {
+   "id": 106,
+   "nome": "Punch Stone",
+   "icone": "punch_stone.gif",
+   "categoria": "stone",
+   "tipo": "FIGHTING",
+   "npc": 0
+  },
+  {
+   "id": 70032,
+   "nome": "Rock Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "ROCK",
+   "npc": 0
+  },
+  {
+   "id": 109,
+   "nome": "Rock Stone",
+   "icone": "rock_stone.gif",
+   "categoria": "stone",
+   "tipo": "ROCK",
+   "npc": 0
+  },
+  {
+   "id": 70036,
+   "nome": "Steel Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "STEEL",
+   "npc": 0
+  },
+  {
+   "id": 209,
+   "nome": "Sun Stone",
+   "icone": "/assets/stones/sun_stone.png",
+   "categoria": "stone",
+   "tipo": "FIRE",
+   "npc": 0
+  },
+  {
+   "id": 133,
+   "nome": "Thunder Stone",
+   "icone": "thunder_stone.gif",
+   "categoria": "stone",
+   "tipo": "ELECTRIC",
+   "npc": 0
+  },
+  {
+   "id": 139,
+   "nome": "Venom Stone",
+   "icone": "venom_stone.gif",
+   "categoria": "stone",
+   "tipo": "POISON",
+   "npc": 0
+  },
+  {
+   "id": 70022,
+   "nome": "Water Shiny Stone",
+   "icone": "/img/itens/shiny-stone.png",
+   "categoria": "stone",
+   "tipo": "WATER",
+   "npc": 0
+  },
+  {
+   "id": 142,
+   "nome": "Water Stone",
+   "icone": "water_stone.gif",
+   "categoria": "stone",
+   "tipo": "WATER",
+   "npc": 0
+  },
+  {
+   "id": 40575,
+   "nome": "AoE TM Disk",
+   "icone": "/assets/items/tm_disk_aoe.png",
+   "categoria": "tm",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 40530,
+   "nome": "AoE TM Disk Piece",
+   "icone": "/assets/items/tm_piece_aoe.png",
+   "categoria": "tm",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 59211,
+   "nome": "Bug-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "BUG",
+   "npc": 0
+  },
+  {
+   "id": 59215,
+   "nome": "Dark-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "DARK",
+   "npc": 0
+  },
+  {
+   "id": 59214,
+   "nome": "Dragon-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "DRAGON",
+   "npc": 0
+  },
+  {
+   "id": 59204,
+   "nome": "Electric-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "ELECTRIC",
+   "npc": 0
+  },
+  {
+   "id": 59247,
+   "nome": "Fairy-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "FAIRY",
+   "npc": 0
+  },
+  {
+   "id": 59206,
+   "nome": "Fighting-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "FIGHTING",
+   "npc": 0
+  },
+  {
+   "id": 59201,
+   "nome": "Fire-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "FIRE",
+   "npc": 0
+  },
+  {
+   "id": 59209,
+   "nome": "Flying-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "FLYING",
+   "npc": 0
+  },
+  {
+   "id": 59213,
+   "nome": "Ghost-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "GHOST",
+   "npc": 0
+  },
+  {
+   "id": 59203,
+   "nome": "Grass-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "GRASS",
+   "npc": 0
+  },
+  {
+   "id": 59208,
+   "nome": "Ground-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "GROUND",
+   "npc": 0
+  },
+  {
+   "id": 59205,
+   "nome": "Ice-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "ICE",
+   "npc": 0
+  },
+  {
+   "id": 59200,
+   "nome": "Normal-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "NORMAL",
+   "npc": 0
+  },
+  {
+   "id": 59207,
+   "nome": "Poison-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "POISON",
+   "npc": 0
+  },
+  {
+   "id": 59210,
+   "nome": "Psychic-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "PSYCHIC",
+   "npc": 0
+  },
+  {
+   "id": 59212,
+   "nome": "Rock-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "ROCK",
+   "npc": 0
+  },
+  {
+   "id": 59216,
+   "nome": "Steel-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "STEEL",
+   "npc": 0
+  },
+  {
+   "id": 59194,
+   "nome": "TM Disk Piece",
+   "icone": "/assets/items/tm_disk_piece.png",
+   "categoria": "tm",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 59202,
+   "nome": "Water-Type TM Disk",
+   "icone": "/assets/items/tm_disk_elemental.png",
+   "categoria": "tm",
+   "tipo": "WATER",
+   "npc": 0
+  },
+  {
+   "id": 70000,
+   "nome": "Bronze Boss Token",
+   "icone": "/assets/items/bronze_boss_token.png",
+   "categoria": "boss",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70090,
+   "nome": "Mystic Ticket",
+   "icone": "/img/itens/mystic-ticket.png",
+   "categoria": "ticket",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 70095,
+   "nome": "Safari Ticket",
+   "icone": "/img/itens/safari-ticket.png",
+   "categoria": "ticket",
+   "tipo": null,
+   "npc": 0
+  }
+ ],
+ "pedrasEvolucao": {
+  "NORMAL": {
+   "itemId": 209,
+   "nome": "Sun Stone"
+  },
+  "FIRE": {
+   "itemId": 53,
+   "nome": "Fire Stone"
+  },
+  "WATER": {
+   "itemId": 142,
+   "nome": "Water Stone"
+  },
+  "GRASS": {
+   "itemId": 76,
+   "nome": "Leaf Stone"
+  },
+  "ELECTRIC": {
+   "itemId": 133,
+   "nome": "Thunder Stone"
+  },
+  "ICE": {
+   "itemId": 71,
+   "nome": "Ice Stone"
+  },
+  "FIGHTING": {
+   "itemId": 106,
+   "nome": "Punch Stone"
+  },
+  "POISON": {
+   "itemId": 139,
+   "nome": "Venom Stone"
+  },
+  "GROUND": {
+   "itemId": 40,
+   "nome": "Earth Stone"
+  },
+  "FLYING": {
+   "itemId": 49,
+   "nome": "Feather Stone"
+  },
+  "PSYCHIC": {
+   "itemId": 45,
+   "nome": "Enigma Stone"
+  },
+  "BUG": {
+   "itemId": 23,
+   "nome": "Cocoon Stone"
+  },
+  "ROCK": {
+   "itemId": 109,
+   "nome": "Rock Stone"
+  },
+  "GHOST": {
+   "itemId": 31,
+   "nome": "Darkness Stone"
+  },
+  "DRAGON": {
+   "itemId": 2,
+   "nome": "Ancient Stone"
+  },
+  "DARK": {
+   "itemId": 31,
+   "nome": "Darkness Stone"
+  },
+  "STEEL": {
+   "itemId": 87,
+   "nome": "Metal Stone"
+  },
+  "FAIRY": {
+   "itemId": 66,
+   "nome": "Heart Stone"
+  }
+ },
+ "refino": {
+  "stats": [
+   "hp",
+   "atk",
+   "def",
+   "spAtk",
+   "spDef"
+  ],
+  "custoBase": 500,
+  "expoente": 3,
+  "tetoTecnico": 9999,
+  "passo": 1
+ },
+ "mercadoRegras": {
+  "categorias": [
+   "box",
+   "casa",
+   "bicicleta",
+   "skin",
+   "ovo",
+   "fragment",
+   "mega",
+   "stone",
+   "tm",
+   "boss",
+   "ticket"
+  ],
+  "pokemonMin": {
+   "level": 50,
+   "nota": 3.5
+  },
+  "taxaDiaria": 100000,
+  "diasMin": 1,
+  "diasMax": 30,
+  "precoMinOrb": 2,
+  "precoMinGold": 2,
+  "taxaOrbPct": 13,
+  "faixasOrb": [
+   {
+    "ate": 500,
+    "pct": 13
+   },
+   {
+    "ate": 5000,
+    "pct": 10
+   },
+   {
+    "ate": null,
+    "pct": 7.5
+   }
+  ],
+  "taxaGoldPct": 15,
+  "cooldownCompraMs": 120000,
+  "cooldownCompraMin": 2,
+  "reanuncioMin": 30
+ },
+ "chavesEntrada": [
+  "t",
+  "admin",
+  "chatMod",
+  "chatCmd",
+  "chatFixar",
+  "chatInterromper",
+  "estado",
+  "hunts",
+  "catalogoBolas",
+  "starters",
+  "itensCompraveis",
+  "potencias",
+  "shinyLooks",
+  "shinyLooksOutland",
+  "chanceShiny",
+  "misticoPool",
+  "safariPool",
+  "ovoShiny",
+  "outlandDex",
+  "captura",
+  "multShinyStats",
+  "maxEquipe",
+  "tabelaTipos",
+  "ampliacaoHunt",
+  "multHpSelvagem",
+  "multDanoSelvagem",
+  "chanceBossToken",
+  "outlandTiers",
+  "casas",
+  "bicicletas",
+  "shinyStone",
+  "mega",
+  "oferenda",
+  "economia",
+  "itensTipos",
+  "itensNossos",
+  "pedrasEvolucao",
+  "refino",
+  "mercado",
+  "lojaProdutos",
+  "xpShareHeld",
+  "tiposBoost",
+  "guildCusto",
+  "guildMaxTime",
+  "guildEscudos",
+  "guildEmblemas",
+  "bossesCatalogo",
+  "bossesJogaveis",
+  "tmResearcher"
+ ]
+}
