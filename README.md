@@ -1,4 +1,4 @@
-# PokeIdle RTM Calculator
+# PokeIdle RMT Calculator
 
 Quanto vale o seu pokémon no Mercado da Comunidade do PokeIdle. Você cola a ficha (botão
 **Copiar p/ ChatGPT** do jogo) e o site mostra:
