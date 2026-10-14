@@ -218,7 +218,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   <footer class="foot">
     <p><b>De onde vêm os dados.</b> As vendas de pokémon do Mercado da Comunidade, coletadas a cada 2 horas da Tabela de preços do jogo e guardadas sem apagar as antigas. Os nomes dos jogadores viram códigos.</p>
     <p><b>Como a conta é feita.</b> Cada venda recebe um peso pela semelhança com a sua ficha: shiny e potência pesam mais, depois nota, qualidade, IV, nível e mega. Vendas recentes pesam um pouco mais. O preço justo é a mediana ponderada; rápido e paciente são os quartis de 25% e 75%.</p>
-    <p><b>Descartadas.</b> Vendas abaixo de 20 Gemas (transferências) e vendas 6× abaixo ou 12× acima da mediana da espécie, quando ela tem 4 vendas ou mais.</p>
+    <p><b>Descartadas.</b> Vendas abaixo de 3 Gemas ou 100 mil Coins (transferências) e vendas 15× abaixo ou 25× acima da mediana da mesma espécie, shiny e potência, quando o grupo tem 4 vendas ou mais.</p>
     <p><b>Comissão.</b> Pokémon em Gema: 13% até 500, 10% até 5.000, 7,5% acima, por faixa. Em Coins: 15%. A diária do anúncio (100.000 Coins por dia) não entra no líquido.</p>
     <p><b>Nota de mercado.</b> De 0 a 5 estrelas, comparando a espécie com as outras do mesmo grupo (shiny ou comum) no período: liquidez 35%, valor 25%, ritmo recente 15%, preço estável 15% e compradores diferentes 10%. Mede procura e preço, não quantos estão à venda agora.</p>
     <p>Ferramenta de fã, sem ligação com o PokeIdle. Pokémon é marca da Nintendo, Game Freak e The Pokémon Company.</p>
@@ -340,13 +340,16 @@ function noPeriodo(lista) {
 }
 function limpar(raw) {
   const kept = [], gone = [], by = {};
-  raw.forEach((s) => { s.gem = gemOf(s); (by[s.species + (s.shiny ? "*" : "")] ||= []).push(s); });
+  // A curva é por espécie + shiny + potência: um P5 comum vale dezenas de vezes um P1 da mesma espécie.
+  raw.forEach((s) => { s.gem = gemOf(s); (by[`${s.species}|${s.shiny ? 1 : 0}|${s.pot}`] ||= []).push(s); });
   for (const k in by) {
     const list = by[k], med = quant(list.map((s) => s.gem).sort((a, b) => a - b), 0.5);
     for (const s of list) {
-      if (!(s.gem >= 20)) gone.push({ s, why: "valor simbólico" });
-      // Para cima a margem é maior: um P4/P5 ou um mega vale muitas vezes a mediana de verdade.
-      else if (list.length >= 4 && (s.gem < med / 6 || s.gem > med * 12)) gone.push({ s, why: "fora da curva" });
+      // Piso na moeda da venda (não convertido): 2 Gemas ou 2 Coins é transferência, não preço.
+      // Comum barato vende mesmo por 5–7 Gemas, então o piso em Gema é baixo.
+      if (!(s.moeda === "gemas" ? s.price >= 3 : s.price >= 100000)) gone.push({ s, why: "valor simbólico" });
+      // Margem larga: no comum, nível e nota mudam muito o preço; a mediana ponderada já segura o resto.
+      else if (list.length >= 4 && (s.gem < med / 15 || s.gem > med * 25)) gone.push({ s, why: "fora da curva" });
       else kept.push(s);
     }
   }
@@ -407,9 +410,10 @@ function parseFicha(t) {
     // Texto copiado da tela da ficha: números no formato brasileiro.
     const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     const known = new Set(state.base.map((s) => norm(s.species)));
-    const esp = g(/Esp[ée]cie\s*#?\d*\s+([^\n]+)/i);
+    // "Espécie#65 Alakazam" (bloco Identidade). Sem o "#número" o texto pegaria o botão "Ver a ficha da espécie".
+    const esp = g(/Esp[ée]cie\s*#\d+\s+([^\n]+)/i);
     const hit = lines.find((l) => known.has(norm(l.replace(/^[×✨\s]+|[×✨\s]+$/g, ""))));
-    f.species = (esp || hit || lines[0] || "").replace(/^[×✨\s]+|[×✨\s]+$/g, "").replace(/^shiny\s+/i, "");
+    f.species = (hit || esp || lines[0] || "").replace(/^[×✨\s]+|[×✨\s]+$/g, "").replace(/^shiny\s+/i, "");
     f.lvl = parseBR(g(/\bNv\.?\s*(\d[\d.]*)/i));
     f.pot = +g(/Pot[êe]ncia\s*:?\s*P?\s*(\d)/i) || 1;
     f.q = parseBR(g(/qualidade\s*:?\s*([\d.,]+)/i));
@@ -526,9 +530,13 @@ function render() {
   const diasHist = (ultimo - primeiro) / 1440;
   document.querySelectorAll("[data-dias]").forEach((b) => {
     const d = +b.dataset.dias;
+    // Um período só abre quando o histórico já cobre ele (com 2 dias de folga).
+    const falta = d > 30 && d > diasHist + 2;
+    b.disabled = falta;
+    b.title = falta ? `Abre quando o histórico tiver ${d} dias (hoje tem ${Math.floor(diasHist)})` : "";
     b.setAttribute("aria-pressed", d === state.dias);
-    b.title = d && d > diasHist + 1 ? `O histórico só tem ${Math.ceil(diasHist)} dias até agora` : "";
   });
+  if (state.dias > 30 && state.dias > diasHist + 2) { state.dias = 30; return render(); }
   const { lista, fim } = noPeriodo(tudo);
   const { kept, gone } = limpar(lista);
   const f = fieldsToFicha();

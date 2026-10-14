@@ -1,0 +1,82 @@
+{
+  "ultimaPrincipal": "2026-10-14T15:32:57.000Z",
+  "fila": [
+    {
+      "tipo": "pokemon",
+      "elemento": "FIRE"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "WATER"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "DRAGON"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "PSYCHIC"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FLYING"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "GRASS"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "DARK"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "GHOST"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "ROCK"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "GROUND"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "STEEL"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FIGHTING"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "POISON"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "ELECTRIC"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "ICE"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "BUG"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "NORMAL"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FAIRY"
+    },
+    {
+      "tipo": "pokemon",
+      "soShiny": 1
+    }
+  ],
+  "feitos": []
+}

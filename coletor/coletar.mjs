@@ -1,21 +1,32 @@
-// O COLETOR: entra no PokeIdle como um jogador, pede a planilha da Tabela de preços (aba Pokémon,
-// sem filtro: as até 5.000 vendas mais recentes dos últimos 30 dias) e junta ao histórico.
+// O COLETOR: entra no PokeIdle como um jogador, pede a planilha da Tabela de preços (aba Pokémon)
+// e junta ao histórico.
 //
 // Usa o mesmo caminho do botão "Exportar planilha" do jogo (`csv.pedir` do tipo `mercado`), que o
-// servidor libera uma vez por hora por IP. Rodando a cada 2 horas, sobra folga.
+// servidor libera UMA vez por hora. O agendamento roda de hora em hora, e cada rodada decide:
 //
-// Precisa de três variáveis (no GitHub, são os secrets do repositório):
+//   · coleta PRINCIPAL (sem filtro: as 5.000 vendas mais recentes) se a última foi há ~2 horas ou mais;
+//   · senão, um item da FILA DE RECUPERAÇÃO (uma tipagem por vez, para buscar as vendas do mês que
+//     a planilha sem filtro corta), se houver;
+//   · senão, não entra no jogo — e a conta não é pausada.
+//
+// O estado (hora da última principal e a fila) fica em coletor/estado.json, salvo no repositório.
+//
+// Variáveis (no GitHub, são os secrets do repositório):
 //   POKEIDLE_NICK   o nick da conta do coletor
 //   POKEIDLE_TOKEN  a sessão dessa conta (dura 30 dias; ver o README para renovar)
 //   NOMES_SAL       texto aleatório que embaralha os nomes dos jogadores
 //
 // A conta joga em um lugar por vez: entrar aqui PAUSA a sessão dela em qualquer outro lugar.
-// Por isso o coletor precisa de uma conta só dele.
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const ESPERA_MAX_MS = 45000;
+const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
+const ARQ_ESTADO = path.join(path.dirname(fileURLToPath(import.meta.url)), 'estado.json');
 
 function exigir(nome) {
   const v = process.env[nome];
@@ -23,14 +34,20 @@ function exigir(nome) {
   return v;
 }
 
-/** Abre o socket, faz o "hello" e devolve a primeira resposta da planilha (ou a recusa). */
-function pedirPlanilha({ nick, token }) {
+async function lerEstado() {
+  try { return JSON.parse(await readFile(ARQ_ESTADO, 'utf8')); } catch { return { ultimaPrincipal: null, fila: [], feitos: [] }; }
+}
+const salvarEstado = (e) => writeFile(ARQ_ESTADO, JSON.stringify(e, null, 2) + '\n');
+
+/** Abre o socket, faz o "hello" e devolve a resposta da planilha (ou a recusa). */
+function pedirPlanilha({ nick, token, filtros }) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(URL_JOGO, {
       headers: { Origin: 'https://pokeidle.io', 'User-Agent': 'BalancaDePrecos-coletor/1.0 (+github)' },
     });
     let pediu = false;
-    const fim = (fn, val) => { clearTimeout(relogio); try { ws.close(); } catch {} fn(val); };
+    let acabou = false;
+    const fim = (fn, val) => { if (acabou) return; acabou = true; clearTimeout(relogio); try { ws.close(); } catch {} fn(val); };
     const relogio = setTimeout(() => fim(reject, new Error(pediu
       ? 'O jogo não respondeu ao pedido da planilha a tempo.'
       : 'O jogo não confirmou a entrada da conta a tempo (token vencido?).')), ESPERA_MAX_MS);
@@ -49,7 +66,7 @@ function pedirPlanilha({ nick, token }) {
       }
       if (m.t === 'welcome' && !pediu) {
         pediu = true;
-        ws.send(JSON.stringify({ t: 'csv.pedir', tipo: 'mercado', filtros: { tipo: 'pokemon' } }));
+        ws.send(JSON.stringify({ t: 'csv.pedir', tipo: 'mercado', filtros }));
       }
       if (m.t === 'csv' && m.tipo === 'mercado') fim(resolve, m);
     });
@@ -79,18 +96,50 @@ function converter(linhas, sal) {
   return out;
 }
 
+const descrever = (f) => Object.entries(f).filter(([k]) => k !== 'tipo').map(([k, v]) => `${k}=${v}`).join(', ') || 'sem filtro';
+
 async function main() {
   const sal = salDosNomes();
-  const resp = await pedirPlanilha({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN') });
+  const estado = await lerEstado();
+  estado.fila ??= [];
+  estado.feitos ??= [];
+  const forcar = process.env.COLETA_FORCAR === 'principal';
+  const devePrincipal = forcar || !estado.ultimaPrincipal
+    || Date.now() - Date.parse(estado.ultimaPrincipal) >= INTERVALO_PRINCIPAL_MS;
+
+  let filtros;
+  if (devePrincipal) filtros = { tipo: 'pokemon' };
+  else if (estado.fila.length) filtros = estado.fila[0];
+  else {
+    console.log('Nada a fazer nesta hora: a coleta principal foi há pouco e a fila de recuperação está vazia.');
+    return;
+  }
+
+  console.log(`Pedindo a planilha (${devePrincipal ? 'principal' : 'recuperação'}: ${descrever(filtros)}).`);
+  const resp = await pedirPlanilha({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN'), filtros });
   if (resp.recusa) {
-    // A espera de uma hora por IP: não é erro do coletor, a próxima rodada pega.
+    // A espera de uma hora: não é erro do coletor, a próxima rodada tenta de novo.
     console.log(`O jogo pediu para esperar (${resp.recusa.chave}). Nada coletado desta vez.`);
     return;
   }
   if (!resp.ok || !Array.isArray(resp.mercado?.linhas)) throw new Error('A resposta da planilha veio num formato que o coletor não conhece.');
+
   const vendas = converter(resp.mercado.linhas, sal);
-  const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: 'coletor' });
-  console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
+  const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})` });
+  console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
+
+  if (devePrincipal) estado.ultimaPrincipal = new Date().toISOString();
+  else {
+    estado.fila.shift();
+    estado.feitos.push({ ...filtros, linhas: resp.mercado.linhas.length, novas: adicionadas, cortado: !!resp.mercado.cortado, em: new Date().toISOString() });
+    // Uma tipagem que ainda bateu no teto é dividida pela moeda: cada metade traz até 5.000 de novo.
+    if (resp.mercado.cortado && filtros.elemento && !filtros.moeda) {
+      estado.fila.push({ ...filtros, moeda: 'orb' }, { ...filtros, moeda: 'gold' });
+      console.log('A tipagem bateu no teto: entram na fila as metades em Gemas e em Coins.');
+    }
+  }
+  await salvarEstado(estado);
+  if (!devePrincipal) console.log(`Fila de recuperação: ${estado.fila.length} pedido(s) restante(s).`);
 }
 
 main().catch((e) => {
