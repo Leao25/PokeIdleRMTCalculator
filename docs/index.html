@@ -52,6 +52,7 @@ p { margin: 0; }
 header.top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
 .logo { display: inline-grid; justify-items: start; gap: 6px; margin: 0; }
 .logo-nome { font: 800 2.1rem/1 "Plus Jakarta Sans", var(--f-body); letter-spacing: -.02em; color: var(--ink); }
+.logo-bola { display: inline-block; width: .6em; height: .6em; margin: 0 .03em 0 .02em; vertical-align: baseline; overflow: visible; }
 .logo-barra { width: 72%; height: 4px; border-radius: 2px; background: var(--gem); }
 .logo-sub { font: 500 .95rem/1.2 var(--f-body); letter-spacing: .02em; color: var(--muted); }
 header.top p { margin-top: 12px; color: var(--muted); max-width: 62ch; }
@@ -162,7 +163,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
   <header class="top">
     <div>
       <h1 class="logo" aria-label="PokeIdle RTM Calculator">
-        <span class="logo-nome">PokeIdle</span>
+        <span class="logo-nome">P<svg class="logo-bola" viewBox="0 0 100 100" aria-hidden="true"><path d="M6 50a44 44 0 0 1 88 0z" fill="#e3350d"/><path d="M6 50a44 44 0 0 0 88 0z" fill="#fff"/><circle cx="50" cy="50" r="44" fill="none" stroke="#1d1726" stroke-width="8"/><path d="M6 50h88" stroke="#1d1726" stroke-width="8"/><circle cx="50" cy="50" r="15" fill="#fff" stroke="#1d1726" stroke-width="8"/></svg>keIdle</span>
         <span class="logo-barra" aria-hidden="true"></span>
         <span class="logo-sub">RTM Calculator</span>
       </h1>
