@@ -162,8 +162,19 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .abas button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--acc); }
 .abas button:hover { color: var(--ink); }
 .vista { display: grid; gap: 18px; min-width: 0; }
-.panel.calcs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-@media (max-width: 640px) { .calcs { grid-template-columns: minmax(0, 1fr); } }
+.panel.calcs { gap: 18px; }
+.compra-linha input { width: 140px; font-size: 1.05rem; padding: 7px 10px; }
+.veredito { display: grid; gap: 12px; }
+.veredito .selo { justify-self: start; font: 700 1.3rem/1 var(--f-display); padding: 8px 14px; border-radius: 8px; background: var(--sunk); }
+.veredito .selo.bom { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.veredito .selo.meio { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.veredito .selo.ruim { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.faixa { position: relative; height: 54px; margin: 6px 4px 0; }
+.faixa .trilho { position: absolute; left: 0; right: 0; top: 14px; height: 10px; border-radius: 5px; background: var(--sunk); border: 1px solid var(--line); }
+.faixa .normal { position: absolute; top: 14px; height: 10px; border-radius: 5px; background: var(--acc-soft); border: 1px solid var(--acc); }
+.faixa .justo { position: absolute; top: 8px; width: 2px; height: 22px; background: var(--acc); }
+.faixa .anuncio { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink); }
+.faixa .rot { position: absolute; top: 32px; transform: translateX(-50%); font: .72rem var(--f-mono); color: var(--muted); white-space: nowrap; }
 .calc { display: grid; gap: 6px; align-content: start; }
 .calc-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .9rem; }
 .calc input, .mini input, .mini select { width: 110px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font: .9rem var(--f-mono); color: var(--ink); }
@@ -227,6 +238,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 
   <nav class="abas" role="tablist" aria-label="Seções">
     <button role="tab" data-aba="avaliar" aria-selected="true">Avaliar</button>
+    <button role="tab" data-aba="comprar" aria-selected="false">Comprar</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -266,11 +278,6 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
             <span class="calc-linha">Quero receber <input id="c-liq" inputmode="numeric" placeholder="5.000" aria-label="Valor líquido desejado"> <span class="u">Gemas</span></span>
             <span class="calc-out" id="c-liq-out">Digite quanto quer receber depois da comissão.</span>
           </label>
-          <label class="calc" for="c-anuncio">
-            <span class="lbl">Vi um anúncio</span>
-            <span class="calc-linha">Está anunciado por <input id="c-anuncio" inputmode="numeric" placeholder="3.000" aria-label="Preço do anúncio"> <span class="u">Gemas</span></span>
-            <span class="calc-out" id="c-anuncio-out">Cole a ficha do pokémon anunciado e digite o preço.</span>
-          </label>
         </section>
         <div class="detalhes" id="detalhes" hidden>
           <section class="panel" id="grafico"></section>
@@ -286,6 +293,15 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
             <div id="comp-out"></div>
           </section>
         </div>
+      </div>
+
+      <div class="vista" data-vista="comprar" hidden>
+        <section class="panel" id="compra">
+          <div><span class="lbl">Antes de comprar</span><h2>Esse anúncio vale o preço?</h2></div>
+          <p class="muted small">No Mercado, abra a ficha do pokémon anunciado, clique em <b>Copiar p/ ChatGPT</b> e cole na caixa ao lado. Depois digite o preço do anúncio.</p>
+          <label class="calc-linha compra-linha" for="c-anuncio">Está anunciado por <input id="c-anuncio" inputmode="numeric" placeholder="3.000" aria-label="Preço do anúncio"> <span class="u">Gemas</span></label>
+          <div id="compra-out"></div>
+        </section>
       </div>
 
       <div class="vista" data-vista="farmar" hidden>
@@ -680,6 +696,7 @@ function render() {
   $("verdict").innerHTML = h;
   Object.assign(state, { f, est, kept, fim });
   atualizarCalcs();
+  renderCompra();
   renderComparar();
   if (state.aba === "farmar") renderFarm();
   if (state.aba === "mercado") renderCotacao();
@@ -760,13 +777,14 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 
 // ---------- abas ----------
 function abrirAba(aba) {
-  if (!["avaliar", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (!["avaliar", "comprar", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") renderCotacao();
+  if (aba === "comprar") renderCompra();
 }
 
 // ---------- calculadoras ----------
@@ -784,14 +802,39 @@ function atualizarCalcs() {
     const p = precoParaReceber(liq);
     $("c-liq-out").innerHTML = `Anuncie por <b>${fmtVal(p)}</b>: a comissão leva ${fmtVal(p - liquido(p))} (${nf(1).format((1 - liquido(p) / p) * 100)}%).`;
   } else $("c-liq-out").textContent = "Digite quanto quer receber depois da comissão.";
+}
+
+function renderCompra() {
+  document.querySelectorAll("#compra .u").forEach((u) => { u.textContent = unit(); });
+  const out = $("compra-out");
   const preco = parseBR($("c-anuncio").value);
-  const est = state.est;
-  if (!(preco > 0)) { $("c-anuncio-out").textContent = "Cole a ficha do pokémon anunciado e digite o preço."; return; }
-  if (!state.f?.species || !est?.items?.length) { $("c-anuncio-out").textContent = "Cole a ficha do pokémon anunciado para comparar com as vendas."; return; }
-  const j = toShow(est.p50), dif = preco / j - 1;
-  const cls = preco <= toShow(est.p25) ? "bom" : preco <= toShow(est.p75) ? "meio" : "ruim";
-  const txt = cls === "bom" ? "Barato" : cls === "meio" ? "Dentro do normal" : "Caro";
-  $("c-anuncio-out").innerHTML = `<span class="${cls}">${txt}:</span> ${nf(0).format(Math.abs(dif) * 100)}% ${dif < 0 ? "abaixo" : "acima"} do preço justo (<b>${fmtVal(j)}</b>). A faixa normal vai de ${fmtVal(toShow(est.p25))} a ${fmtVal(toShow(est.p75))}.`;
+  const est = state.est, f = state.f;
+  if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon anunciado na caixa ao lado.</p>'; return; }
+  if (!est?.items?.length) { out.innerHTML = `<p class="muted">Sem vendas parecidas com esse ${esc(f.species)}${f.shiny ? " shiny" : ""} no período para comparar. Tente um período maior.</p>`; return; }
+  const p25 = toShow(est.p25), j = toShow(est.p50), p75 = toShow(est.p75);
+  const nome = `${f.shiny ? "✨ " : ""}${esc(f.species)} P${f.pot}${Number.isFinite(f.lvl) ? " Nv " + nf(0).format(f.lvl) : ""}`;
+  if (!(preco > 0)) {
+    out.innerHTML = `<p class="muted">Para um <b>${nome}</b>, a faixa normal vai de <b>${fmtVal(p25)}</b> a <b>${fmtVal(p75)}</b> ${unit()}, e o preço justo é <b>${fmtVal(j)}</b>. Digite o preço do anúncio para comparar.</p>`;
+    return;
+  }
+  const dif = preco / j - 1;
+  const cls = preco <= p25 ? "bom" : preco <= p75 ? "meio" : "ruim";
+  const txt = cls === "bom" ? "Barato" : cls === "meio" ? "Preço normal" : "Caro";
+  const lo = Math.min(p25, preco) * 0.85, hi = Math.max(p75, preco) * 1.15;
+  const pos = (v) => `${((v - lo) / (hi - lo) * 100).toFixed(1)}%`;
+  out.innerHTML = `<div class="veredito">
+    <span class="selo ${cls}">${txt}</span>
+    <p>O anúncio está <b>${nf(0).format(Math.abs(dif) * 100)}% ${dif < 0 ? "abaixo" : "acima"}</b> do preço justo de um <b>${nome}</b> (${fmtVal(j)} ${unit()}).${cls === "bom" ? " Abaixo de 3 em cada 4 vendas parecidas." : cls === "ruim" ? " Acima de 3 em cada 4 vendas parecidas." : ""}</p>
+    <div class="faixa" role="img" aria-label="Faixa normal de ${fmtVal(p25)} a ${fmtVal(p75)}; anúncio a ${fmtVal(preco)}">
+      <span class="trilho"></span>
+      <span class="normal" style="left:${pos(p25)};width:calc(${pos(p75)} - ${pos(p25)})"></span>
+      <span class="justo" style="left:${pos(j)}"></span>
+      <span class="anuncio" style="left:${pos(preco)}"></span>
+      <span class="rot" style="left:${pos(p25)}">${fmtVal(p25)}</span>
+      <span class="rot" style="left:${pos(p75)}">${fmtVal(p75)}</span>
+    </div>
+    <p class="muted small">A faixa clara é onde ficam metade das vendas parecidas; o traço é o preço justo e a bolinha, o anúncio. ${state.est.fallback ? "Poucas vendas desta espécie: a conta usa outras parecidas, então trate como estimativa." : ""}</p>
+  </div>`;
 }
 
 // ---------- comparar ----------
@@ -1022,7 +1065,8 @@ $("ex2").onclick = () => { $("ficha").value = EX2; $("ficha").oninput(); };
 $("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
 document.querySelectorAll("[data-aba]").forEach((b) => { b.onclick = () => abrirAba(b.dataset.aba); });
 window.addEventListener("hashchange", () => abrirAba(location.hash.slice(1)));
-["c-liq", "c-anuncio"].forEach((id) => $(id).addEventListener("input", atualizarCalcs));
+$("c-liq").addEventListener("input", atualizarCalcs);
+$("c-anuncio").addEventListener("input", renderCompra);
 let timerB = 0;
 $("ficha-b").addEventListener("input", () => { clearTimeout(timerB); timerB = setTimeout(renderComparar, 250); });
 try { const n = localStorage.getItem("rtm-nivel"); if (n) $("farm-nivel").value = n; } catch (e) {}
