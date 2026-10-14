@@ -47,8 +47,10 @@ function pedirPlanilha({ nick, token, filtros }) {
     });
     let pediu = false;
     let acabou = false;
+    let planilha = null;
+    const media = {};
     const fim = (fn, val) => { if (acabou) return; acabou = true; clearTimeout(relogio); try { ws.close(); } catch {} fn(val); };
-    const relogio = setTimeout(() => fim(reject, new Error(pediu
+    let relogio = setTimeout(() => fim(reject, new Error(pediu
       ? 'O jogo não respondeu ao pedido da planilha a tempo.'
       : 'O jogo não confirmou a entrada da conta a tempo (token vencido?).')), ESPERA_MAX_MS);
 
@@ -68,10 +70,25 @@ function pedirPlanilha({ nick, token, filtros }) {
         pediu = true;
         ws.send(JSON.stringify({ t: 'csv.pedir', tipo: 'mercado', filtros }));
       }
-      if (m.t === 'csv' && m.tipo === 'mercado') fim(resolve, m);
+      if (m.t === 'csv' && m.tipo === 'mercado') {
+        // Com a planilha em mãos, pede também a vitrine de diamantes nas duas moedas: a resposta
+        // traz o preço médio do diamante nos últimos 7 dias, de onde sai a cotação Gema ↔ Coins.
+        // Não é planilha, então não gasta a vez de uma hora. Se não vier em 8 s, segue sem ela.
+        planilha = m;
+        for (const moeda of ['orb', 'gold']) {
+          ws.send(JSON.stringify({ t: 'market.listar', tipo: 'diamante', moeda, ordem: 'baratos', busca: '', pagina: 0, especieId: 0 }));
+        }
+        clearTimeout(relogio);
+        relogio = setTimeout(() => fim(resolve, { ...planilha, mediaDiamante: media }), 8000);
+      }
+      if (m.t === 'market' && m.mediaDiamante) {
+        for (const k of ['orb', 'gold']) if (m.mediaDiamante[k]?.media) media[k] = m.mediaDiamante[k];
+        if (planilha && media.orb && media.gold) fim(resolve, { ...planilha, mediaDiamante: media });
+      }
     });
     ws.on('close', (code) => {
-      if (code === 4001) fim(reject, new Error('A conta foi aberta em outro lugar durante a coleta.'));
+      if (planilha) fim(resolve, { ...planilha, mediaDiamante: media });
+      else if (code === 4001) fim(reject, new Error('A conta foi aberta em outro lugar durante a coleta.'));
       else if (code === 4003) fim(reject, new Error('O jogo bloqueou esta rede.'));
       else fim(reject, new Error(`O jogo fechou a conexão (código ${code}).`));
     });
@@ -94,6 +111,16 @@ function converter(linhas, sal) {
     ]);
   }
   return out;
+}
+
+/** Gema ↔ Coins pelo diamante: o mesmo diamante vendido nas duas moedas (média de 7 dias do jogo). */
+function cotacaoDosDiamantes(md) {
+  const orb = Number(md?.orb?.media), gold = Number(md?.gold?.media);
+  if (!(orb > 0 && gold > 0)) return null;
+  return {
+    coinsPorGema: gold / orb, gemasPorDiamante: orb, coinsPorDiamante: gold,
+    unidades: { orb: md.orb.unidades ?? null, gold: md.gold.unidades ?? null }, em: new Date().toISOString(),
+  };
 }
 
 const descrever = (f) => Object.entries(f).filter(([k]) => k !== 'tipo').map(([k, v]) => `${k}=${v}`).join(', ') || 'sem filtro';
@@ -125,7 +152,10 @@ async function main() {
   if (!resp.ok || !Array.isArray(resp.mercado?.linhas)) throw new Error('A resposta da planilha veio num formato que o coletor não conhece.');
 
   const vendas = converter(resp.mercado.linhas, sal);
-  const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})` });
+  const cotacao = cotacaoDosDiamantes(resp.mediaDiamante);
+  if (cotacao) console.log(`Cotação: 1 Gema = ${Math.round(cotacao.coinsPorGema).toLocaleString('pt-BR')} Coins (diamante: ${cotacao.gemasPorDiamante} Gemas / ${cotacao.coinsPorDiamante.toLocaleString('pt-BR')} Coins).`);
+  else console.log('Sem a média dos diamantes nesta rodada; o site mantém a última cotação.');
+  const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})`, cotacao });
   console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
 
   if (devePrincipal) estado.ultimaPrincipal = new Date().toISOString();

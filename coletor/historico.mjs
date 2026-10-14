@@ -39,7 +39,7 @@ async function lerJson(arquivo, padrao) {
 }
 
 /** Junta as vendas novas ao histórico. Devolve quantas eram novas de fato. */
-export async function juntarAoHistorico(novas, { fonte }) {
+export async function juntarAoHistorico(novas, { fonte, cotacao = null }) {
   await mkdir(PASTA_DADOS, { recursive: true });
   const indiceArq = path.join(PASTA_DADOS, 'indice.json');
   const indice = await lerJson(indiceArq, { meses: [] });
@@ -77,6 +77,8 @@ export async function juntarAoHistorico(novas, { fonte }) {
     atualizadoEm: new Date().toISOString(),
     ultimaFonte: fonte,
     ultimasNovas: adicionadas,
+    // A última cotação boa fica até chegar outra.
+    cotacao: cotacao ?? indice.cotacao ?? null,
   };
   await writeFile(indiceArq, JSON.stringify(novoIndice, null, 2));
   return { adicionadas, total };
