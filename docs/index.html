@@ -659,7 +659,8 @@ function render() {
   const { kept, gone } = limpar(lista);
   const f = fieldsToFicha();
   const up = state.meta?.atualizadoEm ? new Date(state.meta.atualizadoEm) : null;
-  $("status").innerHTML = `<span><b>${nf(0).format(lista.length)}</b> vendas no período</span><span>histórico desde ${fmtDate(new Date(primeiro * 60000))}${state.dias && state.dias > diasHist + 1 ? ` (ainda não chega a ${state.dias} dias)` : ""}</span>`
+  $("status").innerHTML = `<span><b>${nf(0).format(lista.length)}</b> vendas ${state.dias ? `nos últimos ${state.dias} dias` : "no histórico todo"}</span>`
+    + (state.dias ? `<span>histórico: <b>${nf(0).format(tudo.length)}</b> vendas desde ${fmtDate(new Date(primeiro * 60000))}${state.dias > diasHist + 1 ? ` (ainda não chega a ${state.dias} dias)` : ""}</span>` : `<span>desde ${fmtDate(new Date(primeiro * 60000))}</span>`)
     + (up ? `<span>atualizado ${up.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>` : "")
     + (gone.length ? `<span>${gone.length} descartadas</span>` : "");
 
