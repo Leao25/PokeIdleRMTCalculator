@@ -388,6 +388,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
             <div><span class="lbl">Shiny por hora</span><h2>Onde farmar</h2></div>
             <div class="farm-ctrl">
               <label class="mini">Nível do treinador <input id="farm-nivel" class="nivel-treinador" inputmode="numeric" placeholder="461"></label>
+              <label class="mini" title="Some os seus bônus: VIP 50, XP Boost Pokémon 50, guild 10, evento 35… (Boost dos Atrasados = 900)">Bônus de XP (%) <input id="farm-bonus" inputmode="numeric" placeholder="0"></label>
               <label class="mini">Bola
                 <select id="farm-bola"><option value="4">Ultra Ball</option><option value="8">Beast Ball</option><option value="3">Super Ball</option><option value="2">Great Ball</option></select>
               </label>
@@ -1137,6 +1138,15 @@ function chanceCaptura(npc, bola = 4) {
 }
 
 
+/** XP de um abate: só o nível da hunt importa (shared/sell-value.mjs do jogo). */
+const xpPorAbate = (n) => n <= 150 ? Math.floor((6 * n * n) / 10) + 8 : Math.round(13500 * (n / 150) ** 1.25);
+/** Ouro de um abate (mesma fonte), com o teto do Nv 25.000. */
+const ouroPorAbate = (n) => Math.min(15776, Math.max(1, Math.round(36 * Math.max(1, n) ** 0.6006668740248916)));
+/** XP total para chegar ao nível L (wiki, "A curva"). */
+const xpTotal = (L) => Math.round(50 / 3 * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
+/** Na Outland se anda mais entre um abate e outro (medido: ~1.029/h contra ~1.356/h nas hunts normais). */
+const T_ANDAR_OUTLAND = 3.5;
+
 let especies = null;
 async function carregarEspecies() {
   if (especies) return especies;
@@ -1169,40 +1179,48 @@ async function renderFarm() {
   const todosShiny = [...shinyPor.values()].flat().sort((a, b) => a - b);
   const medGeral = todosShiny.length ? quant(todosShiny, 0.5) : 0;
   const PESO_GERAL = 3;
-  const alvos = E.lista.filter((e) => e.L > 0 && e.dex < 2000 && !/^mega\s/i.test(e.nome) && (!(nivelT > 0) || e.L <= nivelT));
+  const ordem = state.farmOrdem || "valor";
+  const modoXp = ordem === "xp";
+  const bonusXp = 1 + (parseBR($("farm-bonus").value) || 0) / 100;
+  const alvos = E.lista.filter((e) => e.L > 0 && (modoXp || e.dex < 2000) && !/^mega\s/i.test(e.nome) && (!(nivelT > 0) || e.L <= nivelT));
   const linhas = alvos.map((e) => {
-    const r = abatesPorHora(voce, e, E.tipos);
+    const outland = e.dex >= 2000;
+    const r = abatesPorHora(voce, e, E.tipos, outland ? T_ANDAR_OUTLAND : T_ANDAR);
+    const xpH = r.porHora * xpPorAbate(e.L) * bonusXp, ouroH = r.porHora * ouroPorAbate(e.L);
     const cap = chanceCaptura(e.npc, bola);
     const shinyH = r.porHora * cap / 24000;
     const vendas = (shinyPor.get(norm(e.nome)) || []).sort((a, b) => a - b);
     const med = vendas.length ? quant(vendas, 0.5) : null;
     const ajustado = med != null ? (vendas.length * med + PESO_GERAL * medGeral) / (vendas.length + PESO_GERAL) : null;
-    return { e, abates: r.porHora, ef: r.melhorEf, shinyH, med, n: vendas.length, gemasH: ajustado != null ? shinyH * liquidoGemas(ajustado) : null };
+    return { e, outland, abates: r.porHora, ef: r.melhorEf, shinyH: outland ? 0 : shinyH, med, n: vendas.length, xpH, ouroH,
+      gemasH: !outland && ajustado != null ? shinyH * liquidoGemas(ajustado) : null };
   }).filter((x) => x.abates > 0);
   const melhorAbate = Math.max(0, ...linhas.map((x) => x.abates));
-  const ordem = state.farmOrdem || "valor";
-  const lista = linhas.filter((x) => ordem === "abates" || x.med != null)
+  const lista = linhas.filter((x) => ordem === "abates" || modoXp || x.med != null)
     .filter((x) => ordem !== "raros" || x.abates >= melhorAbate * 0.5)
-    .sort(ordem === "abates" ? (a, b) => b.abates - a.abates : ordem === "raros" ? (a, b) => (a.n - b.n) || (b.med - a.med) : (a, b) => b.gemasH - a.gemasH)
+    .sort(modoXp ? (a, b) => b.xpH - a.xpH : ordem === "abates" ? (a, b) => b.abates - a.abates : ordem === "raros" ? (a, b) => (a.n - b.n) || (b.med - a.med) : (a, b) => b.gemasH - a.gemasH)
     .slice(0, state.farmTodos ? 60 : 12);
   const efTxt = (v) => v >= 5.5 ? "×5,5" : v >= 2.5 ? "×2,5" : v >= 1 ? "neutro" : v > 0 ? "×" + nf(2).format(v) : "imune";
   const gemasHTxt = (g) => state.moeda === "gemas" ? nf(g < 10 ? 1 : 0).format(g) : short(g * state.rate);
-  out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. Shiny sai 1 em 24.000 arremessos, e a bola ainda precisa fechar.</p>
+  out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. ${modoXp ? `XP com bônus de ×${nf(2).format(bonusXp)} (campo "Bônus de XP").` : "Shiny sai 1 em 24.000 arremessos, e a bola ainda precisa fechar."}</p>
+    ${modoXp && lista.length ? (() => { const top = lista[0], falta = xpTotal(Math.floor(L) + 1) - xpTotal(Math.floor(L)), h = falta / top.xpH;
+      return `<div class="alert ok">Na melhor hunt (<b>${esc(top.e.nome)}</b>, Nv ${nf(0).format(top.e.L)}): <b>${short(top.xpH)} XP/h</b> e ${short(top.ouroH)} Coins/h. Seu ${esc(meu.nome)} sobe do Nv ${nf(0).format(L)} para o ${nf(0).format(L + 1)} em <b>${h < 1 ? nf(0).format(h * 60) + " min" : nf(1).format(h) + " h"}</b>.</div>`; })() : ""}
     <div class="seg" role="group" aria-label="Ordenar">
       <button data-fo="valor" aria-pressed="${ordem === "valor"}">Mais ${unit()} por hora</button>
       <button data-fo="abates" aria-pressed="${ordem === "abates"}">Mais abates</button>
       <button data-fo="raros" aria-pressed="${ordem === "raros"}">Shiny raro no Mercado</button>
+      <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
     </div>
-    <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th class="r">Abates/h</th><th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th></tr></thead>
+    <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th class="r">Abates/h</th>${modoXp ? `<th class="r">XP/abate</th><th class="r">XP/h</th><th class="r">Coins/h</th>` : `<th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th>`}</tr></thead>
     <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, true);
-      return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}</span></td>
+      return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
         <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
         <td class="r n">${nf(0).format(x.abates)}</td>
-        <td class="r n">${x.shinyH > 0 ? fmtTempo(1 / x.shinyH) : "—"}</td>
+        ${modoXp ? `<td class="r n">${nf(0).format(xpPorAbate(x.e.L))}</td><td class="r n"><b>${short(x.xpH)}</b></td><td class="r n">${short(x.ouroH)}</td></tr>` : `<td class="r n">${x.shinyH > 0 ? fmtTempo(1 / x.shinyH) : "—"}</td>
         <td class="r n">${x.med != null ? `${fmtShow(x.med)} <span class="muted">(${x.n})</span>` : '<span class="muted">sem vendas</span>'}</td>
-        <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`; }).join("")}</tbody></table></div>
+        <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`}`; }).join("")}</tbody></table></div>
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
-    <p class="muted small">Estimativa: simula a hunt com a fórmula de dano da wiki (golpes, recargas, STAB e a tabela de tipos da hunt), calibrada com uma medição real. Não conta o dano que você toma, boosts nem a Outland, onde o shiny não rola. "Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.</p>`;
+    <p class="muted small">Estimativa: simula a hunt com a fórmula de dano da wiki (golpes, recargas, STAB e a tabela de tipos da hunt), calibrada com uma medição real. Não conta o dano que você toma. ${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : "A Outland fica de fora porque lá o shiny não rola. "} "Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.</p>`;
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
   out.querySelectorAll("tr[data-farm]").forEach((tr) => {
@@ -1587,6 +1605,9 @@ camposNivel.forEach((c) => c.addEventListener("input", () => {
   timerF = setTimeout(() => { if (state.aba === "farmar") renderFarm(); if (state.aba === "investir") renderInvestir(); if (state.aba === "trocar") renderTrocar(); }, 400);
 }));
 $("farm-bola").addEventListener("change", renderFarm);
+try { const b = localStorage.getItem("rtm-bonus"); if (b) $("farm-bonus").value = b; } catch (e) {}
+let timerBx = 0;
+$("farm-bonus").addEventListener("input", () => { try { localStorage.setItem("rtm-bonus", $("farm-bonus").value); } catch (e) {} clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 300); });
 ["sn-desc", "sn-grupo", "sn-ordem", "sn-conf"].forEach((id) => $(id).addEventListener("change", () => { state.snTodos = false; renderSniper(); }));
 let timerSn = 0;
 $("sn-busca").addEventListener("input", () => { clearTimeout(timerSn); timerSn = setTimeout(renderSniper, 250); });
