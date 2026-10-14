@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PokeIdle RTM Calculator</title>
 <meta name="description" content="Quanto vale o seu pokémon no Mercado do PokeIdle: preço sugerido pelas vendas reais, líquido da comissão e nota de mercado por espécie.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Crect%20width%3D'64'%20height%3D'64'%20rx%3D'14'%20fill%3D'%231a1030'%2F%3E%3Ctext%20x%3D'32'%20y%3D'42'%20text-anchor%3D'middle'%20font-family%3D'Arial%2Csans-serif'%20font-weight%3D'800'%20font-size%3D'34'%20fill%3D'%23fff'%3EP%3C%2Ftext%3E%3Crect%20x%3D'16'%20y%3D'49'%20width%3D'32'%20height%3D'5'%20rx%3D'2.5'%20fill%3D'%23f0359a'%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Plus+Jakarta+Sans:wght@800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: bancada de feira — ficha à esquerda (fixa no desktop), laudo de preço e gráfico à direita, ranking embaixo */
 :root {
@@ -49,7 +50,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 p { margin: 0; }
 
 header.top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
-header.top p { margin-top: 4px; color: var(--muted); max-width: 62ch; }
+.logo { display: inline-grid; justify-items: start; gap: 6px; margin: 0; }
+.logo-nome { font: 800 2.1rem/1 "Plus Jakarta Sans", var(--f-body); letter-spacing: -.02em; color: var(--ink); }
+.logo-barra { width: 72%; height: 4px; border-radius: 2px; background: var(--gem); }
+.logo-sub { font: 500 .95rem/1.2 var(--f-body); letter-spacing: .02em; color: var(--muted); }
+header.top p { margin-top: 12px; color: var(--muted); max-width: 62ch; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
 .seg { display: inline-flex; flex-wrap: wrap; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 3px; }
 .seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .88rem; display: inline-flex; gap: 6px; align-items: center; }
@@ -156,8 +161,11 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="lbl">PokeIdle · Mercado da Comunidade</div>
-      <h1>RTM Calculator</h1>
+      <h1 class="logo" aria-label="PokeIdle RTM Calculator">
+        <span class="logo-nome">PokeIdle</span>
+        <span class="logo-barra" aria-hidden="true"></span>
+        <span class="logo-sub">RTM Calculator</span>
+      </h1>
       <p>Quanto vale o seu pokémon: cole a ficha e veja o preço pelas vendas reais do Mercado, já com a comissão descontada.</p>
     </div>
     <div class="controls">
