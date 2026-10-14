@@ -59,7 +59,7 @@ header.top p { margin-top: 4px; color: var(--muted); max-width: 62ch; }
 .dot.gem { background: var(--gem); transform: rotate(45deg); border-radius: 2px; }
 .dot.coin { background: var(--coin); }
 .rate { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; color: var(--muted); }
-.rate input { width: 120px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-family: var(--f-mono); }
+.rate b { color: var(--ink); font: 500 .9rem var(--f-mono); }
 .status { font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .status b { color: var(--ink); font-weight: 600; }
 
@@ -171,7 +171,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
         <button id="m-gemas" aria-pressed="true"><span class="dot gem"></span>Gemas</button>
         <button id="m-coins" aria-pressed="false"><span class="dot coin"></span>Coins</button>
       </div>
-      <label class="rate" id="rate-box">1 Gema = <input id="rate" inputmode="numeric" value="3.000.000"> Coins</label>
+      <div class="rate" id="rate-box">1 Gema ≈ <b id="rate">3.000.000</b> Coins</div>
     </div>
   </header>
   <div class="status" id="status">Carregando o histórico de vendas…</div>
@@ -316,7 +316,7 @@ async function carregarHistorico() {
   const meses = await Promise.all(idx.meses.map((m) => fetch(`dados/${m}.json`, { cache: "no-cache" }).then((r) => r.json())));
   state.meta = idx;
   const c = idx.cotacao?.coinsPorGema;
-  if (c > 0) { state.rate = Math.round(c / 1000) * 1000; $("rate").value = nf(0).format(state.rate); }
+  if (c > 0) { state.rate = Math.round(c / 1000) * 1000; $("rate").textContent = nf(0).format(state.rate); }
   state.base = meses.flatMap((m) => m.vendas.map((v) => venda(...v)));
 }
 const todas = () => state.base;
@@ -644,8 +644,6 @@ $("limpar").onclick = () => { $("ficha").value = ""; fichaToFields({ pot: 1 }); 
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
 $("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("coins");
 document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
-$("rate").value = nf(0).format(state.rate);
-$("rate").onchange = () => { const v = parseBR($("rate").value); if (v > 0) state.rate = v; $("rate").value = nf(0).format(state.rate); render(); };
 
 carregarHistorico()
   .then(() => { fichaToFields({ pot: 1 }); mostrarCotacao(); render(); })
