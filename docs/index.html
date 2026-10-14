@@ -554,9 +554,17 @@ function dist(f, s) {
     + (norm(f.species) !== norm(s.species) ? 2.5 : 0);
 }
 function wQuant(items, p) {
-  const tot = items.reduce((a, x) => a + x.w, 0); let acc = 0;
-  for (const x of items) { acc += x.w; if (acc >= tot * p) return x.v; }
-  return items.length ? items[items.length - 1].v : NaN;
+  if (!items.length) return NaN;
+  if (items.length === 1) return items[0].v;
+  const tot = items.reduce((a, x) => a + x.w, 0);
+  // posição de cada venda = meio do seu trecho no peso acumulado; entre duas, interpola (em log)
+  let acc = 0;
+  const pts = items.map((x) => { const c = (acc + x.w / 2) / tot; acc += x.w; return [c, Math.log(x.v)]; });
+  if (p <= pts[0][0]) return Math.exp(pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    if (p <= pts[i][0]) { const [c0, v0] = pts[i - 1], [c1, v1] = pts[i]; return Math.exp(v0 + (v1 - v0) * (p - c0) / (c1 - c0 || 1)); }
+  }
+  return Math.exp(pts.at(-1)[1]);
 }
 /**
  * Quanto o nível mexe no preço, medido no próprio mercado: dentro de cada espécie + potência,
@@ -598,8 +606,29 @@ function estimate(f, kept, fimMin) {
   const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
   // o fator típico aplicado (média ponderada), para o laudo explicar quando for grande
   const fatorNivel = sw ? Math.exp(items.reduce((a, x) => a + x.w * Math.log(x.v / x.s.gem), 0) / sw) : 1;
-  return { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0, beta, fatorNivel,
+  const est = { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0, beta, fatorNivel,
     p25: wQuant(items, 0.25), p50: wQuant(items, 0.5), p75: wQuant(items, 0.75) };
+
+  // Pouca venda da espécie perto do nível da ficha? Mistura com o que pokémon do mesmo grupo
+  // (shiny ou comum), de nível, nota e potência parecidos, venderam — de qualquer espécie.
+  if (Number.isFinite(f.lvl) && f.lvl > 0) {
+    const perto = (s) => s.lvl >= f.lvl / 1.4 && s.lvl <= f.lvl * 1.4;
+    const nPerto = sameMatch.filter(perto).length;
+    const pesoEspecie = nPerto / (nPerto + 3);
+    if (pesoEspecie < 0.75) {
+      let viz = anyMatch.filter((s) => perto(s) && (!Number.isFinite(f.nota) || !Number.isFinite(s.nota) || Math.abs(s.nota - f.nota) <= 0.5));
+      const mesmaP = viz.filter((s) => s.pot === f.pot);
+      if (mesmaP.length >= 8) viz = mesmaP;
+      if (viz.length >= 6) {
+        const vi = viz.map((s) => ({ s, v: s.gem, w: 1 })).sort((a, b) => a.v - b.v);
+        const ref = { p25: wQuant(vi, 0.25), p50: wQuant(vi, 0.5), p75: wQuant(vi, 0.75) };
+        const mix = (a, b) => !Number.isFinite(a) ? b : Math.exp(pesoEspecie * Math.log(a) + (1 - pesoEspecie) * Math.log(b));
+        est.ref = { n: viz.length, nPerto, pesoEspecie, ...ref, mesmaP: viz === mesmaP };
+        est.p25 = mix(est.p25, ref.p25); est.p50 = mix(est.p50, ref.p50); est.p75 = mix(est.p75, ref.p75);
+      }
+    }
+  }
+  return est;
 }
 
 // ---------- gráfico ----------
@@ -719,7 +748,9 @@ function render() {
       ? `${esc(f.species)} tem só ${est.sameMatch.length} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período; completei com outras espécies de potência e nota parecidas.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
     h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
-    if (est.fatorNivel > 1.4 || est.fatorNivel < 0.7) {
+    if (est.ref) {
+      h += `<div class="alert">Há ${est.ref.nPerto ? "só " + est.ref.nPerto : "nenhuma"} venda${est.ref.nPerto === 1 ? "" : "s"} de ${esc(f.species)} perto do <b>Nv ${nf(0).format(f.lvl)}</b>. Por isso o preço mistura as vendas da espécie (ajustadas ao nível) com <b>${est.ref.n} vendas de outros pokémon ${f.shiny ? "shiny" : "comuns"}</b> de nível, nota${est.ref.mesmaP ? " e potência" : ""} parecidos, que ficaram entre ${fmtShow(est.ref.p25)} e ${fmtShow(est.ref.p75)} (mediana ${fmtShow(est.ref.p50)}). Peso da espécie: ${nf(0).format(est.ref.pesoEspecie * 100)}%.</div>`;
+    } else if (est.fatorNivel > 1.4 || est.fatorNivel < 0.7) {
       const nivTip = quant(est.items.map((x) => x.s.lvl).filter((n) => n > 0).sort((a, b) => a - b), 0.5);
       h += `<div class="alert">As vendas parecidas são, em geral, de <b>Nv ${nf(0).format(nivTip)}</b>, e o seu é <b>Nv ${nf(0).format(f.lvl)}</b>. No Mercado, o ${f.shiny ? "shiny" : "pokémon comum"} vale mais quanto maior o nível, então os preços foram ajustados ao nível do seu (em média <b>×${nf(1).format(est.fatorNivel)}</b>). Poucas vendas nesse nível: trate como estimativa.</div>`;
     }
