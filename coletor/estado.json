@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "FIRE"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "WATER"
     },
     {
@@ -78,5 +74,14 @@
       "soShiny": 1
     }
   ],
-  "feitos": []
+  "feitos": [
+    {
+      "tipo": "pokemon",
+      "elemento": "FIRE",
+      "linhas": 2949,
+      "novas": 1616,
+      "cortado": false,
+      "em": "2026-10-14T21:24:17.007Z"
+    }
+  ]
 }
