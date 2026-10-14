@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
 import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
+import { explorar } from './explorar.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -77,7 +78,7 @@ function abrirSessao({ nick, token }) {
       try { m = JSON.parse(bruto.toString()); } catch { return; }
       if (m.t === 'erro') return derrubar(new Error(`O jogo recusou: ${m.chave ?? m.msg ?? JSON.stringify(m).slice(0, 200)}`));
       if (m.t === 'sessao.renovada') console.log('Aviso: o jogo renovou a sessão desta conta. Se o coletor começar a falhar, gere um token novo (README).');
-      if (m.t === 'welcome' && !entrou) { entrou = true; clearTimeout(relogio); resolve(sessao); }
+      if (m.t === 'welcome' && !entrou) { entrou = true; sessao.welcome = m; clearTimeout(relogio); resolve(sessao); }
       for (const e of esperas) if (e.aceita(m)) { clearTimeout(e.t); esperas.delete(e); e.ok(m); }
     });
     ws.on('close', (code) => {
@@ -168,6 +169,8 @@ async function main() {
     resp = await sessao.pedir({ t: 'csv.pedir', tipo: 'mercado', filtros }, (m) => m.t === 'csv' && m.tipo === 'mercado', 30000);
     diamantes = await lerVendasDeDiamante(sessao).catch((e) => { console.log(`Vendas de diamante: ${e.message}`); return []; });
     media7 = await lerMediaDoJogo(sessao);
+    // Reconhecimento das telas de anúncios e itens: uma vez só (fica marcado no estado).
+    if (!estado.explorado) { await explorar(sessao).catch((e) => console.log(`Reconhecimento: ${e.message}`)); estado.explorado = new Date().toISOString(); }
   } finally {
     sessao.fechar();
   }
