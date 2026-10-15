@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
 import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
-import { gravarMercado, lerAnuncios, lerItens } from './mercado.mjs';
+import { gravarMercado, lerAnuncios, lerItens, lerLivros } from './mercado.mjs';
 import { explorarPvp } from './explorar-pvp.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
@@ -164,7 +164,7 @@ async function main() {
   }
 
   const sessao = await abrirSessao({ nick: exigir('POKEIDLE_NICK'), token: exigir('POKEIDLE_TOKEN') });
-  let resp, diamantes = [], media7 = {}, aberto = {}, itens = null;
+  let resp, diamantes = [], media7 = {}, aberto = {}, itens = null, livros = null;
   try {
     console.log(`Pedindo a planilha (${devePrincipal ? 'principal' : 'recuperação'}: ${descrever(filtros)}).`);
     resp = await sessao.pedir({ t: 'csv.pedir', tipo: 'mercado', filtros }, (m) => m.t === 'csv' && m.tipo === 'mercado', 30000);
@@ -174,6 +174,8 @@ async function main() {
     const t0 = Date.now();
     aberto = await lerAnuncios(sessao, sal).catch((e) => { console.log(`Anúncios: ${e.message}`); return {}; });
     itens = await lerItens(sessao).catch((e) => { console.log(`Itens: ${e.message}`); return null; });
+    // livro de ofertas só dos itens com anúncio aberto (pedras, fragmentos, tokens…)
+    livros = itens ? await lerLivros(sessao, Object.entries(itens.resumo).filter(([, r]) => (r.anuncios || 0) > 0).map(([id]) => id)).catch(() => null) : null;
     // reconhecimento do PvP (ranking e perfil do 1º): uma vez só
     if (!estado.exploradoPvp) { await explorarPvp(sessao).catch((e) => console.log(`Reconhecimento PvP: ${e.message}`)); estado.exploradoPvp = new Date().toISOString(); }
     console.log(`Mercado aberto: ${aberto.anuncios?.length ?? 0} anúncios de pokémon e ${Object.keys(itens?.resumo ?? {}).length} itens, em ${Math.round((Date.now() - t0) / 1000)} s.`);
@@ -181,7 +183,7 @@ async function main() {
     sessao.fechar();
   }
 
-  await gravarMercado(aberto, itens, sessao.welcome).catch((e) => console.log(`Gravar mercado: ${e.message}`));
+  await gravarMercado(aberto, itens, sessao.welcome, livros).catch((e) => console.log(`Gravar mercado: ${e.message}`));
 
   // Cotação: a das últimas 24 h (ou a janela mais curta que tenha vendas suficientes).
   const { novas: novasDiamante } = await juntarDiamantes(diamantes);

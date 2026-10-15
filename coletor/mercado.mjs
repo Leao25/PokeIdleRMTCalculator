@@ -51,10 +51,31 @@ export async function lerItens(sessao) {
   return { resumo: m.resumo ?? {}, medias: m.medias ?? {} };
 }
 
+/**
+ * O livro de ofertas de cada item, em cada moeda: quantos anúncios, quantas unidades à venda e os
+ * menores preços (por unidade) com a quantidade de cada um. É o que diz se dá para revender: um
+ * item com milhares de unidades anunciadas à frente não sai tão cedo.
+ */
+export async function lerLivros(sessao, itemIds) {
+  const livros = {};
+  for (const id of itemIds) {
+    for (const moeda of ['gold', 'orb']) {
+      try {
+        const m = await sessao.pedir({ t: 'market.item', itemId: Number(id), moeda },
+          (x) => x.t === 'market' && x.aba === 'item' && String(x.itemId) === String(id) && x.moeda === moeda, 8000);
+        const linhas = (m.linhas ?? []).map((l) => [Number(l.preco), Number(l.qtd) || 1]).filter((l) => l[0] > 0).sort((a, b) => a[0] - b[0]);
+        (livros[id] ||= {})[moeda] = { anuncios: linhas.length, unidades: linhas.reduce((a, l) => a + l[1], 0), top: linhas.slice(0, 8) };
+      } catch { /* sem resposta para este item nesta moeda: segue */ }
+      await espera(60);
+    }
+  }
+  return livros;
+}
+
 async function lerJson(arq, padrao) { try { return JSON.parse(await readFile(arq, 'utf8')); } catch { return padrao; } }
 
 /** Grava anúncios, itens, a série dos itens e o catálogo. */
-export async function gravarMercado({ anuncios, total }, itens, welcome) {
+export async function gravarMercado({ anuncios, total }, itens, welcome, livros = null) {
   const agora = new Date().toISOString();
   if (anuncios) {
     await writeFile(path.join(PASTA_DADOS, 'anuncios.json'), JSON.stringify({
@@ -91,6 +112,7 @@ export async function gravarMercado({ anuncios, total }, itens, welcome) {
       anuncios: r.anuncios ?? 0, unidades: r.unidades ?? 0, minGold: r.minGold ?? null, minOrb: r.minOrb ?? null,
       mediaGold: md.gold?.media ?? null, vendidosGold: md.gold?.unidades ?? null,
       mediaOrb: md.orb?.media ?? null, vendidosOrb: md.orb?.unidades ?? null,
+      livro: livros?.[id] ?? null,
     };
   }
   // itens com média de venda mas sem anúncio aberto agora também entram
