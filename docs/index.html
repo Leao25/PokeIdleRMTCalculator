@@ -524,7 +524,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             <div><span class="lbl">Shiny, comum e XP</span><h2>Onde farmar</h2></div>
             <div class="farm-ctrl">
               <label class="mini">Nível do treinador <input id="farm-nivel" class="nivel-treinador" inputmode="numeric" placeholder="461"></label>
-              <label class="mini" title="O número do painel Sessão do jogo (ex.: +89,8%), ou a soma dos seus bônus: VIP 50, XP Boost Pokémon 50, guild 10, evento 35… (Boost dos Atrasados = 900)">Bônus de XP (%) <input id="farm-bonus" inputmode="decimal" placeholder="0"></label>
+              <label class="mini" title="O número do painel Sessão do jogo (ex.: +89,8%), ou a soma dos seus bônus: VIP 50, XP Boost Pokémon 50, guild 10, evento 35… (Boost dos Atrasados = 900)">Bônus de XP (%) <span class="calc-linha"><input id="farm-bonus" inputmode="decimal" placeholder="ex.: 106,3"> <button type="button" class="btn-mini" id="farm-calcular">Calcular</button></span></label>
               <label class="mini">Bola
                 <select id="farm-bola"><option value="4">Ultra Ball</option><option value="8">Beast Ball</option><option value="3">Super Ball</option><option value="2">Great Ball</option></select>
               </label>
@@ -1559,17 +1559,17 @@ async function renderFarm() {
     ${nMorre ? `<label class="check-mini small"><input type="checkbox" id="farm-mortes"${mostrarMortes ? " checked" : ""}> Mostrar as ${nMorre} hunts em que seu pokémon morre</label>` : ""}
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
     <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e a caminhada até o próximo selvagem (de 1,6 a 3,2 s quando ele morre num golpe; quase nada em luta longa, porque os outros chegam e esperam em volta), conferida com medições reais no jogo (erro de 0% a −8% nos abates). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Poção" é quando o dano passa de uma barra de HP por hora (não há cura natural na hunt), com o gasto em Hyper Potions; cada selvagem novo abre a luta com todos os golpes carregados, do mais forte para o mais fraco (medido no jogo), e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); nas hunts fáceis (um golpe por abate) o ritmo depende do mapa e a margem é maior. Passe o mouse numa linha para ver os detalhes. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
-  // no "Mais XP" a conta depende do bônus: sem ele, pede o número antes de mostrar a tabela
-  if (modoXp && !$("farm-bonus").value.trim()) {
+  // sem bônus digitado e "Calcular" apertado, nada de conta: só os botões de modo e o pedido
+  if (!state.farmCalculado || !$("farm-bonus").value.trim()) {
     out.querySelector(".farm-top")?.remove();
+    out.querySelector(":scope > p.muted.small")?.remove();
     const tbl = out.querySelector(".tbl");
     if (tbl) {
       for (let n = tbl.nextElementSibling; n;) { const p = n.nextElementSibling; n.remove(); n = p; }
       const aviso = document.createElement("div");
       aviso.className = "alert";
-      aviso.innerHTML = '<b>Digite o seu bônus de XP</b> no campo "Bônus de XP (%)", lá em cima, para ver a melhor hunt. Use o número que aparece no painel Sessão do jogo, ao lado de "XP" (ex.: +106,3%). Sem bônus nenhum, digite 0. <button type="button" class="btn-mini" id="farm-ir-bonus">Ir para o campo</button>';
+      aviso.innerHTML = 'Insira o <b>bônus de XP</b> e aperte <b>"Calcular"</b>, lá em cima. Use o número que aparece no painel Sessão do jogo, ao lado de "XP" (ex.: +106,3%); sem bônus nenhum, digite 0.';
       tbl.replaceWith(aviso);
-      $("farm-ir-bonus").onclick = () => { $("farm-bonus").focus(); $("farm-bonus").scrollIntoView({ block: "center", behavior: "smooth" }); };
     }
     $("farm-bonus").classList.add("pede");
   } else $("farm-bonus").classList.remove("pede");
@@ -2278,14 +2278,17 @@ camposNivel.forEach((c) => c.addEventListener("input", () => {
   timerF = setTimeout(() => { if (state.aba === "farmar") renderFarm(); if (state.aba === "investir") renderInvestir(); if (state.aba === "trocar") renderTrocar(); }, 400);
 }));
 $("farm-bola").addEventListener("change", renderFarm);
-try { const b = localStorage.getItem("rtm-bonus"); if (b) $("farm-bonus").value = b; } catch (e) {}
 // TM e casa: lembrados neste navegador
 const EXTRAS_FARM = ["farm-tm", "farm-aoe", "farm-casa", "farm-casa-pct", "farm-tm-tipo"];
 try { const x = JSON.parse(localStorage.getItem("rtm-farm-extras") || "{}"); for (const id of EXTRAS_FARM) if (x[id] != null) { if ($(id).type === "checkbox") $(id).checked = !!x[id]; else $(id).value = x[id]; } } catch (e) {}
 const salvarExtras = () => { try { localStorage.setItem("rtm-farm-extras", JSON.stringify(Object.fromEntries(EXTRAS_FARM.map((id) => [id, $(id).type === "checkbox" ? $(id).checked : $(id).value])))); } catch (e) {} };
 for (const id of EXTRAS_FARM) $(id).addEventListener(id === "farm-casa-pct" ? "input" : "change", () => { salvarExtras(); clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 250); });
 let timerBx = 0;
-$("farm-bonus").addEventListener("input", () => { try { localStorage.setItem("rtm-bonus", $("farm-bonus").value); } catch (e) {} clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 300); });
+// o bônus vem sempre vazio; a conta só sai depois de digitar e apertar "Calcular" (ou Enter)
+$("farm-bonus").addEventListener("input", () => { if (state.farmCalculado) { state.farmCalculado = false; clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 300); } });
+const calcularFarm = () => { if (!$("farm-bonus").value.trim()) { $("farm-bonus").focus(); $("farm-bonus").classList.add("pede"); return; } state.farmCalculado = true; renderFarm(); };
+$("farm-calcular").onclick = calcularFarm;
+$("farm-bonus").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); calcularFarm(); } });
 ["sn-desc", "sn-grupo", "sn-ordem", "sn-conf"].forEach((id) => $(id).addEventListener("change", () => { state.snTodos = false; renderSniper(); }));
 let timerSn = 0;
 $("sn-busca").addEventListener("input", () => { clearTimeout(timerSn); timerSn = setTimeout(renderSniper, 250); });
