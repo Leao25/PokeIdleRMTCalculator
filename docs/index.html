@@ -600,7 +600,41 @@ function venda(min, desc, lvl, shiny, nota, iv, pot, q, moeda, valor, vend, comp
     moeda: moeda === "gold" ? "coins" : "gemas", price: valor, seller: vend, buyer: comp };
 }
 const chave = (s) => [s.min, s.desc, s.price, s.moeda].join("|");
-const gemOf = (s) => s.moeda === "gemas" ? s.price : s.price / state.rate;
+/**
+ * Quantos Coins vale uma Gema NO MERCADO DE POKÉMON. Não é a cotação do diamante: quem compra
+ * pokémon em Gemas paga, em Coins equivalentes, bem mais caro que quem compra em Coins (medido:
+ * ~0,5M Coins por Gema no comum, contra ~3,3M do diamante). Mede-se nos grupos (espécie +
+ * potência + shiny) vendidos nas duas moedas: mediana em Coins ÷ mediana em Gemas, e a mediana
+ * disso entre os grupos. Sem grupos suficientes (o shiny quase só vende em Gemas), usa a do comum.
+ */
+let taxaCache = null;
+function taxaPokemon(vendas) {
+  if (taxaCache?.n === vendas.length) return taxaCache.taxa;
+  const medi = (a) => { a = a.slice().sort((x, y) => x - y); return a[a.length >> 1]; };
+  const calc = (sh) => {
+    const by = {};
+    for (const s of vendas) {
+      if (s.shiny !== sh) continue;
+      const k = s.species + "|" + s.pot, b = (by[k] ||= { g: [], o: [] });
+      if (s.moeda === "coins" && s.price >= 1e5) b.g.push(s.price);
+      if (s.moeda === "gemas" && s.price >= 3) b.o.push(s.price);
+    }
+    const r = Object.values(by).filter((b) => b.g.length >= 2 && b.o.length >= 2).map((b) => medi(b.g) / medi(b.o));
+    return r.length >= 8 ? Math.min(state.rate * 1.5, Math.max(state.rate / 20, medi(r))) : null;
+  };
+  const comum = calc(false) ?? state.rate;
+  const taxa = { comum, shiny: calc(true) ?? comum };
+  taxaCache = { n: vendas.length, taxa };
+  return taxa;
+}
+/** Preço de uma venda ou anúncio de pokémon na unidade interna (Gemas; em Coins, ÷ cotação do diamante para exibir certo). */
+function emExibicao(preco, moedaVenda, shiny) {
+  const taxa = state.taxaPk?.[shiny ? "shiny" : "comum"] || state.rate;
+  const ehGema = moedaVenda === "gemas" || moedaVenda === "orb";
+  if (state.moeda === "coins") return (ehGema ? preco * taxa : preco) / state.rate;
+  return ehGema ? preco : preco / taxa;
+}
+const gemOf = (s) => emExibicao(s.price, s.moeda, s.shiny);
 
 async function carregarHistorico() {
   const idx = await (await fetch("dados/indice.json", { cache: "no-cache" })).json();
@@ -785,7 +819,9 @@ function estimate(f, kept, fimMin) {
   const ajuste = (s) => Number.isFinite(f.lvl) && f.lvl > 0 && s.lvl > 0 ? Math.min(8, Math.max(1 / 8, (f.lvl / s.lvl) ** beta)) : 1;
   const items = pool.map((s) => {
     const d = dist(f, s), age = (fimMin - s.min) / 1440;
-    return { s, d, v: s.gem * ajuste(s), w: Math.exp(-d) * (1 - Math.min(Math.max(age, 0), janela) / (janela * 2)) };
+    // a moeda escolhida manda: Gemas e Coins são dois mercados com preços diferentes, e a outra moeda só completa
+    const peso = s.moeda === state.moeda ? 4 : 1;
+    return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * (1 - Math.min(Math.max(age, 0), janela) / (janela * 2)) };
   }).filter((x) => x.w > 0).sort((a, b) => a.v - b.v);
   const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
   // o fator típico aplicado (média ponderada), para o laudo explicar quando for grande
@@ -898,6 +934,7 @@ function render() {
   });
   if (state.dias > 30 && state.dias > diasHist + 2) { state.dias = 30; return render(); }
   const { lista, fim } = noPeriodo(tudo);
+  state.taxaPk = taxaPokemon(tudo);
   const { kept, gone } = limpar(lista);
   const f = fieldsToFicha();
   const up = state.meta?.atualizadoEm ? new Date(state.meta.atualizadoEm) : null;
@@ -932,6 +969,11 @@ function render() {
       ? `${esc(f.species)} tem só ${est.sameMatch.length} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período; completei com outras espécies de potência e nota parecidas.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
     h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
+    const pesoOutra = est.items.reduce((a, x) => a + (x.s.moeda !== state.moeda ? x.w : 0), 0) / Math.max(1e-9, est.items.reduce((a, x) => a + x.w, 0));
+    if (pesoOutra > 0.3) {
+      const tx = state.taxaPk?.[f.shiny ? "shiny" : "comum"];
+      h += `<div class="alert">${nf(0).format(pesoOutra * 100)}% do peso vem de vendas feitas em ${state.moeda === "gemas" ? "Coins" : "Gemas"}. Elas foram convertidas pela taxa do <b>mercado de pokémon</b> (1 Gema ≈ ${short(tx)} Coins), e não pela do diamante: quem paga pokémon em Gemas paga, em Coins equivalentes, bem mais caro.</div>`;
+    }
     if (est.ref) {
       h += `<div class="alert">Há ${est.ref.nPerto ? "só " + est.ref.nPerto : "nenhuma"} venda${est.ref.nPerto === 1 ? "" : "s"} de ${esc(f.species)} perto do <b>Nv ${nf(0).format(f.lvl)}</b>. Por isso o preço mistura as vendas da espécie (ajustadas ao nível) com <b>${est.ref.n} vendas de outros pokémon ${f.shiny ? "shiny" : "comuns"}</b> de nível, nota${est.ref.mesmaP ? " e potência" : ""} parecidos, que ficaram entre ${fmtShow(est.ref.p25)} e ${fmtShow(est.ref.p75)} (mediana ${fmtShow(est.ref.p50)}). Peso da espécie: ${nf(0).format(est.ref.pesoEspecie * 100)}%.</div>`;
     } else if (est.fatorNivel > 1.4 || est.fatorNivel < 0.7) {
@@ -1172,6 +1214,7 @@ async function renderCotacao() {
     <div class="cot"><span class="big">1 Gema ≈ ${nf(0).format(state.rate)} Coins</span>
       ${var24 != null ? `<span class="small">${tendHTML(var24, 0.005, "Gema em Coins agora contra 24 horas atrás")} a Gema nas últimas 24 h</span>` : ""}
       ${c ? `<span class="muted small">diamante a ${nf(c.gemasPorDiamante < 20 ? 1 : 0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins (${c.janela ?? "7 dias"})</span>` : ""}</div>
+    ${state.taxaPk ? `<p class="small">No <b>mercado de pokémon</b> a conta é outra: quem compra em Gemas paga bem mais caro, e lá <b>1 Gema ≈ ${short(state.taxaPk.comum)} Coins</b> (medido nas espécies vendidas nas duas moedas). O site usa essa taxa para comparar preços de pokémon entre moedas.</p>` : ""}
     <div class="conversor">
       <label class="mini">Gemas <input id="cv-gemas" inputmode="decimal" placeholder="100" value="${esc(state.cvGemas ?? "")}"></label>
       <span class="conv-seta" aria-hidden="true">⇄</span>
@@ -1460,7 +1503,7 @@ async function renderSniper() {
       const f = { species: a.species, mega: /^mega\s/i.test(a.species), lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny };
       const est = estimate(f, state.kept, state.fim);
       if (!est.items.length || !(est.p50 > 0)) continue;
-      const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+      const precoGem = emExibicao(a.preco, a.moeda, a.shiny);
       const confianca = est.ess >= 6 && !est.fallback ? 2 : est.ess >= 3 && !est.fallback ? 1 : 0;
       linhas.push({ a, est, precoGem, desc: 1 - precoGem / est.p50, lucro: liquidoGemas(est.p50) - precoGem, confianca });
     }
@@ -1495,7 +1538,7 @@ async function renderSniper() {
     const go = () => {
       $("ficha").value = ""; state.ivs = null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
-      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
     };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
@@ -1774,14 +1817,14 @@ async function renderTrocar() {
   const orcGem = state.moeda === "gemas" ? orc : orc / state.rate;
   const met = (m) => criterio === "alcance" ? (m?.alcance?.L || 0) + (m?.media || 0) / 1e4 : m?.media;
   // candidatos: dentro do orçamento, os 150 de maior poder (o ⚔ que o jogo mostra)
-  const cand = A.lista.filter((a) => (a.moeda === "gemas" ? a.preco : a.preco / state.rate) <= orcGem && E.porNome.has(norm(a.species)))
+  const cand = A.lista.filter((a) => (emExibicao(a.preco, a.moeda, a.shiny)) <= orcGem && E.porNome.has(norm(a.species)))
     .sort((a, b) => (b.poder || 0) - (a.poder || 0)).slice(0, 150);
   await new Promise((r) => setTimeout(r, 0));
   const linhas = cand.map((a) => {
     const esp = E.porNome.get(norm(a.species));
     const ff = { species: a.species, lvl: a.lvl, pot: a.pot, q: a.q, iv: a.iv, nota: a.nota, shiny: a.shiny };
     const m = forcaFarm(voceDe(E, esp, ff, a.ivs), ctx, E);
-    const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+    const precoGem = emExibicao(a.preco, a.moeda, a.shiny);
     const est = estimate(ff, state.kept, state.fim);
     return { a, m, v: met(m), precoGem, justo: est.items.length ? est.p50 : null };
   }).filter((x) => x.v > 0).sort((x, y) => y.v - x.v).slice(0, 15);
@@ -1803,7 +1846,7 @@ async function renderTrocar() {
     const go = () => {
       $("ficha").value = ""; state.ivs = a.ivs || null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
-      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
     };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
@@ -1952,7 +1995,7 @@ async function renderTime() {
   const poderRef = null;
   const cands = [];
   for (const a of A.lista) {
-    const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+    const precoGem = emExibicao(a.preco, a.moeda, a.shiny);
     if (precoGem > orcGem || jaTem.has(norm(a.species))) continue;
     const esp = E.porNome.get(norm(a.species));
     if (!esp) continue;
@@ -2003,7 +2046,7 @@ async function renderTime() {
     const go = () => {
       $("ficha").value = ""; state.ivs = a.ivs || null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
-      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
     };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
