@@ -46,7 +46,7 @@ for (let d = DIAS; d >= 1; d--) {
       const est = M.estimate(f, kept, ini);
       if (!(est.p50 > 0)) continue;
       const nEsp = est.sameMatch.length, nPerto = est.sameMatch.filter((x) => x.lvl >= s.lvl / 1.4 && x.lvl <= s.lvl * 1.4).length;
-      res.push({ r: est.p50 / s.gem, dentro: s.gem >= est.p25 && s.gem <= est.p75, moeda, shiny: s.shiny, lvl: s.lvl, pot: s.pot, nEsp, nPerto, misturado: !!est.ref, species: s.species, real: s.gem, est: est.p50 });
+      res.push({ q: s.q, nota: s.nota, r: est.p50 / s.gem, dentro: s.gem >= est.p25 && s.gem <= est.p75, moeda, shiny: s.shiny, lvl: s.lvl, pot: s.pot, nEsp, nPerto, misturado: !!est.ref, species: s.species, real: s.gem, est: est.p50 });
     }
   }
 }
@@ -73,6 +73,8 @@ resumo('comum Nv ≤ 100', res.filter((x) => !x.shiny && x.lvl <= 100));
 resumo('comum Nv 101–300', res.filter((x) => !x.shiny && x.lvl > 100 && x.lvl <= 300));
 resumo('comum Nv > 300', res.filter((x) => !x.shiny && x.lvl > 300));
 for (const p of [1, 2, 3, 4, 5]) resumo(`comum P${p}`, res.filter((x) => !x.shiny && x.pot === p));
+resumo('comum qualidade ≥ 1,7', res.filter((x) => !x.shiny && x.q >= 1.7));
+resumo('comum qualidade < 1,4', res.filter((x) => !x.shiny && x.q < 1.4));
 if (process.env.LISTAR) for (const x of res.filter((y) => y.species === process.env.LISTAR)) console.log(x.species, x.lvl, `P${x.pot}`, x.moeda, Math.round(x.real), '→', Math.round(x.est));
 if (process.env.POR_ESPECIE) {
   const by = {};

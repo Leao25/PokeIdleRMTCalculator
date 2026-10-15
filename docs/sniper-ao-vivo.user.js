@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.2.0
+// @version      1.3.0
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -48,9 +48,11 @@
   const enviar = (msg) => { if (socket && socket.readyState === 1) { socket.send(JSON.stringify(msg)); return true; } return false; };
 
   // ---------- configuração ----------
-  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, alvo: 'pokemon', moeda: 'orb', minimizado: false, semOutland: false },
+  const cfg = Object.assign({ ligado: true, intervalo: 60, lucroMin: 0.3, revenda: 'justo', som: true, alvo: 'pokemon', moeda: 'orb', minimizado: false, semOutland: false },
     (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } })());
   if (cfg.alvo !== 'pokemon' && cfg.alvo !== 'itens') cfg.alvo = 'pokemon';
+  if (!['rapido', 'justo', 'paciencia'].includes(cfg.revenda)) cfg.revenda = 'justo';
+  if (!(cfg.lucroMin > 0)) cfg.lucroMin = 0.3;
   if (cfg.moeda !== 'gold' && cfg.moeda !== 'orb') cfg.moeda = 'orb';
   const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(cfg)); } catch (e) { /* sem armazenamento */ } };
 
@@ -158,7 +160,7 @@
     if (m.aba === 'anuncio' && m.id != null) {
       const a = m.anuncio;
       if (!a || a.estado !== 'aberto') { achados.delete(`pk:${m.id}`); pintar(); }
-      else { const x = achados.get(`pk:${m.id}`); if (x) { x.conferido = Date.now(); if (a.preco > 0 && a.preco !== x.preco) { x.preco = a.preco; x.desc = 1 - a.preco / x.ref; if (x.desc < cfg.desconto) achados.delete(`pk:${m.id}`); } pintar(); } }
+      else { const x = achados.get(`pk:${m.id}`); if (x) { x.conferido = Date.now(); if (a.preco > 0 && a.preco !== x.preco) { x.preco = a.preco; x.desc = 1 - a.preco / x.ref; if (lucroDe(x, 'paciencia').pct < cfg.lucroMin) achados.delete(`pk:${m.id}`); } pintar(); } }
       return;
     }
     if (m.aba === 'itens' && m.resumo) { avaliarItens(m.resumo, m.medias || {}); ultimaLeitura = Date.now(); pintar(); }
@@ -168,7 +170,7 @@
     const ja = achados.get(chave);
     if (ja) { Object.assign(ja, dados, { visto: Date.now() }); return; }
     achados.set(chave, { ...dados, primeiro: Date.now(), visto: Date.now(), novo: true });
-    if (cfg.som) apitar();
+    if (cfg.som && passa(achados.get(chave))) apitar();
   }
   function avaliarItens(resumo, medias) {
     if (cfg.alvo !== 'itens') return;
@@ -179,7 +181,8 @@
         if (moeda === 'orb' && media < 5) continue; // em Gemas, item de 2–3 Gemas não tem desconto possível
         const desc = 1 - min / media;
         const chave = `item:${id}:${moeda}`;
-        if (desc >= cfg.desconto) novoAchado(chave, { tipo: 'item', id: +id, nome: nomeItem(id), moeda, preco: min, ref: media, desc, extra: `${fmt(vendidos)} vendidos em 7 dias` });
+        const cand = { tipo: 'item', id: +id, nome: nomeItem(id), moeda, preco: min, ref: media, desc, extra: `${fmt(vendidos)} vendidos em 7 dias` };
+        if (lucroDe(cand, 'paciencia').pct >= cfg.lucroMin) novoAchado(chave, cand);
         else achados.delete(chave); // o preço voltou ao normal: some da lista
       }
     }
@@ -201,7 +204,9 @@
       const r = referenciaDe(a);
       if (!r || !(a.preco > 0)) continue;
       const desc = 1 - a.preco / r.valor;
-      if (desc < cfg.desconto) continue;
+      const moedaA = a.moeda === 'gold' ? 'gold' : 'orb';
+      // guarda se daria lucro mínimo revendendo pelo MAIOR alvo (Paciência); a escolha atual filtra na tela
+      if (lucroDe({ tipo: 'pokemon', moeda: moedaA, preco: a.preco, ref: r.valor, p25: r.p25, p75: r.p75 }, 'paciencia').pct < cfg.lucroMin) continue;
       const f = a.ficha;
       novoAchado(`pk:${a.id}`, {
         tipo: 'pokemon', outland: ehOutland(f), id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
@@ -237,6 +242,11 @@
    * pokémon em Gema paga por faixa (13% até 500, 10% até 5.000, 7,5% acima); em Coins e item em
    * Gema, 15%.
    */
+  /** Por quanto revender, conforme a escolha (Rápido = p25 do laudo, Justo = p50, Paciência = p75). Item: média de 7 dias. */
+  const alvoRevenda = (x, qual = cfg.revenda) => (x.tipo === 'pokemon' && x.p25 ? (qual === 'rapido' ? x.p25 : qual === 'paciencia' ? x.p75 : x.ref) : x.ref);
+  /** Lucro sobre o que se paga, revendendo pelo alvo escolhido, já sem a comissão (quem compra não paga taxa). */
+  const lucroDe = (x, qual) => { const alvo = alvoRevenda(x, qual); return { alvo, valor: liquidoRevenda(alvo, x.moeda, x.tipo) - x.preco, pct: (liquidoRevenda(alvo, x.moeda, x.tipo) - x.preco) / x.preco }; };
+  const passa = (x) => lucroDe(x).pct >= cfg.lucroMin;
   function liquidoRevenda(valor, moeda, tipo) {
     if (moeda === 'orb' && tipo === 'pokemon') {
       const t1 = Math.min(valor, 500), t2 = Math.min(Math.max(valor - 500, 0), 4500), t3 = Math.max(valor - 5000, 0);
@@ -323,6 +333,7 @@
       if (ac === 'alvo' && cfg.alvo !== b.dataset.v) { cfg.alvo = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'moeda' && cfg.moeda !== b.dataset.v) { cfg.moeda = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'ver') abrirAnuncio(Number(b.dataset.id));
+      if (ac === 'revenda') cfg.revenda = b.dataset.v;
       if (ac === 'laudo') abrirLaudo(achados.get(b.dataset.k));
       if (ac === 'outland') { cfg.semOutland = !cfg.semOutland; if (cfg.semOutland) for (const [k, x] of achados) if (x.outland) achados.delete(k); }
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
@@ -348,7 +359,7 @@
     W.addEventListener('resize', posicionar);
     caixa.addEventListener('change', (e) => {
       const s = e.target;
-      if (s.dataset.cfg === 'desconto') cfg.desconto = +s.value;
+      if (s.dataset.cfg === 'lucroMin') cfg.lucroMin = +s.value;
       if (s.dataset.cfg === 'intervalo') cfg.intervalo = +s.value;
       salvar(); pintar();
     });
@@ -366,7 +377,7 @@
     if (!caixa) return;
     requestAnimationFrame(posicionar);
     caixa.classList.toggle('min', cfg.minimizado);
-    const lista = [...achados.entries()].sort((a, b) => b[1].desc - a[1].desc);
+    const lista = [...achados.entries()].filter(([, x]) => passa(x)).sort((a, b) => lucroDe(b[1]).pct - lucroDe(a[1]).pct);
     const novos = lista.filter(([, x]) => x.novo).length;
     if (cfg.minimizado) {
       caixa.innerHTML = `<header title="Arraste para mover · duplo clique volta ao canto"><b>🎯 Sniper · ${cfg.alvo === 'itens' ? 'Itens' : 'Pokémon'} em ${cfg.moeda === 'gold' ? 'Coins' : 'Gemas'}${cfg.ligado ? '' : ' (pausado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
@@ -378,20 +389,21 @@
         <button data-acao="som" title="Aviso sonoro">${cfg.som ? '🔔' : '🔕'}</button>
         <button data-acao="min" title="Minimizar">▾</button></header>
       <div class="cfg">
-        <label>Desconto ${sel('desconto', [[0.2, '20%'], [0.3, '30%'], [0.4, '40%'], [0.5, '50%']], cfg.desconto)}</label>
+        <label title="Lucro mínimo sobre o que você paga, revendendo pelo preço escolhido, já sem a comissão">Lucro mín. ${sel('lucroMin', [[0.1, '10%'], [0.2, '20%'], [0.3, '30%'], [0.5, '50%'], [1, '100%']], cfg.lucroMin)}</label>
         <label>A cada ${sel('intervalo', [[10, '10 s'], [30, '30 s'], [60, '60 s'], [120, '2 min'], [300, '5 min']], cfg.intervalo)}</label>
         <span class="seg"><button data-acao="alvo" data-v="pokemon" class="${cfg.alvo === 'pokemon' ? 'on' : ''}">Pokémon</button><button data-acao="alvo" data-v="itens" class="${cfg.alvo === 'itens' ? 'on' : ''}">Itens</button></span>
         ${cfg.alvo === 'pokemon' ? `<label class="chk" title="Esconde as variantes de Outland (Brave, Furious, Toxic…)"><input type="checkbox" data-acao="outland"${cfg.semOutland ? ' checked' : ''}> Sem Outland</label>` : ''}
+        ${cfg.alvo === 'pokemon' ? `<span class="seg" title="Por quanto você pretende revender: as três faixas do laudo"><button data-acao="revenda" data-v="rapido" class="${cfg.revenda === 'rapido' ? 'on' : ''}">Rápido</button><button data-acao="revenda" data-v="justo" class="${cfg.revenda === 'justo' ? 'on' : ''}">Justo</button><button data-acao="revenda" data-v="paciencia" class="${cfg.revenda === 'paciencia' ? 'on' : ''}">Paciência</button></span>` : ''}
         <span class="seg"><button data-acao="moeda" data-v="gold" class="${cfg.moeda === 'gold' ? 'on' : ''}">Coins</button><button data-acao="moeda" data-v="orb" class="${cfg.moeda === 'orb' ? 'on' : ''}">Gemas</button></span>
       </div>
       <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">
-          <div class="top"><span>${esc(x.nome)}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
+          <div class="top"><span>${esc(x.nome)}</span><span class="desc" title="Lucro sobre o que você paga, revendendo pelo preço ${cfg.revenda === 'rapido' ? 'rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'justo'}, já sem a comissão">+${Math.round(lucroDe(x).pct * 100)}% lucro</span></div>
           <div class="sub">${precoTxt(x.preco, x.moeda)} · ${x.p25 ? `justo <b>${precoTxt(Math.round(x.ref), x.moeda)}</b> (rápido ${precoTxt(Math.round(x.p25), x.moeda)} · paciência ${precoTxt(Math.round(x.p75), x.moeda)})` : `ref. ${precoTxt(Math.round(x.ref), x.moeda)}`} · ${esc(x.extra)}</div>
           ${x.procura?.nivel === 'baixa' ? `<div class="sub aviso-procura">⚠ pouca procura: ${x.procura.vendas} venda${x.procura.vendas === 1 ? '' : 's'} em 30 dias e ${x.procura.abertos} anúncio${x.procura.abertos === 1 ? '' : 's'} aberto${x.procura.abertos === 1 ? '' : 's'} — pode ser difícil revender</div>` : ''}
-          <div class="sub">${(() => { const l = liquidoRevenda(x.ref, x.moeda, x.tipo) - x.preco; return l > 0 ? `<span class="desc">+${precoTxt(Math.round(l), x.moeda)}</span> revendendo pela ref., já sem a comissão` : 'sem lucro revendendo pela ref., depois da comissão'; })()}</div>
+          <div class="sub">${(() => { const l = lucroDe(x); const como = x.tipo === 'pokemon' && x.p25 ? (cfg.revenda === 'rapido' ? 'pelo rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'pelo justo') : 'pela média de 7 dias'; return l.valor > 0 ? `<span class="desc">+${precoTxt(Math.round(l.valor), x.moeda)}</span> revendendo ${como} (${precoTxt(Math.round(l.alvo), x.moeda)}), já sem a comissão` : `sem lucro revendendo ${como}, depois da comissão`; })()}</div>
           <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${Number(x.id) || 0}">Ver anúncio</button>${x.laudo ? ` <button data-acao="laudo" data-k="${esc(k)}" title="Abre o Avaliar do site com esta ficha">Laudo</button>` : ''}` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${esc(k)}">ok</button>` : ''}</div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
-      <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · ${hist ? `preço justo do site (${hist.n.toLocaleString('pt-BR')} vendas)` : `referência ${ref ? `resumida de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (carregando as vendas…)` : 'carregando'}`} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. O preço justo é a mesma conta do Avaliar do site, mas o mercado varia muito: confira o laudo antes de comprar caro.</div>`;
+      <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · ${hist ? `preço justo do site (${hist.n.toLocaleString('pt-BR')} vendas)` : `referência ${ref ? `resumida de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (carregando as vendas…)` : 'carregando'}`} · <button data-acao="limpar">limpar</button><br>% = lucro sobre o que você paga, revendendo pelo preço escolhido (Rápido, Justo ou Paciência), já sem a comissão; quem compra não paga taxa. O preço justo é a mesma conta do Avaliar do site, mas o mercado varia muito: confira o laudo antes de comprar caro.</div>`;
   }
   // apito curto (só toca depois de você clicar em algo na página — regra do navegador)
   let audio = null;
