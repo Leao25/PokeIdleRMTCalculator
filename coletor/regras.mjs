@@ -43,6 +43,18 @@ export async function gravarRegras(welcome) {
     }
   }
   try { regras.comissao = await lerComissao(); } catch (e) { console.log(`Comissão: ${e.message}`); }
+  // as hunts do mapa, com quantos de cada espécie nascem por onda ("pontos"): o ritmo de abates
+  // depende do tamanho da onda (pausa de ~2,6 s entre ondas, até 16 por onda)
+  if (Array.isArray(welcome?.hunts) && welcome.hunts.length) {
+    await writeFile(path.join(PASTA_DADOS, 'hunts.json'), JSON.stringify({
+      em: regras.em,
+      campos: Object.keys(welcome.hunts[0]),
+      hunts: welcome.hunts.map((h) => ({
+        nome: h.nome, slug: h.slug, nivel: h.nivel, regiao: h.regiao, area: h.area,
+        especies: (h.especies ?? []).map((e) => ({ pokeId: e.pokeId, pontos: e.pontos ?? 1, ...Object.fromEntries(Object.entries(e).filter(([k, v]) => !['pokeId', 'pontos'].includes(k) && typeof v === 'number')) })),
+      })),
+    }));
+  }
   // mantém o que já se sabia quando a entrada não trouxe (por exemplo, a coleta que não entrou no jogo)
   const antigo = await lerJson(path.join(PASTA_DADOS, 'regras.json'), {});
   const final = { ...antigo, ...regras };
