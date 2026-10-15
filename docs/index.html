@@ -890,7 +890,7 @@ function fieldsToFicha() {
 function dist(f, s) {
   const d = (a, b, sc) => Number.isFinite(a) && Number.isFinite(b) ? Math.abs(a - b) / sc : 0.5;
   return d(f.pot, s.pot, 1) * 1.2 + d(f.nota, s.nota, 0.5) + d(f.q, s.q, 0.2) * 0.6 + d(f.iv, s.iv, 25) * 0.6
-    + d(Math.log2(f.lvl || 1), Math.log2(s.lvl || 1), 1.5) * 0.25 + (!!f.mega !== s.mega ? 2 : 0) + (f.shiny !== s.shiny ? 4 : 0)
+    + d(Math.log2(f.lvl || 1), Math.log2(s.lvl || 1), 1.5) * 1 + (!!f.mega !== s.mega ? 2 : 0) + (f.shiny !== s.shiny ? 4 : 0)
     + (norm(f.species) !== norm(s.species) ? 2.5 : 0);
 }
 function wQuant(items, p) {
@@ -941,9 +941,11 @@ function estimate(f, kept, fimMin) {
   const ajuste = (s) => Number.isFinite(f.lvl) && f.lvl > 0 && s.lvl > 0 ? Math.min(8, Math.max(1 / 8, (f.lvl / s.lvl) ** beta)) : 1;
   const items = pool.map((s) => {
     const d = dist(f, s), age = (fimMin - s.min) / 1440;
-    // a moeda escolhida manda: Gemas e Coins são dois mercados com preços diferentes, e a outra moeda só completa
-    const peso = s.moeda === state.moeda ? 4 : 1;
-    return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * (1 - Math.min(Math.max(age, 0), janela) / (janela * 2)) };
+    // a moeda escolhida manda: Gemas e Coins são dois mercados com preços diferentes, e a outra moeda só
+    // completa (×30; medido no teste contra vendas reais: o comum em Gemas errava ±150% com ×4, ±135% com ×30).
+    // Venda recente pesa mais: meia-vida de 7 dias (o mercado muda rápido).
+    const peso = s.moeda === state.moeda ? 30 : 1;
+    return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * Math.pow(0.5, Math.max(age, 0) / 7) };
   }).filter((x) => x.w > 0).sort((a, b) => a.v - b.v);
   const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
   // o fator típico aplicado (média ponderada), para o laudo explicar quando for grande
