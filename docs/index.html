@@ -258,6 +258,10 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
 .aviso { color: var(--warn); cursor: help; }
 .spark { width: 80px; height: 20px; display: block; }
 .mini input { width: 130px; }
+.conversor { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
+.conversor input { width: 150px; }
+.conv-seta { font-size: 1.2rem; color: var(--acc); padding-bottom: 4px; }
+#cv-extra { padding-bottom: 6px; }
 .cot { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: end; }
 .cot .big { font: 700 1.8rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
 .foot { font-size: .8rem; color: var(--muted); display: grid; gap: 6px; max-width: 82ch; }
@@ -1024,8 +1028,9 @@ function mostrarCotacao() {
 }
 
 // ---------- tendência ----------
-const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
-  : `<span class="tend ${t > 0.03 ? "sobe" : t < -0.03 ? "desce" : ""}" title="mediana da última semana contra a anterior">${t > 0.03 ? "▲" : t < -0.03 ? "▼" : "■"} ${nf(0).format(Math.abs(t) * 100)}%</span>`;
+// lim: abaixo dele a variação conta como estável (■); a cotação usa um limite menor que os preços
+const tendHTML = (t, lim = 0.03, titulo = "mediana da última semana contra a anterior") => t == null ? '<span class="muted">—</span>'
+  : `<span class="tend ${t > lim ? "sobe" : t < -lim ? "desce" : ""}" title="${titulo}">${t > lim ? "▲" : t < -lim ? "▼" : "■"} ${nf(Math.abs(t) < 0.1 ? 1 : 0).format(Math.abs(t) * 100)}%</span>`;
 
 // ---------- abas ----------
 function abrirAba(aba) {
@@ -1165,10 +1170,35 @@ async function renderCotacao() {
   const var24 = dia.length >= 2 ? dia.at(-1).v / dia[0].v - 1 : null;
   box.innerHTML = `<div class="head-row"><div><span class="lbl">Gema ↔ Coins</span><h2>Cotação do diamante</h2></div></div>
     <div class="cot"><span class="big">1 Gema ≈ ${nf(0).format(state.rate)} Coins</span>
-      ${var24 != null ? `<span class="small">${tendHTML(var24)} nas últimas 24 h</span>` : ""}
+      ${var24 != null ? `<span class="small">${tendHTML(var24, 0.005, "Gema em Coins agora contra 24 horas atrás")} a Gema nas últimas 24 h</span>` : ""}
       ${c ? `<span class="muted small">diamante a ${nf(c.gemasPorDiamante < 20 ? 1 : 0).format(c.gemasPorDiamante)} Gemas ou ${short(c.coinsPorDiamante)} Coins (${c.janela ?? "7 dias"})</span>` : ""}</div>
+    <div class="conversor">
+      <label class="mini">Gemas <input id="cv-gemas" inputmode="decimal" placeholder="100" value="${esc(state.cvGemas ?? "")}"></label>
+      <span class="conv-seta" aria-hidden="true">⇄</span>
+      <label class="mini">Coins <input id="cv-coins" inputmode="decimal" placeholder="324,7M" value="${esc(state.cvCoins ?? "")}"></label>
+      <span class="small muted" id="cv-extra"></span>
+    </div>
     ${svg || '<p class="muted small">O gráfico aparece depois das próximas coletas: cada uma registra a cotação do momento.</p>'}
-    <p class="muted small">Gema acima do normal favorece vender em Gemas; abaixo, em Coins.</p>`;
+    <p class="muted small">Gema acima do normal favorece vender em Gemas; abaixo, em Coins. O conversor usa a cotação de agora e aceita o formato do jogo (20M, 1,5B…).</p>`;
+  ligarConversor();
+}
+/** Conversor Gemas ⇄ Coins: digitar num campo preenche o outro, pela cotação do momento. */
+function ligarConversor() {
+  const g = $("cv-gemas"), c = $("cv-coins"), extra = $("cv-extra");
+  const dia = state.meta?.cotacao?.gemasPorDiamante;
+  const mostrarExtra = (gemas) => { extra.textContent = gemas > 0 && dia > 0 ? `≈ ${nf(gemas / dia < 10 ? 1 : 0).format(gemas / dia)} diamante${gemas / dia >= 2 ? "s" : ""}` : ""; };
+  g.oninput = () => {
+    const v = parseValor(g.value);
+    c.value = v > 0 ? short(v * state.rate) : "";
+    state.cvGemas = g.value; state.cvCoins = c.value; mostrarExtra(v);
+  };
+  c.oninput = () => {
+    const v = parseValor(c.value);
+    const gemas = v > 0 ? v / state.rate : NaN;
+    g.value = gemas > 0 ? nf(gemas < 10 ? 2 : gemas < 1000 ? 1 : 0).format(gemas) : "";
+    state.cvGemas = g.value; state.cvCoins = c.value; mostrarExtra(gemas);
+  };
+  mostrarExtra(parseValor(g.value));
 }
 
 // ---------- onde farmar ----------
