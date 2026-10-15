@@ -1417,21 +1417,11 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   let tb = voce.tipos[0]; if (efet(tb, tw[0], tw[1]) === 0 && voce.tipos[1]) tb = voce.tipos[1];
   const basico = dano(voce.L, 30, me.atk, ele.def, 1.5, efet(tb, tw[0], tw[1]));
   if (!(basico > 0) && !golpes.some((g) => g.d > 0)) return { porHora: 0, hp, melhorEf };
-  let t = 0, abates = 0, vida = hp, proxBasico = 0;
-  t += tAndar;
-  while (t < SIM_S) {
-    const g = golpes.find((x) => x.pronto <= t && x.d > 0);
-    let d;
-    if (g) { d = g.d; g.pronto = t + g.cd; }
-    else if (t >= proxBasico) { d = basico; proxBasico = t + 2; }
-    else { const prox = Math.min(proxBasico, ...golpes.filter((x) => x.d > 0).map((x) => x.pronto)); t = Math.max(t + 0.01, prox); continue; }
-    vida -= d;
-    if (vida <= 0) { abates++; vida = hp; t += tAndar; } else t += 0.9;
-  }
-  // O que você toma. Medido 15/10 na aba do jogo (mensagens de batalha, Gulpin Nv 500): CADA selvagem
-  // novo entra com todos os golpes carregados e solta um por vez, do mais forte para o mais fraco
-  // (Toxic Deluge 600 → Gunk Shot → Poison Jab…), a cada ~1,5 s (mínimo 1,4 s da wiki); recarregando
-  // tudo, vem a Investida (2 s). ×1,8 no dano e a vantagem de tipo da hunt nos dois sentidos. Só um
+  // O que você toma. Medido 15/10 na aba do jogo (mensagens de batalha): CADA selvagem novo entra com
+  // todos os golpes carregados e solta um por vez, do mais forte para o mais fraco (Gulpin: Toxic
+  // Deluge 600 → Gunk Shot → Poison Jab…), a cada ~1,5 s (mínimo 1,4 s da wiki); recarregando tudo,
+  // vem a Investida (2 s). Quem morre no seu primeiro golpe não revida (Toxic Toxicroak: o selvagem
+  // bateu em 24 de 84 lutas). ×1,8 no dano e a vantagem de tipo da hunt nos dois sentidos. Só um
   // selvagem bate por vez. Seu HP de combate = HP × 12, como na ficha.
   const hpVoce = me.hp * 12;
   const mt = voce.tipos;
@@ -1445,15 +1435,34 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   golpesEle.sort((a, b) => b.d - a.d);
   let tbe = tw[0]; if (efet(tbe, mt[0], mt[1]) === 0 && tw[1]) tbe = tw[1];
   const investidaEle = dano(alvo.L, 30, ele.atk, me.def, 1.5, efet(tbe, mt[0], mt[1])) * REGRAS.multDanoSelvagem;
-  const tLuta = abates ? Math.max(0.5, (SIM_S - abates * tAndar) / abates) : SIM_S;
+  // a sequência de golpes de um selvagem novo: acum[k] = dano somado dos k+1 primeiros, um a cada 1,5 s
   const INTERVALO_ELE = 1.5; // medido: 1,54 s entre golpes do Gulpin (wiki: mínimo 1,4)
-  let danoPorAbate = 0;
-  for (let t = 0, proxInv = 0; t < tLuta;) {
+  const acum = [];
+  for (let t = 0, proxInv = 0, soma = 0; t < SIM_S && acum.length < 400;) {
     const g = golpesEle.find((x) => x.pronto <= t && x.d > 0);
-    if (g) { danoPorAbate += g.d; g.pronto = t + g.cd; t += INTERVALO_ELE; }
-    else if (t >= proxInv) { danoPorAbate += investidaEle; proxInv = t + 2; t += INTERVALO_ELE; }
+    if (g) { soma += g.d; g.pronto = t + g.cd; acum.push(soma); t += INTERVALO_ELE; }
+    else if (t >= proxInv) { soma += investidaEle; proxInv = t + 2; acum.push(soma); t += INTERVALO_ELE; }
     else t = Math.min(proxInv, ...golpesEle.map((x) => x.pronto));
   }
+  const danoNaLuta = (dur) => (acum.length ? acum[Math.min(acum.length - 1, Math.floor(dur / INTERVALO_ELE))] : 0);
+
+  let t = 0, abates = 0, vida = hp, proxBasico = 0, inicioLuta = -1, golpesNaLuta = 0, danoTomado = 0;
+  t += tAndar;
+  while (t < SIM_S) {
+    const g = golpes.find((x) => x.pronto <= t && x.d > 0);
+    let d;
+    if (g) { d = g.d; g.pronto = t + g.cd; }
+    else if (t >= proxBasico) { d = basico; proxBasico = t + 2; }
+    else { const prox = Math.min(proxBasico, ...golpes.filter((x) => x.d > 0).map((x) => x.pronto)); t = Math.max(t + 0.01, prox); continue; }
+    if (inicioLuta < 0) inicioLuta = t;
+    golpesNaLuta++;
+    vida -= d;
+    if (vida <= 0) {
+      if (golpesNaLuta > 1) danoTomado += danoNaLuta(t - inicioLuta);
+      abates++; vida = hp; t += tAndar; inicioLuta = -1; golpesNaLuta = 0;
+    } else t += 0.9;
+  }
+  const danoPorAbate = abates ? danoTomado / abates : danoNaLuta(SIM_S);
   const lutas = !abates ? 0 : danoPorAbate > 0 ? hpVoce / danoPorAbate : Infinity;
   const porHora = abates * 3600 / SIM_S;
   // não há cura natural na hunt (só ao subir de nível): perder mais de uma barra de HP por hora já
@@ -1478,8 +1487,10 @@ const xpTotal = (L) => Math.round(50 / 3 * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
 const npcPorCaptura = (e) => { const base = e.L > 150 ? Math.min(Math.round(12000 * (e.L / 150) ** 0.6), e.npc || Infinity) : (e.npc || 0); return base * (1 + e.L / 50); };
 /** Chance de nascer P4 ou P5 numa captura (wiki, Potência). */
 const chanceP4mais = () => REGRAS.chanceP4mais;
-/** Na Outland se anda mais entre um abate e outro (medido: ~1.029/h contra ~1.356/h nas hunts normais). */
-const T_ANDAR_OUTLAND = 3.5;
+/** Caminhada da morte de um selvagem até o 1º golpe no próximo, medida 15/10 na aba do jogo (Toxic
+ * Toxicroak, 74 abates: média 1,59 s, mediana 1,26; ondas de 15). A caminhada muda de mapa para mapa
+ * (Magikarp Nv 1 de Kanto: ~3,2 s); as outras hunts ainda usam a da Magikarp até serem medidas. */
+const T_ANDAR_OUTLAND = 1.6;
 
 let especies = null;
 async function carregarEspecies() {
