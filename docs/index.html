@@ -104,6 +104,8 @@ main { display: grid; gap: 18px; min-width: 0; }
 .alert { border-left: 3px solid var(--warn); background: var(--sunk); padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: .88rem; }
 .alert.bad { border-color: var(--bad); }
 .alert.ok { border-color: var(--good); }
+#farm-bonus.pede { outline: 2px solid var(--warn); outline-offset: 1px; }
+.btn-mini { margin-left: 6px; font: inherit; font-size: .82rem; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
 @media (max-width: 700px) { .two { grid-template-columns: minmax(0, 1fr); } }
 .head-row { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: end; }
@@ -1472,7 +1474,7 @@ async function renderFarm() {
   const PESO_GERAL = 3;
   const grupoF = state.farmGrupo || "comum"; // abre no Comum
   const comum = grupoF === "comum";
-  let ordem = state.farmOrdem || (comum ? "cvalor" : "valor");
+  let ordem = state.farmOrdem || "xp"; // abre em "Mais XP"
   // cada grupo tem suas ordens; "Mais XP" e "Mais abates" valem para os dois
   if (comum && ["valor", "raros"].includes(ordem)) ordem = "cvalor";
   if (!comum && ["cvalor", "capturas", "npc"].includes(ordem)) ordem = "valor";
@@ -1533,12 +1535,12 @@ async function renderFarm() {
       <button data-fg="shiny" aria-pressed="${!comum}">✨ Shiny</button>
     </div>
     <div class="seg" role="group" aria-label="Ordenar">
+      <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
       ${comum ? `<button data-fo="cvalor" aria-pressed="${ordem === "cvalor"}" title="Venda das capturas ao NPC + a chance de um P4/P5 que vale no Mercado">Mais valor por hora</button>
       <button data-fo="capturas" aria-pressed="${ordem === "capturas"}">Mais capturas</button>
       <button data-fo="npc" aria-pressed="${ordem === "npc"}">Mais Coins no NPC</button>` : `<button data-fo="valor" aria-pressed="${ordem === "valor"}" title="Valor dos shiny que você deve capturar por hora (em ${unit()}), já sem a comissão">Mais valor por hora</button>
       <button data-fo="raros" aria-pressed="${ordem === "raros"}">Shiny raro no Mercado</button>`}
       <button data-fo="abates" aria-pressed="${ordem === "abates"}">Mais abates</button>
-      <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
     </div>
     </div>
     <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th title="Quantas lutas seu pokémon aguenta sem poção, contando o dano que o selvagem dá">Risco</th><th class="r">Abates/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th>${!modoXp && comum ? `<th class="r">Capturas/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">Coins/h no NPC <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">1 P4+ a cada <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">P4+ vale <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">Valor/h (${unit()}) <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th>` : modoXp ? `<th class="r" title="Quantos níveis o seu pokémon sobe por hora nessa hunt, no nível de agora">Níveis/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">XP/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">Coins/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th>` : `<th class="r">1 shiny a cada <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">Shiny vale <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th><th class="r">${unit()}/h <span class="apx" title="Valor aproximado: simulação com as regras do jogo, conferida com medições reais (erro típico de 5–10%)">±</span></th>`}</tr></thead>
@@ -1557,6 +1559,20 @@ async function renderFarm() {
     ${nMorre ? `<label class="check-mini small"><input type="checkbox" id="farm-mortes"${mostrarMortes ? " checked" : ""}> Mostrar as ${nMorre} hunts em que seu pokémon morre</label>` : ""}
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
     <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e a caminhada até o próximo selvagem (de 1,6 a 3,2 s quando ele morre num golpe; quase nada em luta longa, porque os outros chegam e esperam em volta), conferida com medições reais no jogo (erro de 0% a −8% nos abates). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Poção" é quando o dano passa de uma barra de HP por hora (não há cura natural na hunt), com o gasto em Hyper Potions; cada selvagem novo abre a luta com todos os golpes carregados, do mais forte para o mais fraco (medido no jogo), e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); nas hunts fáceis (um golpe por abate) o ritmo depende do mapa e a margem é maior. Passe o mouse numa linha para ver os detalhes. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
+  // no "Mais XP" a conta depende do bônus: sem ele, pede o número antes de mostrar a tabela
+  if (modoXp && !$("farm-bonus").value.trim()) {
+    out.querySelector(".farm-top")?.remove();
+    const tbl = out.querySelector(".tbl");
+    if (tbl) {
+      for (let n = tbl.nextElementSibling; n;) { const p = n.nextElementSibling; n.remove(); n = p; }
+      const aviso = document.createElement("div");
+      aviso.className = "alert";
+      aviso.innerHTML = '<b>Digite o seu bônus de XP</b> no campo "Bônus de XP (%)", lá em cima, para ver a melhor hunt. Use o número que aparece no painel Sessão do jogo, ao lado de "XP" (ex.: +106,3%). Sem bônus nenhum, digite 0. <button type="button" class="btn-mini" id="farm-ir-bonus">Ir para o campo</button>';
+      tbl.replaceWith(aviso);
+      $("farm-ir-bonus").onclick = () => { $("farm-bonus").focus(); $("farm-bonus").scrollIntoView({ block: "center", behavior: "smooth" }); };
+    }
+    $("farm-bonus").classList.add("pede");
+  } else $("farm-bonus").classList.remove("pede");
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
   out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = null; state.farmTodos = false; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
