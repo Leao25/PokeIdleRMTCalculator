@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.2
+// @version      1.0.3
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -46,8 +46,10 @@
   const enviar = (msg) => { if (socket && socket.readyState === 1) { socket.send(JSON.stringify(msg)); return true; } return false; };
 
   // ---------- configuração ----------
-  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, itens: true, pokemon: true, minimizado: false },
+  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, alvo: 'pokemon', moeda: 'orb', minimizado: false },
     (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } })());
+  if (cfg.alvo !== 'pokemon' && cfg.alvo !== 'itens') cfg.alvo = 'pokemon';
+  if (cfg.moeda !== 'gold' && cfg.moeda !== 'orb') cfg.moeda = 'orb';
   const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(cfg)); } catch (e) { /* sem armazenamento */ } };
 
   // ---------- referência de preços (do site, de hora em hora) ----------
@@ -92,10 +94,10 @@
     if (cfg.som) apitar();
   }
   function avaliarItens(resumo, medias) {
-    if (!cfg.itens) return;
+    if (cfg.alvo !== 'itens') return;
     for (const [id, r] of Object.entries(resumo)) {
       const md = medias[id] || {};
-      for (const [moeda, min, media, vendidos] of [['gold', r.minGold, md.gold?.media, md.gold?.unidades], ['orb', r.minOrb, md.orb?.media, md.orb?.unidades]]) {
+      for (const [moeda, min, media, vendidos] of [['gold', r.minGold, md.gold?.media, md.gold?.unidades], ['orb', r.minOrb, md.orb?.media, md.orb?.unidades]].filter((x) => x[0] === cfg.moeda)) {
         if (!(min > 0) || !(media > 0) || !(vendidos >= 20)) continue; // só item que vende de verdade nessa moeda
         if (moeda === 'orb' && media < 5) continue; // em Gemas, item de 2–3 Gemas não tem desconto possível
         const desc = 1 - min / media;
@@ -106,9 +108,10 @@
     }
   }
   function avaliarAnuncios(linhas) {
-    if (!cfg.pokemon) return;
+    if (cfg.alvo !== 'pokemon') return;
     for (const a of linhas) {
       if (a.tipo !== 'pokemon' || !a.ficha || a.estado !== 'aberto') continue;
+      if ((a.moeda === 'gold' ? 'gold' : 'orb') !== cfg.moeda) continue;
       const r = referenciaDe(a);
       if (!r || !(a.preco > 0)) continue;
       const desc = 1 - a.preco / r.valor;
@@ -160,10 +163,10 @@
   function ciclo() {
     if (cfg.ligado && socket && socket.readyState === 1) {
       if (Date.now() - refEm > 3600e3) baixarReferencia();
-      if (cfg.itens) enviar({ t: 'market.itens' });
-      if (cfg.pokemon && !mercadoAbertoNaTela()) {
+      if (cfg.alvo === 'itens') enviar({ t: 'market.itens' });
+      if (cfg.alvo === 'pokemon' && !mercadoAbertoNaTela()) {
         setTimeout(() => {
-          pediuAnuncios = enviar({ t: 'market.listar', tipo: 'pokemon', moeda: '', busca: '', criterios: [], elemento: '', categoria: '',
+          pediuAnuncios = enviar({ t: 'market.listar', tipo: 'pokemon', moeda: cfg.moeda, busca: '', criterios: [], elemento: '', categoria: '',
             soShiny: false, soP5: false, soTmElemental: false, soTmAoe: false, semOutland: false, pagina: 0, especieId: 0 });
         }, 1500);
       }
@@ -192,6 +195,9 @@
       #rmt-sniper button { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 6px; padding: 2px 8px; cursor: pointer; font: inherit; }
       #rmt-sniper .cfg { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 6px 10px; border-bottom: 1px solid #342c42; font-size: 12px; color: #a59cb4; }
       #rmt-sniper .cfg select { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 4px; }
+      #rmt-sniper .seg { display: inline-flex; border: 1px solid #4a3f5c; border-radius: 6px; overflow: hidden; }
+      #rmt-sniper .seg button { border: 0; border-radius: 0; background: #2a2236; padding: 2px 9px; }
+      #rmt-sniper .seg button.on { background: #f36cb8; color: #1d1826; font-weight: 700; }
       #rmt-sniper .lista { overflow-y: auto; padding: 4px 0; }
       #rmt-sniper .ach { padding: 6px 10px; border-bottom: 1px solid #2a2236; display: grid; gap: 2px; }
       #rmt-sniper .ach.novo { background: rgba(92,199,125,.12); }
@@ -212,6 +218,8 @@
       if (ac === 'min') cfg.minimizado = !cfg.minimizado;
       if (ac === 'som') cfg.som = !cfg.som;
       if (ac === 'limpar') achados.clear();
+      if (ac === 'alvo' && cfg.alvo !== b.dataset.v) { cfg.alvo = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
+      if (ac === 'moeda' && cfg.moeda !== b.dataset.v) { cfg.moeda = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'ver') abrirAnuncio(Number(b.dataset.id));
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
       salvar(); pintar();
@@ -220,8 +228,6 @@
       const s = e.target;
       if (s.dataset.cfg === 'desconto') cfg.desconto = +s.value;
       if (s.dataset.cfg === 'intervalo') cfg.intervalo = +s.value;
-      if (s.dataset.cfg === 'itens') cfg.itens = s.checked;
-      if (s.dataset.cfg === 'pokemon') cfg.pokemon = s.checked;
       salvar(); pintar();
     });
   }
@@ -232,7 +238,7 @@
     const lista = [...achados.entries()].sort((a, b) => b[1].desc - a[1].desc);
     const novos = lista.filter(([, x]) => x.novo).length;
     if (cfg.minimizado) {
-      caixa.innerHTML = `<header><b>🎯 Sniper ${cfg.ligado ? '' : '(desligado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
+      caixa.innerHTML = `<header><b>🎯 Sniper · ${cfg.alvo === 'itens' ? 'Itens' : 'Pokémon'} em ${cfg.moeda === 'gold' ? 'Coins' : 'Gemas'}${cfg.ligado ? '' : ' (pausado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
       return;
     }
     const sel = (nome, valores, atual) => `<select data-cfg="${nome}">${valores.map(([v, t]) => `<option value="${v}"${+v === +atual ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
@@ -243,8 +249,8 @@
       <div class="cfg">
         <label>Desconto ${sel('desconto', [[0.2, '20%'], [0.3, '30%'], [0.4, '40%'], [0.5, '50%']], cfg.desconto)}</label>
         <label>A cada ${sel('intervalo', [[30, '30 s'], [60, '60 s'], [120, '2 min'], [300, '5 min']], cfg.intervalo)}</label>
-        <label><input type="checkbox" data-cfg="itens"${cfg.itens ? ' checked' : ''}> Itens</label>
-        <label><input type="checkbox" data-cfg="pokemon"${cfg.pokemon ? ' checked' : ''}> Pokémon</label>
+        <span class="seg"><button data-acao="alvo" data-v="pokemon" class="${cfg.alvo === 'pokemon' ? 'on' : ''}">Pokémon</button><button data-acao="alvo" data-v="itens" class="${cfg.alvo === 'itens' ? 'on' : ''}">Itens</button></span>
+        <span class="seg"><button data-acao="moeda" data-v="gold" class="${cfg.moeda === 'gold' ? 'on' : ''}">Coins</button><button data-acao="moeda" data-v="orb" class="${cfg.moeda === 'orb' ? 'on' : ''}">Gemas</button></span>
       </div>
       <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">
           <div class="top"><span>${x.nome}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
