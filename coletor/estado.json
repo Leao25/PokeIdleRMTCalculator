@@ -1,5 +1,5 @@
 {
-  "ultimaPrincipal": "2026-10-15T00:26:50.476Z",
+  "ultimaPrincipal": "2026-10-15T02:30:06.451Z",
   "fila": [
     {
       "tipo": "pokemon",
@@ -93,5 +93,6 @@
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "exploradoPvp": "2026-10-15T01:28:21.628Z"
+  "exploradoPvp": "2026-10-15T01:28:21.628Z",
+  "livroRodizio": 25
 }
