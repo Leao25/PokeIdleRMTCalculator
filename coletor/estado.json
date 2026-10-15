@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "ROCK"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "GROUND"
     },
     {
@@ -110,10 +106,18 @@
       "novas": 339,
       "cortado": false,
       "em": "2026-10-15T16:54:50.149Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "ROCK",
+      "linhas": 2789,
+      "novas": 786,
+      "cortado": false,
+      "em": "2026-10-15T18:58:18.903Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 65,
+  "livroRodizio": 28,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z"
