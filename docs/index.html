@@ -1964,6 +1964,7 @@ function oportunidadesDoItem(id, x, rate) {
     out.push({
       id, item: x, compra, venda, precoCompra: C.min, precoVenda: venderPor, lucroGem: lucro, lucroPct: lucro / custo,
       porDia, filaDias: naFrente != null && porDia > 0 ? naFrente / porDia : null,
+      filaMinima: !!(V.livro && V.livro.anuncios >= 60), // o livro vem com até 60 anúncios: cheio = fila maior que isso
       qtdCompra: C.livro?.top?.[0]?.[1] ?? null, // unidades no anúncio mais barato
       qtdSugerida: Math.max(1, Math.floor(porDia * 2)),
     });
@@ -2009,7 +2010,7 @@ async function renderSniperItens() {
         <td class="r n" data-v="${o.lucroGem}"><b>${lucroTxt(o.lucroGem)}</b></td>
         <td class="r" data-v="${(o.lucroPct * 100).toFixed(1)}"><span class="pill-desc">+${nf(0).format(o.lucroPct * 100)}%</span>${o.suspeita ? ' <span class="aviso" title="Bom demais para ser verdade sem conferir a fila: a média pode estar distorcida por poucas vendas estranhas, ou já há muitas unidades anunciadas nesse preço">⚠</span>' : ""}</td>
         <td class="r n">${nf(o.porDia < 10 ? 1 : 0).format(o.porDia)}</td>
-        <td class="r n">${o.filaDias == null ? "—" : o.filaDias < 1 ? "< 1 dia" : nf(o.filaDias < 10 ? 1 : 0).format(o.filaDias) + " dias"}</td>
+        <td class="r n">${o.filaDias == null ? "—" : (o.filaMinima ? "≥ " : "") + (o.filaDias < 1 && !o.filaMinima ? "< 1 dia" : nf(o.filaDias < 10 ? 1 : 0).format(o.filaDias) + " dias")}</td>
         <td class="r n">${nf(0).format(o.qtdSugerida)}</td></tr>`).join("")}
     </tbody></table></div>
     ${ops.length > 40 ? `<button class="btn" id="si-todos">${state.siTodos ? "Mostrar menos" : `Mostrar todas (${ops.length})`}</button>` : ""}`
