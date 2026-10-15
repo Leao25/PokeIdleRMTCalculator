@@ -1471,17 +1471,19 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     const stab = tw.includes(tipo) ? 1.5 : 1;
     golpesEle.push({ d: dano(alvo.L, pw, fis ? ele.atk : ele.spAtk, fis ? me.def : me.spDef, stab, efet(tipo, mt[0], mt[1])) * REGRAS.multDanoSelvagem, cd, pronto: 0 });
   }
+  // golpe em que você é imune (dano 0) nunca sai: fora da lista (com ele, o relógio voltava a 0 e travava a aba)
+  for (let i = golpesEle.length - 1; i >= 0; i--) if (!(golpesEle[i].d > 0)) golpesEle.splice(i, 1);
   golpesEle.sort((a, b) => b.d - a.d);
   let tbe = tw[0]; if (efet(tbe, mt[0], mt[1]) === 0 && tw[1]) tbe = tw[1];
   const investidaEle = dano(alvo.L, 30, ele.atk, me.def, 1.5, efet(tbe, mt[0], mt[1])) * REGRAS.multDanoSelvagem;
   // a sequência de golpes de um selvagem novo: acum[k] = dano somado dos k+1 primeiros, um a cada 1,5 s
   const INTERVALO_ELE = 1.5; // medido: 1,54 s entre golpes do Gulpin (wiki: mínimo 1,4)
   const acum = [];
-  for (let t = 0, proxInv = 0, soma = 0; t < SIM_S && acum.length < 400;) {
+  for (let t = 0, proxInv = 0, soma = 0, voltas = 0; t < SIM_S && acum.length < 400 && voltas++ < 5000;) {
     const g = golpesEle.find((x) => x.pronto <= t && x.d > 0);
     if (g) { soma += g.d; g.pronto = t + g.cd; acum.push(soma); t += INTERVALO_ELE; }
     else if (t >= proxInv) { soma += investidaEle; proxInv = t + 2; acum.push(soma); t += INTERVALO_ELE; }
-    else t = Math.min(proxInv, ...golpesEle.map((x) => x.pronto));
+    else t = Math.max(t + 0.01, Math.min(proxInv, ...golpesEle.map((x) => x.pronto)));
   }
   const danoNaLuta = (dur) => (acum.length ? acum[Math.min(acum.length - 1, Math.floor(dur / INTERVALO_ELE))] : 0);
 
@@ -1496,7 +1498,8 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     for (let i = 0; i < k; i++) pre[i] = (pre[i] || 0) + d;
   };
   t += tAndar;
-  while (t < SIM_S) {
+  let voltasSim = 0;
+  while (t < SIM_S && voltasSim++ < 200000) {
     const g = golpes.find((x) => x.pronto <= t && x.d > 0);
     let d;
     if (g) { d = g.d; g.pronto = t + g.cd; }
