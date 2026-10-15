@@ -1511,9 +1511,9 @@ async function renderFarm() {
       <button data-fg="comum" aria-pressed="${comum}">Comum</button>
     </div>
     <div class="seg" role="group" aria-label="Ordenar">
-      ${comum ? `<button data-fo="cvalor" aria-pressed="${ordem === "cvalor"}">Mais valor por hora</button>
+      ${comum ? `<button data-fo="cvalor" aria-pressed="${ordem === "cvalor"}" title="Venda das capturas ao NPC + a chance de um P4/P5 que vale no Mercado">Mais valor por hora</button>
       <button data-fo="capturas" aria-pressed="${ordem === "capturas"}">Mais capturas</button>
-      <button data-fo="npc" aria-pressed="${ordem === "npc"}">Mais Coins no NPC</button>` : `<button data-fo="valor" aria-pressed="${ordem === "valor"}">Mais ${unit()} por hora</button>
+      <button data-fo="npc" aria-pressed="${ordem === "npc"}">Mais Coins no NPC</button>` : `<button data-fo="valor" aria-pressed="${ordem === "valor"}" title="Valor dos shiny que você deve capturar por hora (em ${unit()}), já sem a comissão">Mais valor por hora</button>
       <button data-fo="raros" aria-pressed="${ordem === "raros"}">Shiny raro no Mercado</button>`}
       <button data-fo="abates" aria-pressed="${ordem === "abates"}">Mais abates</button>
       <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
