@@ -161,6 +161,7 @@ th.ordena { cursor: pointer; user-select: none; }
 th.ordena:hover { color: var(--ink); }
 th.ordena[aria-sort="ascending"]::after { content: " ▲"; color: var(--acc); }
 th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
+.aviso-jogo { color: var(--warn); font-weight: 600; }
 .tema { border: 1px solid var(--line); background: var(--sunk); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 600 .85rem var(--f-body); display: inline-flex; gap: 6px; align-items: center; }
 .tema:hover { border-color: var(--acc); }
 a.tema { text-decoration: none; }
@@ -618,10 +619,32 @@ const toShow = (gem) => state.moeda === "gemas" ? niceGem(gem) : niceCoin(gem * 
 const fmtVal = (v) => state.moeda === "gemas" ? nf(0).format(v) : short(v);
 const fmtShow = (gem) => fmtVal(toShow(gem));
 const unit = () => state.moeda === "gemas" ? "Gemas" : "Coins";
+/**
+ * As REGRAS DO JOGO. Os valores abaixo são os de 14/10/2026 (wiki e código do jogo) e valem como
+ * reserva; dados/regras.json, gravado pelo coletor a cada entrada no jogo, os substitui. Assim um
+ * rebalanceamento chega ao site na coleta seguinte. O simulador de farm guarda a calibração com as
+ * medições reais e aplica só a VARIAÇÃO (ver aplicarRegras).
+ */
+const REGRAS = {
+  comissao: { faixasOrbPokemon: [{ ate: 500, taxa: 0.13 }, { ate: 5000, taxa: 0.10 }, { ate: null, taxa: 0.075 }], orbPlana: 0.15, gold: 0.15 },
+  ampliacaoHunt: 1.5, multHpSelvagem: 5, multDanoSelvagem: 1.8,
+  captura: { base: 0.0075, piso: 0.003, teto: 0.1, raridadeDiv: 17 },
+  chanceShiny: 1 / 24000,
+  bonusPot: [0, 0.05, 0.1, 0.25, 1], chanceP4mais: 0.005 + 0.00005,
+};
+/** O líquido de uma venda de pokémon em Gema, por faixa (cada pedaço paga a alíquota da sua faixa). */
+function liquidoFaixas(p) {
+  let resto = p, ini = 0, liq = 0;
+  for (const fx of REGRAS.comissao.faixasOrbPokemon) {
+    const fim = fx.ate ?? Infinity, pedaco = Math.max(0, Math.min(resto, fim - ini));
+    liq += pedaco * (1 - fx.taxa); resto -= pedaco; ini = fim;
+    if (resto <= 0) break;
+  }
+  return liq;
+}
 function liquido(price) {
-  if (state.moeda === "coins") return price * 0.85;
-  const t1 = Math.min(price, 500), t2 = Math.min(Math.max(price - 500, 0), 4500), t3 = Math.max(price - 5000, 0);
-  return t1 * 0.87 + t2 * 0.90 + t3 * 0.925;
+  if (state.moeda === "coins") return price * (1 - REGRAS.comissao.gold);
+  return liquidoFaixas(price);
 }
 const quant = (s, p) => { if (!s.length) return NaN; const i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
 const pctRank = (arr, x) => { if (!arr.length) return 0.5; let lt = 0, eq = 0; for (const v of arr) { if (v < x) lt++; else if (v === x) eq++; } return (lt + eq / 2) / arr.length; };
@@ -685,7 +708,37 @@ function emExibicao(preco, moedaVenda, shiny) {
 }
 const gemOf = (s) => emExibicao(s.price, s.moeda, s.shiny);
 
+/** Aplica dados/regras.json por cima das reservas, só com valores válidos. */
+function aplicarRegras(r) {
+  if (!r || typeof r !== "object") return;
+  const num = (v, min, max) => typeof v === "number" && v >= min && v <= max;
+  if (num(r.ampliacaoHunt, 1, 5)) REGRAS.ampliacaoHunt = r.ampliacaoHunt;
+  if (num(r.multHpSelvagem, 0.5, 50)) REGRAS.multHpSelvagem = r.multHpSelvagem;
+  if (num(r.multDanoSelvagem, 0.1, 20)) REGRAS.multDanoSelvagem = r.multDanoSelvagem;
+  if (r.captura && num(r.captura.base, 1e-5, 1) && num(r.captura.raridadeDiv, 1, 1e3)) Object.assign(REGRAS.captura, r.captura);
+  if (num(r.chanceShiny, 1e-7, 0.1)) REGRAS.chanceShiny = r.chanceShiny;
+  else if (num(r.chanceShiny, 10, 1e7)) REGRAS.chanceShiny = 1 / r.chanceShiny;
+  if (Array.isArray(r.potencias) && r.potencias.length >= 5) {
+    const p = [...r.potencias].sort((a, b) => a.n - b.n);
+    if (p.every((x) => num(x.bonus, 0, 10))) REGRAS.bonusPot.splice(0, 5, ...p.slice(0, 5).map((x) => x.bonus));
+    const c4 = p.filter((x) => x.n >= 4).reduce((a, x) => a + (Number(x.chance) || 0), 0);
+    if (c4 > 0 && c4 < 100) REGRAS.chanceP4mais = c4 / 100;
+  }
+  if (r.tabelaTipos && Object.keys(r.tabelaTipos).length >= 10) {
+    for (const [atq, linha] of Object.entries(r.tabelaTipos)) if (linha && typeof linha === "object") TAB[atq.toUpperCase()] = Object.fromEntries(Object.entries(linha).map(([d, v]) => [d.toUpperCase(), Number(v)]));
+  }
+  const c = r.comissao;
+  if (c && Array.isArray(c.faixasOrbPokemon) && c.faixasOrbPokemon.every((x) => num(x.taxa, 0, 0.9))) REGRAS.comissao.faixasOrbPokemon = c.faixasOrbPokemon;
+  if (c && num(c.gold, 0, 0.9)) REGRAS.comissao.gold = c.gold;
+  if (c && num(c.orbPlana, 0, 0.9)) REGRAS.comissao.orbPlana = c.orbPlana;
+}
+
 async function carregarHistorico() {
+  // regras do jogo e aviso de atualização: opcionais (sem eles, valem as reservas)
+  const [regras, versao, revisao] = await Promise.all(["dados/regras.json", "dados/versao-jogo.json", "revisao.json"]
+    .map((u) => fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  try { aplicarRegras(regras); } catch (e) { /* fica com as reservas */ }
+  state.versaoJogo = versao; state.revisao = revisao;
   const idx = await (await fetch("dados/indice.json", { cache: "no-cache" })).json();
   const meses = await Promise.all(idx.meses.map((m) => fetch(`dados/${m}.json`, { cache: "no-cache" }).then((r) => r.json())));
   state.meta = idx;
@@ -990,7 +1043,9 @@ function render() {
   $("status").innerHTML = `<span><b>${nf(0).format(lista.length)}</b> vendas ${state.dias ? `nos últimos ${state.dias} dias` : "no histórico todo"}</span>`
     + (state.dias ? `<span>histórico: <b>${nf(0).format(tudo.length)}</b> vendas desde ${fmtDate(new Date(primeiro * 60000))}${state.dias > diasHist + 1 ? ` (ainda não chega a ${state.dias} dias)` : ""}</span>` : `<span>desde ${fmtDate(new Date(primeiro * 60000))}</span>`)
     + (up ? `<span>atualizado ${up.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>` : "")
-    + (gone.length ? `<span>${gone.length} descartadas</span>` : "");
+    + (gone.length ? `<span>${gone.length} descartadas</span>` : "")
+    + (state.versaoJogo?.mudouEm && (!state.revisao?.revisadoEm || Date.parse(state.versaoJogo.mudouEm) > Date.parse(state.revisao.revisadoEm))
+      ? `<span class="aviso-jogo" title="Arquivos do jogo que mudaram: ${esc((state.versaoJogo.mudaram || []).join(", "))}">⚠ O jogo foi atualizado em ${new Date(state.versaoJogo.mudouEm).toLocaleDateString("pt-BR")}; parte das regras pode ter mudado.</span>` : "");
 
   const spAll = [...new Set(kept.map((s) => s.species))].sort();
   $("sp-list").innerHTML = spAll.map((s) => `<option value="${esc(s)}">`).join("");
@@ -1150,10 +1205,15 @@ function abrirAba(aba) {
 // ---------- calculadoras ----------
 /** O preço de anúncio que deixa `liq` para o vendedor (o inverso da comissão por faixa). */
 function precoParaReceber(liq) {
-  if (state.moeda === "coins") return Math.ceil(liq / 0.85);
-  if (liq <= 435) return Math.ceil(liq / 0.87);
-  if (liq <= 4485) return Math.ceil(500 + (liq - 435) / 0.90);
-  return Math.ceil(5000 + (liq - 4485) / 0.925);
+  if (state.moeda === "coins") return Math.ceil(liq / (1 - REGRAS.comissao.gold));
+  // o inverso das faixas: anda faixa a faixa até cobrir o líquido pedido
+  let ini = 0, acum = 0;
+  for (const fx of REGRAS.comissao.faixasOrbPokemon) {
+    const fim = fx.ate ?? Infinity, cabe = (fim - ini) * (1 - fx.taxa);
+    if (acum + cabe >= liq) return Math.ceil(ini + (liq - acum) / (1 - fx.taxa));
+    acum += cabe; ini = fim;
+  }
+  return Math.ceil(liq);
 }
 function atualizarCalcs() {
   document.querySelectorAll("#calcs .u, #time .u, #trocar .u").forEach((u) => { u.textContent = unit(); });
@@ -1320,9 +1380,10 @@ function mult1(a, d) {
   if (a === d) { const c = TAB[a]?.[d]; if (c != null) return c; if (a === 'GHOST' || a === 'DRAGON') return 2; if (a === 'NORMAL' || a === 'GROUND' || a === 'FLYING') return 1; return .5; }
   return TAB[a]?.[d] ?? 1;
 }
-const NA_HUNT = (m) => m === 0 ? 0 : m <= .25 ? .167 : m <= .5 ? .333 : m <= 1 ? 1 : m <= 2 ? 2.5 : 5.5;
+// na hunt a vantagem é ampliada (×1,5 hoje): ×2 vira ×2,5, ×4 vira ×5,5, ×0,5 vira ×0,333 (wiki)
+const NA_HUNT = (m) => m === 0 ? 0 : m === 1 ? 1 : m > 1 ? 1 + (m - 1) * REGRAS.ampliacaoHunt : m / REGRAS.ampliacaoHunt;
 const efet = (a, d1, d2) => NA_HUNT(mult1(a, d1) * (d2 && d2 !== d1 ? mult1(a, d2) : 1));
-const BONUS_POT = [0, .05, .1, .25, 1];
+const BONUS_POT = REGRAS.bonusPot;
 const EXPO = { hp: .95, atk: .8, def: .8, spAtk: .8, spDef: .8, speed: .95 };
 const T_ANDAR = 2.65; // s andando entre um abate e outro (calibrado com a mesma medição)
 function stats(base, L, ivs, q, mult) {
@@ -1333,12 +1394,14 @@ function dano(L, power, A, D, stab, ef) { return ((((2 * L / 5 + 2) * power * A 
 // Simula SIM_S segundos de hunt: anda até o alvo, ataca com o golpe pronto de mais dano (ou a
 // Investida a cada 2 s se nenhum estiver pronto; 0,9 s entre ataques), sobra de dano se perde.
 const SIM_S = 900;
-const HP_MULT = 12; // HP do selvagem = HP do stat × 12 (calibrado: Blastoise P2 Nv 150 no Pupitar ≈ 1.339/h medidos)
+// HP do selvagem = HP do stat × 12, calibrado com o multiplicador do jogo em ×5 (Blastoise P2 Nv 150 no
+// Pupitar ≈ 1.339/h medidos); se o jogo mudar o multiplicador, a calibração acompanha a proporção.
+const hpMult = () => 12 * REGRAS.multHpSelvagem / 5;
 function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   const me = stats(voce.base, voce.L, voce.ivs, voce.q, (1 + BONUS_POT[voce.pot - 1]) * (voce.shiny ? 3 : 1));
   const tw = [tipos[alvo.t1], alvo.t2 >= 0 ? tipos[alvo.t2] : null];
   const ele = stats(alvo.base, alvo.L, [16.5, 16.5, 16.5, 16.5, 16.5, 16.5], 1, 1);
-  const hp = ele.hp * HP_MULT;
+  const hp = ele.hp * hpMult();
   const golpes = [];
   let melhorEf = 0;
   for (const [pw, cd, fis, ti, nv] of voce.golpes) {
@@ -1373,10 +1436,10 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     if (nv > alvo.L || !cd) continue;
     const tipo = tipos[ti];
     const stab = tw.includes(tipo) ? 1.5 : 1;
-    dpsEle += dano(alvo.L, pw, fis ? ele.atk : ele.spAtk, fis ? me.def : me.spDef, stab, efet(tipo, mt[0], mt[1])) * 1.8 / Math.max(cd, 1.4);
+    dpsEle += dano(alvo.L, pw, fis ? ele.atk : ele.spAtk, fis ? me.def : me.spDef, stab, efet(tipo, mt[0], mt[1])) * REGRAS.multDanoSelvagem / Math.max(cd, 1.4);
   }
   let tbe = tw[0]; if (efet(tbe, mt[0], mt[1]) === 0 && tw[1]) tbe = tw[1];
-  dpsEle += dano(alvo.L, 30, ele.atk, me.def, 1.5, efet(tbe, mt[0], mt[1])) * 1.8 / 2;
+  dpsEle += dano(alvo.L, 30, ele.atk, me.def, 1.5, efet(tbe, mt[0], mt[1])) * REGRAS.multDanoSelvagem / 2;
   const tLuta = abates ? Math.max(0.5, (SIM_S - abates * tAndar) / abates) : SIM_S;
   const danoPorAbate = dpsEle * tLuta;
   const lutas = !abates ? 0 : danoPorAbate > 0 ? hpVoce / danoPorAbate : Infinity;
@@ -1384,8 +1447,9 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   return { porHora: abates * 3600 / SIM_S, hp, melhorEf, hpVoce, danoPorAbate, lutas, risco };
 }
 function chanceCaptura(npc, bola = 4) {
-  const r = Math.log10(Math.max(100, npc)) - 1, fator = 1 + r ** 3 / 17;
-  return Math.min(.10, Math.max(.003, .0075 * (bola / fator) * 1.4));
+  const c = REGRAS.captura;
+  const r = Math.log10(Math.max(100, npc)) - 1, fator = 1 + r ** 3 / c.raridadeDiv;
+  return Math.min(c.teto, Math.max(c.piso, c.base * (bola / fator) * 1.4));
 }
 
 
@@ -1398,7 +1462,7 @@ const xpTotal = (L) => Math.round(50 / 3 * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
 /** O NPC paga: valor da espécie × (1 + nível/50) × qualidade (sell-value.mjs). Acima do Nv 150, o valor é limitado pela curva do nível. */
 const npcPorCaptura = (e) => { const base = e.L > 150 ? Math.min(Math.round(12000 * (e.L / 150) ** 0.6), e.npc || Infinity) : (e.npc || 0); return base * (1 + e.L / 50); };
 /** Chance de nascer P4 ou P5 numa captura (wiki, Potência). */
-const CHANCE_P4MAIS = 0.005 + 0.00005;
+const chanceP4mais = () => REGRAS.chanceP4mais;
 /** Na Outland se anda mais entre um abate e outro (medido: ~1.029/h contra ~1.356/h nas hunts normais). */
 const T_ANDAR_OUTLAND = 3.5;
 
@@ -1411,7 +1475,7 @@ async function carregarEspecies() {
   return especies;
 }
 const fmtTempo = (h) => h < 48 ? `${nf(0).format(h)} h` : h < 24 * 60 ? `${nf(0).format(h / 24)} dias` : `${nf(1).format(h / 24 / 30)} meses`;
-const liquidoGemas = (p) => { const t1 = Math.min(p, 500), t2 = Math.min(Math.max(p - 500, 0), 4500), t3 = Math.max(p - 5000, 0); return t1 * 0.87 + t2 * 0.90 + t3 * 0.925; };
+const liquidoGemas = (p) => liquidoFaixas(p);
 async function renderFarm() {
   const out = $("farm-out");
   const f = state.f;
@@ -1455,7 +1519,7 @@ async function renderFarm() {
     const xpH = r.porHora * xpPorAbate(e.L) * bonusXp, ouroH = r.porHora * ouroPorAbate(e.L);
     const risco = r.risco, lutas = r.lutas;
     const cap = chanceCaptura(e.npc, bola);
-    const shinyH = r.porHora * cap / 24000;
+    const shinyH = r.porHora * cap * REGRAS.chanceShiny;
     const vendas = (shinyPor.get(norm(e.nome)) || []).sort((a, b) => a - b);
     const med = vendas.length ? quant(vendas, 0.5) : null;
     const ajustado = med != null ? (vendas.length * med + PESO_GERAL * medGeral) / (vendas.length + PESO_GERAL) : null;
@@ -1466,7 +1530,7 @@ async function renderFarm() {
     const medP4 = p4.length ? quant(p4, 0.5) : null;
     const geralAqui = todosP4.length ? quant(todosP4.map((s) => noNivel(s, e.L)).sort((a, b) => a - b), 0.5) : 0;
     const p4Ajust = (p4.length * (medP4 || 0) + 3 * geralAqui) / (p4.length + 3);
-    const p4H = capturasH * CHANCE_P4MAIS;
+    const p4H = capturasH * chanceP4mais();
     const cValorH = npcH / state.rate + p4H * liquidoGemas(p4Ajust);
     return { e, outland, risco, lutas, abates: r.porHora, ef: r.melhorEf, shinyH: outland ? 0 : shinyH, med, n: vendas.length, xpH, ouroH,
       capturasH, npcH, p4H, medP4, nP4: p4.length, cValorH,
@@ -1482,7 +1546,7 @@ async function renderFarm() {
     .slice(0, state.farmTodos ? 60 : 12);
   const efTxt = (v) => v >= 5.5 ? "×5,5" : v >= 2.5 ? "×2,5" : v >= 1 ? "neutro" : v > 0 ? "×" + nf(2).format(v) : "imune";
   const gemasHTxt = (g) => state.moeda === "gemas" ? nf(g < 10 ? 1 : 0).format(g) : short(g * state.rate);
-  out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. ${!modoXp && comum ? `Comum: cada captura vai para o NPC (valor da espécie × (1 + nível/50)) ou, quando nasce P4/P5 (0,5% das capturas), para o Mercado. Bola: ${$("farm-bola").selectedOptions[0].text}.` : modoXp ? `XP com bônus de ×${nf(2).format(bonusXp)} (campo "Bônus de XP").` : "Shiny sai 1 em 24.000 arremessos, e a bola ainda precisa fechar."}</p>
+  out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. ${!modoXp && comum ? `Comum: cada captura vai para o NPC (valor da espécie × (1 + nível/50)) ou, quando nasce P4/P5 (${nf(2).format(REGRAS.chanceP4mais * 100)}% das capturas), para o Mercado. Bola: ${$("farm-bola").selectedOptions[0].text}.` : modoXp ? `XP com bônus de ×${nf(2).format(bonusXp)} (campo "Bônus de XP").` : `Shiny sai 1 em ${nf(0).format(Math.round(1 / REGRAS.chanceShiny))} arremessos, e a bola ainda precisa fechar.`}</p>
     ${modoXp && lista.length ? (() => { const top = lista[0], falta = xpTotal(Math.floor(L) + 1) - xpTotal(Math.floor(L)), h = falta / top.xpH;
       return `<div class="alert ok">Na melhor hunt (<b>${esc(top.e.nome)}</b>, Nv ${nf(0).format(top.e.L)}): <b>${short(top.xpH)} XP/h</b> e ${short(top.ouroH)} Coins/h. Seu ${esc(meu.nome)} sobe do Nv ${nf(0).format(L)} para o ${nf(0).format(L + 1)} em <b>${h < 1 ? nf(0).format(h * 60) + " min" : nf(1).format(h) + " h"}</b>.</div>`; })() : ""}
     <div class="farm-modos">
@@ -1513,7 +1577,7 @@ async function renderFarm() {
         <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`}`; }).join("")}</tbody></table></div>
     ${nMorre ? `<label class="check-mini small"><input type="checkbox" id="farm-mortes"${mostrarMortes ? " checked" : ""}> Mostrar as ${nMorre} hunts em que seu pokémon morre</label>` : ""}
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
-    <p class="muted small">Estimativa: simula a hunt com a fórmula de dano da wiki (golpes, recargas, STAB e a tabela de tipos da hunt), calibrada com uma medição real. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×1,8, vantagem de tipo da hunt); "Precisa de poção" é menos de 8 lutas, e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
+    <p class="muted small">Estimativa: simula a hunt com a fórmula de dano da wiki (golpes, recargas, STAB e a tabela de tipos da hunt), calibrada com uma medição real. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Precisa de poção" é menos de 8 lutas, e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
   out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = null; state.farmTodos = false; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
@@ -1703,7 +1767,7 @@ function melhorFarm(voce, ctx, E) {
   for (const a of ctx.comValor) {
     const r = abatesPorHora(voce, a.e, E.tipos);
     if (r.risco === "morre") continue;
-    const g = r.porHora * a.cap / 24000 * a.valorShiny;
+    const g = r.porHora * a.cap * REGRAS.chanceShiny * a.valorShiny;
     if (!gem || g > gem.gemasH) gem = { alvo: a.e, gemasH: g, abates: r.porHora };
     if (!ab || r.porHora > ab.abates) ab = { alvo: a.e, abates: r.porHora };
   }
@@ -2091,7 +2155,7 @@ async function renderTime() {
           <td>${c.cobre.map(chipTipo).join("") || '<span class="muted">—</span>'}</td>
           <td class="r" data-v="${c.score.toFixed(3)}"><span class="simbar"><i style="width:${Math.round(c.score / maxScore * 100)}%"></i></span></td></tr>`; }).join("")}
     </tbody></table></div>` : '<p class="muted">Nenhum anúncio dentro do orçamento corrige as fraquezas do time. Aumente o orçamento.</p>'}
-    <p class="muted small">Fraqueza do time = tipo de ataque contra o qual mais membros apanham (×2 ou ×4) do que resistem. O encaixe soma quanto o candidato resiste a essas fraquezas (imunidade vale mais), desconta as que ele também tem e dá um bônus por acertar tipos que o time não acerta; depois pesa pelo poder dele${poderRef ? ` comparado com o do seu time (⚔ ${short(poderRef)})` : ""}. Tabela de tipos fora da hunt (sem a ampliação ×1,5 da hunt). Um por espécie; clique para abrir na aba Comprar.</p>`;
+    <p class="muted small">Fraqueza do time = tipo de ataque contra o qual mais membros apanham (×2 ou ×4) do que resistem. O encaixe soma quanto o candidato resiste a essas fraquezas (imunidade vale mais), desconta as que ele também tem e dá um bônus por acertar tipos que o time não acerta; depois pesa pelo poder dele${poderRef ? ` comparado com o do seu time (⚔ ${short(poderRef)})` : ""}. Tabela de tipos fora da hunt (sem a ampliação ×${nf(1).format(REGRAS.ampliacaoHunt)} da hunt). Um por espécie; clique para abrir na aba Comprar.</p>`;
   out.querySelectorAll("tr[data-tm]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.tm);
     const go = () => {
@@ -2105,7 +2169,7 @@ async function renderTime() {
 }
 
 // ---------- sniper de itens ----------
-const COMISSAO_ITEM = 0.15; // item paga 15% nas duas moedas (wiki, A comissão)
+const COMISSAO_ITEM = REGRAS.comissao.orbPlana; // item paga a taxa plana nas duas moedas (wiki, A comissão)
 async function carregarItensDados() {
   if (!itensDados) itensDados = await (await fetch("dados/itens.json", { cache: "no-cache" })).json();
   return itensDados;
@@ -2131,7 +2195,8 @@ function oportunidadesDoItem(id, x, rate) {
     const precoVenda = V.min > 0 ? Math.min(V.media, V.min) : V.media;
     // na mesma moeda, quem compra o mais barato vende na média; o menor anúncio é ele mesmo
     const venderPor = compra === venda ? V.media : precoVenda;
-    const custo = emGem(C.min, compra), liquido = emGem(venderPor * (1 - COMISSAO_ITEM), venda);
+    const taxaVenda = venda === "gold" ? REGRAS.comissao.gold : REGRAS.comissao.orbPlana;
+    const custo = emGem(C.min, compra), liquido = emGem(venderPor * (1 - taxaVenda), venda);
     const lucro = liquido - custo;
     if (!(lucro > 0)) continue;
     const porDia = V.vendidos / 7;

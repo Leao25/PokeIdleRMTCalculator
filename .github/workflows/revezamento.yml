@@ -52,7 +52,7 @@ jobs:
             echo "::group::Volta $volta — $(date -u +'%H:%M') UTC"
             git rebase --abort 2>/dev/null || true; git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; } || true
             npm run coletar || echo "Esta coleta falhou; a próxima volta tenta de novo."
-            git add docs/dados coletor/estado.json
+            git add docs/dados coletor/estado.json coletor/jogo
             if ! git diff --cached --quiet; then
               git commit -q -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento)"
               { git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; }; } && git push -q || echo "Não consegui enviar agora; vai junto na próxima volta."
