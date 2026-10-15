@@ -36,6 +36,9 @@ import {
   nivelNaGuerra,
   nivelNoGinasio,
 } from '../shared/ginasios.mjs';
+// A diagonal da tabela de tipos (o tipo contra ele mesmo) não vem no `welcome` — o espelho só traz as
+// outras células. A grade do capítulo de tipos a lê da mesma conta do combate.
+import { multAtaqueContraDefesa } from '../shared/tipo-efetividade.mjs';
 // Mesma promessa para o PvP RANQUEADO: a escada inteira (tiers, vagas, posicionamento,
 // atrito da derrota, decaimento) mora em `shared/` e é lida por cliente e servidor. O
 // capítulo 13 monta a tabela de ranks a partir daqui, sem número escrito à mão.
@@ -822,6 +825,10 @@ function listaDoSorteioMistico(c) {
  * Duas leituras na mesma célula: o número BASE (o da série) e, no `title`, o valor já
  * amplificado da hunt. A amplificação é a coisa mais específica deste jogo e a que mais
  * muda uma luta — ×2 vira ×2,5 e ×0,5 vira ×0,33 —, então ela não pode ficar só no texto.
+ *
+ * Cada célula sai da MESMA conta do combate (`multAtaqueContraDefesa`), inclusive a diagonal, que o
+ * espelho não traz: Fogo contra Fogo ×0,5, Fantasma contra Fantasma ×2. Até 14/10/2026 a grade
+ * desenhava a diagonal inteira como neutra, e o jogo não fazia isso.
  */
 function gradeDeTipos(c) {
   const tab = c.d.tabelaTipos ?? {};
@@ -837,7 +844,7 @@ function gradeDeTipos(c) {
 
   const corpo = T.map((a) => {
     const celulas = T.map((d) => {
-      const v = a === d ? 1 : tab[a]?.[d] ?? 1;
+      const v = multAtaqueContraDefesa(a, d, tab[a] ?? {});
       return `<td class="wk-ef ${classe(v)}" title="${curto[a]}→${curto[d]}: ${c.r.base} ×${mostra(v) || 1} · ${c.r.naHunt} ×${String(+naHunt(v).toFixed(2)).replace('.', ',')}">${mostra(v)}</td>`;
     }).join('');
     return `<tr><th class="wk-lin tipo ${a}">${curto[a]}</th>${celulas}</tr>`;
@@ -10263,7 +10270,8 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           pódio.</li>
           <li>Sem troféu: o Showdown não dá troféu na ficha do pokémon nem medalha no perfil. Na aba
           <b>Premiação</b> ficam os <b>times do pódio</b> — a espécie, o nível no teto e a potência de
-          cada pokémon com que eles lutaram.</li>
+          cada pokémon com que eles lutaram —, e um clique num deles abre a <b>ficha</b> dele, com os stats
+          com que lutou.</li>
         </ul>`,
         en: `
         <p>The <b>Showdown</b> is the community's <b>weekly</b> tournament: <b>every Wednesday</b>, with
@@ -10415,7 +10423,8 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           ${teto} 💎, across the podium.</li>
           <li>No trophies: the Showdown puts no trophy on the pokémon's sheet and no medal on the
           profile. The <b>Prizes</b> tab keeps the <b>podium teams</b> — the species, the capped level
-          and the potency of each pokémon they fought with.</li>
+          and the potency of each pokémon they fought with —, and clicking one opens its <b>sheet</b>,
+          with the stats it fought with.</li>
         </ul>`,
         es: `
         <p>El <b>Showdown</b> es el torneo <b>semanal</b> de la comunidad: <b>todos los miércoles</b>, con
@@ -10570,7 +10579,8 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           máximo ${teto} 💎, sumando el podio.</li>
           <li>Sin trofeos: el Showdown no pone trofeo en la ficha del pokémon ni medalla en el perfil. La
           pestaña <b>Premios</b> guarda los <b>equipos del podio</b> — la especie, el nivel con tope y la
-          potencia de cada pokémon con el que pelearon.</li>
+          potencia de cada pokémon con el que pelearon —, y un clic en uno abre su <b>ficha</b>, con los
+          stats con los que peleó.</li>
         </ul>`,
       };
     },

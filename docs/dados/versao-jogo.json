@@ -1,12 +1,15 @@
 {
- "verificadoEm": "2026-10-15T14:51:25.003Z",
+ "verificadoEm": "2026-10-15T15:53:05.438Z",
  "impressoes": {
-  "app": "8a49ec3b40721a20",
-  "wiki": "88bad7f312311acf",
+  "app": "3fd911a7dd9864ac",
+  "wiki": "8580c473ff47a210",
   "taxas": "38fce8efe85d28ce",
   "valores": "fdcf15ea511a7b1e",
   "nota": "fd05a570e2ff6fd1"
  },
- "mudouEm": null,
- "mudaram": []
+ "mudouEm": "2026-10-15T15:53:05.438Z",
+ "mudaram": [
+  "app",
+  "wiki"
+ ]
 }
