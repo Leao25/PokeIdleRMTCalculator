@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "STEEL"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "FIGHTING"
     },
     {
@@ -118,11 +114,20 @@
       "novas": 103,
       "cortado": false,
       "em": "2026-10-15T21:00:55.615Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "STEEL",
+      "linhas": 2950,
+      "novas": 1354,
+      "cortado": false,
+      "em": "2026-10-15T23:04:41.157Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 78,
+  "livroRodizio": 38,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
-  "catalogoEm": "2026-10-15T15:53:11.796Z"
+  "catalogoEm": "2026-10-15T15:53:11.796Z",
+  "pvpMetaEm": "2026-10-15T23:04:27.614Z"
 }
