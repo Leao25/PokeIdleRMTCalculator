@@ -3,7 +3,7 @@
 //
 // · pk["espécie|shiny|potência"] = { gold, orb }: em cada moeda, a mediana dos últimos 30 dias, o
 //   nível típico, quantas vendas e os níveis delas (para saber quantas foram perto do nível do
-//   anúncio);
+//   anúncio) e os pares [nível, preço] (pts);
 // · faixa["shiny|potência|faixa de nível"] = { gold, orb }: a mediana de QUALQUER espécie naquela
 //   faixa de nível (meia oitava: Nv 362–512, 512–724…). Quando a espécie quase não tem vendas
 //   perto do nível do anúncio, o script mistura as duas, como o laudo do site;
@@ -37,7 +37,9 @@ export async function gerarReferencia() {
   const pk = {};
   const razoes = { 0: [], 1: [] };
   for (const [k, g] of Object.entries(grupos)) {
-    const lado = (l) => l.length ? { med: mediana(l.map((x) => x[0])), lvl: mediana(l.map((x) => x[1])), n: l.length, niveis: l.map((x) => x[1]).slice(0, 60) } : null;
+    // pts: [nível, preço] de cada venda (até 60), para o script usar as vendas de nível parecido em vez
+    // de esticar a mediana geral pelo nível (o Rhyperior P2 Nv 500 saía 357M com as vendas reais em ~200M)
+    const lado = (l) => l.length ? { med: mediana(l.map((x) => x[0])), lvl: mediana(l.map((x) => x[1])), n: l.length, niveis: l.map((x) => x[1]).slice(0, 60), pts: l.slice(0, 60).map((x) => [x[1], x[0]]) } : null;
     pk[k] = { gold: lado(g.gold), orb: lado(g.orb) };
     if (g.gold.length >= 2 && g.orb.length >= 2) razoes[k.split('|')[1]].push(pk[k].gold.med / pk[k].orb.med);
   }

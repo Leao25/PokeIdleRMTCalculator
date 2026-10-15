@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.7
+// @version      1.0.8
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -79,7 +79,13 @@
     const converter = (v) => (moeda === 'gold' ? v * taxa : v / taxa);
     // no comum o preço acompanha o nível; no shiny quase não
     const beta = f.shiny ? 0.1 : 1;
-    const noNivel = (lado) => lado.med * Math.min(8, Math.max(1 / 8, (L / Math.max(1, lado.lvl)) ** beta));
+    const estica = (p, lv) => p * Math.min(8, Math.max(1 / 8, (L / Math.max(1, lv)) ** beta));
+    // com 3+ vendas de nível parecido (×1,4 para cima ou para baixo), vale a mediana delas, levadas ao
+    // nível do anúncio; senão, a mediana geral esticada pelo nível
+    const noNivel = (lado) => {
+      const perto = (lado.pts || []).filter(([lv]) => lv >= L / 1.4 && lv <= L * 1.4).map(([lv, p]) => estica(p, lv)).sort((x, y) => x - y);
+      return perto.length >= 3 ? perto[perto.length >> 1] : estica(lado.med, lado.lvl);
+    };
     let esp = null, niveis = [], convertido = false, n = 0;
     if (g[moeda]?.n >= 3) { esp = noNivel(g[moeda]); niveis = g[moeda].niveis || []; n = g[moeda].n; }
     else if (g[outra]?.n >= 3 && taxa) { esp = converter(noNivel(g[outra])); niveis = g[outra].niveis || []; n = g[outra].n; convertido = true; }
