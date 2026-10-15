@@ -1416,10 +1416,12 @@ const xpTotal = (L) => Math.round(50 / 3 * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
 const npcPorCaptura = (e) => { const base = e.L > 150 ? Math.min(Math.round(12000 * (e.L / 150) ** 0.6), e.npc || Infinity) : (e.npc || 0); return base * (1 + e.L / 50); };
 /** Chance de nascer P4 ou P5 numa captura (wiki, Potência). */
 const chanceP4mais = () => REGRAS.chanceP4mais;
-/** Caminhada da morte de um selvagem até o 1º golpe no próximo, medida 15/10 na aba do jogo (Toxic
- * Toxicroak, 74 abates: média 1,59 s, mediana 1,26; ondas de 15). A caminhada muda de mapa para mapa
- * (Magikarp Nv 1 de Kanto: ~3,2 s); as outras hunts ainda usam a da Magikarp até serem medidas. */
-const T_ANDAR_OUTLAND = 1.6;
+/** Caminhada por abate na Outland. Medida 15/10 numa sessão de 2h41 no painel do jogo (Alakazam P4 Nv 555
+ * na Toxic Toxicroak da Outland 2: 4.034 abates = 1.504/h; ouro 730/abate igual à fórmula): 2,2 s fecha
+ * abates (1.496/h), golpes por abate (1,39 contra 1,40 na escuta) e quase todo o gasto de poção. As
+ * escutas de 2–3 min davam 1,6 s porque pegam o começo da onda, com os selvagens juntos.
+ * A caminhada muda de mapa para mapa (Magikarp Nv 1 de Kanto: ~3,2 s, 7h15 de sessão). */
+const T_ANDAR_OUTLAND = 2.2;
 
 let especies = null;
 async function carregarEspecies() {
