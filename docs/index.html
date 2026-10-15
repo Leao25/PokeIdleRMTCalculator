@@ -1520,7 +1520,7 @@ async function renderFarm() {
     </div>
     </div>
     <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th title="Quantas lutas seu pokémon aguenta sem poção, contando o dano que o selvagem dá">Risco</th><th class="r">Abates/h</th>${!modoXp && comum ? `<th class="r">Capturas/h</th><th class="r">Coins/h no NPC</th><th class="r">1 P4+ a cada</th><th class="r">P4+ vale</th><th class="r">Valor/h (${unit()})</th>` : modoXp ? `<th class="r">XP/abate</th><th class="r">XP/h</th><th class="r">Coins/h</th>` : `<th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th>`}</tr></thead>
-    <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, true);
+    <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, !comum && !modoXp); // shiny só no modo Shiny
       return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
         <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
         <td data-v="${Math.min(x.lutas, 999).toFixed(1)}"><span class="risco ${x.risco}" title="${x.lutas === Infinity ? "o selvagem não consegue ferir" : `aguenta ~${nf(x.lutas < 10 ? 1 : 0).format(x.lutas)} lutas`}">${x.risco === "seguro" ? "Seguro" : x.risco === "pocao" ? "Precisa de poção" : "Morre"}</span></td>
