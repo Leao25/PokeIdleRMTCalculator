@@ -28,6 +28,7 @@ import { explorarPvp } from './explorar-pvp.mjs';
 import { gerarReferencia } from './referencia.mjs';
 import { gravarRegras, verificarVersao } from './regras.mjs';
 import { gravarCatalogo } from './catalogo.mjs';
+import { registrarAnuncios } from './anuncios-historico.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -212,6 +213,11 @@ async function main() {
     sessao.fechar();
   }
 
+  // histórico dos anúncios (quem entrou, quem saiu): antes de gravar o anuncios.json novo
+  if (aberto.anuncios?.length) {
+    const h = await registrarAnuncios(aberto.anuncios, aberto.total).catch((e) => { console.log(`Histórico de anúncios: ${e.message}`); return null; });
+    if (h) console.log(`Histórico de anúncios: ${h.novos} novos, ${h.fechados} saíram, ${h.abertos} abertos${h.completa ? '' : ' (leitura incompleta: ninguém foi dado como saído)'}.`);
+  }
   await gravarMercado(aberto, itens, sessao.welcome, livros).catch((e) => console.log(`Gravar mercado: ${e.message}`));
 
   // Cotação: a das últimas 24 h (ou a janela mais curta que tenha vendas suficientes).

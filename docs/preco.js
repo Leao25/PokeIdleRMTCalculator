@@ -173,8 +173,27 @@ function criarPreco(state) {
     return est;
   }
 
+  /**
+   * A PROCURA da espécie: quantas vendas (mesmo shiny ou comum) nos últimos 30 dias contra quantos
+   * anúncios abertos. O preço justo só aprende com quem VENDEU; espécie que quase não vende (um
+   * Nidoking comum: 1 venda no histórico inteiro) fica com o preço genérico de outras espécies, e
+   * quem anuncia por ele pode ficar parado. Isto não muda o número: avisa.
+   *   vendas30: vendas da espécie no grupo nos últimos 30 dias · abertos: anúncios abertos no grupo
+   */
+  function procura(vendas30, abertos) {
+    const v = Number(vendas30) || 0, a = Number(abertos) || 0;
+    const nivel = v <= 2 || (a >= 4 && v < a / 2) ? "baixa" : v >= 15 && v >= a ? "alta" : "média";
+    return { vendas: v, abertos: a, nivel };
+  }
+  /** Quantas vendas por espécie|shiny nos últimos 30 dias (a partir das vendas cruas, antes do filtro de período). */
+  function vendasPorEspecie(vendas, fimMin) {
+    const ini = fimMin - 30 * 1440, m = new Map();
+    for (const s of vendas) if (s.min >= ini && s.min <= fimMin) { const k = norm(s.species) + "|" + (s.shiny ? 1 : 0); m.set(k, (m.get(k) || 0) + 1); }
+    return m;
+  }
+
   /** Esquece as contas guardadas (taxa e elasticidade): chamar quando o histórico for recarregado. */
   const limparCaches = () => { taxaCache = null; elasticCache = null; };
-  return { quant, norm, speciesOf, venda, taxaPokemon, emExibicao, gemOf, limpar, dist, wQuant, elasticidadeNivel, estimate, limparCaches };
+  return { quant, norm, speciesOf, venda, taxaPokemon, emExibicao, gemOf, limpar, dist, wQuant, elasticidadeNivel, estimate, limparCaches, procura, vendasPorEspecie };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = { criarPreco };

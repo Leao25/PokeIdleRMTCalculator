@@ -54,6 +54,13 @@ export async function gerarReferencia() {
   // nomes das variantes de Outland (#2001–#2999 no catálogo), para o script poder escondê-las
   let outland = [];
   try { outland = JSON.parse(await readFile(path.join(PASTA_DADOS, 'especies.json'), 'utf8')).e.filter((x) => x[1] >= 2001 && x[1] < 3000).map((x) => x[0]); } catch { /* sem catálogo */ }
-  await writeFile(path.join(PASTA_DADOS, 'referencia.json'), JSON.stringify({ em: new Date().toISOString(), dias: 30, versao: 2, taxa, pk, faixa, outland }));
+  // anúncios abertos por espécie|shiny, para o aviso de procura do script
+  const abertos = {};
+  try {
+    const an = JSON.parse(await readFile(path.join(PASTA_DADOS, 'anuncios.json'), 'utf8'));
+    const iN = an.campos.indexOf('nome'), iS = an.campos.indexOf('shiny');
+    for (const a of an.a) { const k = `${a[iN]}|${a[iS] ? 1 : 0}`; abertos[k] = (abertos[k] || 0) + 1; }
+  } catch { /* sem anúncios */ }
+  await writeFile(path.join(PASTA_DADOS, 'referencia.json'), JSON.stringify({ em: new Date().toISOString(), dias: 30, versao: 2, taxa, pk, faixa, outland, abertos }));
   return Object.keys(pk).length;
 }

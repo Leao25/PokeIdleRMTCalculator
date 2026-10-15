@@ -598,7 +598,7 @@ const EX2 = `# Gyarados — ficha do PokeIdle
 const DIA = 864e5;
 const state = { moeda: "gemas", rate: 3e6, dias: 30, base: [], meta: null, grupoRank: "shiny", showAll: false };
 // o preço justo mora em preco.js (o mesmo código do Sniper ao vivo)
-const { quant, norm, speciesOf, venda, taxaPokemon, emExibicao, gemOf, limpar, dist, wQuant, elasticidadeNivel, estimate } = criarPreco(state);
+const { quant, norm, speciesOf, venda, taxaPokemon, emExibicao, gemOf, limpar, dist, wQuant, elasticidadeNivel, estimate, procura, vendasPorEspecie } = criarPreco(state);
 try {
   const m = localStorage.getItem("rtm-moeda"); if (m === "coins" || m === "gemas") state.moeda = m;
   const d = localStorage.getItem("rtm-dias"); if (d != null && ["0", "7", "30", "60", "90"].includes(d)) state.dias = +d;
@@ -942,21 +942,36 @@ function render() {
     h += `<div class="alert bad"><b>Sem vendas ${f.shiny ? "shiny" : "de pokémon comum"} no período.</b> Tente um período maior.`
       + (outro.length ? ` As ${outro.length} vendas de ${esc(f.species)} ${f.shiny ? "comum" : "shiny"} ficaram entre ${fmtShow(outro[0])} e ${fmtShow(outro[outro.length - 1])} ${unit()}, mas não servem de referência.` : "") + `</div>`;
   } else {
-    const conf = est.ess >= 6 && !est.fallback ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
+    // sem vendas suficientes da espécie, o número é o de um pokémon genérico parecido: confiança baixa
+    const conf = est.fallback ? ["bad", "Confiança baixa"] : est.ess >= 6 ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
     const box = (cls, name, gem, hint) => { const v = toShow(gem), l = liquido(v);
       return `<div class="price ${cls}"><span class="lbl">${name}</span><span class="v">${fmtVal(v)}</span><span class="net">você recebe <b>${fmtVal(Math.floor(l))}</b> (${nf(1).format((1 - l / v) * 100)}% de taxa)</span><span class="net">${hint}</span></div>`; };
     h += `<div class="prices">${box("", "Vender rápido", est.p25, "abaixo de 3/4 dos parecidos")}${box("mid", "Preço justo", est.p50, `mediana ponderada · ${unit()}`)}${box("", "Com paciência", est.p75, "acima de 3/4 dos parecidos")}</div>`;
     const why = est.fallback
-      ? `${esc(f.species)} tem só ${est.sameMatch.length} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período; completei com outras espécies de potência e nota parecidas.`
+      ? `${esc(f.species)} tem ${est.sameMatch.length ? "só " + est.sameMatch.length : "nenhuma"} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período: o preço acima é o de um pokémon ${f.shiny ? "shiny" : "comum"} <b>genérico</b> parecido (outras espécies de nível, potência e nota próximos), não um preço de ${esc(f.species)}. Se a espécie tem pouca procura, ela pode valer bem menos.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
     h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
+    // PROCURA e anúncios parecidos parados: avisos, não mudam o número (ver procura() em preco.js)
+    if (!anunciosDados && !state.carregandoAnuncios) { state.carregandoAnuncios = true; carregarAnuncios().then(() => render()).catch(() => {}); }
+    if (state.vendas30?.fim !== fim) state.vendas30 = { fim, m: vendasPorEspecie(state.base, fim) };
+    const abertos = anunciosDados ? anunciosDados.lista.filter((a) => norm(a.species) === norm(f.species) && a.shiny === !!f.shiny) : null;
+    const pr = procura(state.vendas30.m.get(norm(f.species) + "|" + (f.shiny ? 1 : 0)) || 0, abertos ? abertos.length : 0);
+    const grupoTxt = f.shiny ? "shiny" : "comum";
+    h += `<div class="alert${pr.nivel === "baixa" ? " bad" : pr.nivel === "alta" ? " ok" : ""}"><b>Procura ${pr.nivel}.</b> ${esc(f.species)} ${grupoTxt}: <b>${pr.vendas}</b> venda${pr.vendas === 1 ? "" : "s"} nos últimos 30 dias${abertos ? ` e <b>${pr.abertos}</b> anúncio${pr.abertos === 1 ? "" : "s"} aberto${pr.abertos === 1 ? "" : "s"} agora` : ""}.${pr.nivel === "baixa" ? " Pouca gente compra esta espécie: mesmo num preço abaixo do justo, pode demorar a vender." : pr.nivel === "alta" ? " Vende com frequência." : ""}</div>`;
+    if (abertos) {
+      const agora = Date.parse(anunciosDados.em) || Date.now();
+      const parados = abertos.filter((a) => agora - a.criadoEm >= 3 * 864e5 && a.pot >= f.pot && (!(f.lvl > 0) || a.lvl >= f.lvl / 1.2)
+        && (!Number.isFinite(f.nota) || !Number.isFinite(a.nota) || a.nota >= f.nota - 0.15))
+        .map((a) => ({ a, v: emExibicao(a.preco, a.moeda, a.shiny) })).filter((x) => x.v > 0 && x.v < est.p75).sort((x, y) => x.v - y.v).slice(0, 3);
+      if (parados.length) h += `<div class="alert">Anúncios de ${esc(f.species)} ${grupoTxt} <b>iguais ou melhores</b> que o seu, parados há 3+ dias sem vender: ${parados.map((x) => `<b>${fmtShow(x.v)}</b> (P${x.a.pot} Nv ${nf(0).format(x.a.lvl)}, há ${fmtIdade(x.a.criadoEm)})`).join(", ")}. Se eles não vendem por esse preço, o seu dificilmente vende por mais.</div>`;
+    }
     const pesoOutra = est.items.reduce((a, x) => a + (x.s.moeda !== state.moeda ? x.w : 0), 0) / Math.max(1e-9, est.items.reduce((a, x) => a + x.w, 0));
     if (pesoOutra > 0.3) {
       const tx = state.taxaPk?.[f.shiny ? "shiny" : "comum"];
       h += `<div class="alert">${nf(0).format(pesoOutra * 100)}% do peso vem de vendas feitas em ${state.moeda === "gemas" ? "Coins" : "Gemas"}. Elas foram convertidas pela taxa do <b>mercado de pokémon</b> (1 Gema ≈ ${short(tx)} Coins), e não pela do diamante: quem paga pokémon em Gemas paga, em Coins equivalentes, bem mais caro.</div>`;
     }
     if (est.ref) {
-      h += `<div class="alert">Há ${est.ref.nPerto ? "só " + est.ref.nPerto : "nenhuma"} venda${est.ref.nPerto === 1 ? "" : "s"} de ${esc(f.species)} perto do <b>Nv ${nf(0).format(f.lvl)}</b>. Por isso o preço mistura as vendas da espécie (ajustadas ao nível) com <b>${est.ref.n} vendas de outros pokémon ${f.shiny ? "shiny" : "comuns"}</b> de nível, nota${est.ref.mesmaP ? " e potência" : ""} parecidos, que ficaram entre ${fmtShow(est.ref.p25)} e ${fmtShow(est.ref.p75)} (mediana ${fmtShow(est.ref.p50)}). Peso da espécie: ${nf(0).format(est.ref.pesoEspecie * 100)}%.</div>`;
+      h += `<div class="alert">${est.ref.nPerto ? `Há só ${est.ref.nPerto} venda${est.ref.nPerto === 1 ? "" : "s"}` : "Não há vendas"} de ${esc(f.species)} perto do <b>Nv ${nf(0).format(f.lvl)}</b>. Por isso o preço mistura as vendas da espécie (ajustadas ao nível) com <b>${est.ref.n} vendas de outros pokémon ${f.shiny ? "shiny" : "comuns"}</b> de nível, nota${est.ref.mesmaP ? " e potência" : ""} parecidos, que ficaram entre ${fmtShow(est.ref.p25)} e ${fmtShow(est.ref.p75)} (mediana ${fmtShow(est.ref.p50)}). Peso da espécie: ${nf(0).format(est.ref.pesoEspecie * 100)}%.</div>`;
     } else if (est.fatorNivel > 1.4 || est.fatorNivel < 0.7) {
       const nivTip = quant(est.items.map((x) => x.s.lvl).filter((n) => n > 0).sort((a, b) => a - b), 0.5);
       h += `<div class="alert">As vendas parecidas são, em geral, de <b>Nv ${nf(0).format(nivTip)}</b>, e o seu é <b>Nv ${nf(0).format(f.lvl)}</b>. No Mercado, o ${f.shiny ? "shiny" : "pokémon comum"} vale mais quanto maior o nível, então os preços foram ajustados ao nível do seu (em média <b>×${nf(1).format(est.fatorNivel)}</b>). Poucas vendas nesse nível: trate como estimativa.</div>`;
@@ -2306,7 +2321,22 @@ $("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("c
 document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
 
 carregarHistorico()
-  .then(() => { fichaToFields({ pot: 1 }); mostrarCotacao(); render(); abrirAba(location.hash.slice(1)); })
+  .then(() => {
+    // ?f=… : ficha vinda de fora (o botão "Laudo" do Sniper ao vivo): {species, lvl, pot, nota, q, iv, shiny, moeda}
+    let vinda = null;
+    try {
+      const p = new URLSearchParams(location.search).get("f");
+      if (p) vinda = JSON.parse(decodeURIComponent(escape(atob(p.replace(/-/g, "+").replace(/_/g, "/")))));
+    } catch (e) { vinda = null; }
+    if (vinda && typeof vinda.species === "string") {
+      const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : NaN);
+      fichaToFields({ species: vinda.species.slice(0, 40), lvl: num(vinda.lvl), pot: Math.min(5, Math.max(1, num(vinda.pot) || 1)), nota: num(vinda.nota), q: num(vinda.q), iv: num(vinda.iv), shiny: !!vinda.shiny });
+      if (vinda.moeda === "coins" || vinda.moeda === "gemas") state.moeda = vinda.moeda;
+      $("ficha").value = "";
+      history.replaceState(null, "", location.pathname + "#avaliar");
+    } else fichaToFields({ pot: 1 });
+    mostrarCotacao(); render(); abrirAba(vinda ? "avaliar" : location.hash.slice(1));
+  })
   .catch(() => { $("status").textContent = "Não consegui carregar o histórico de vendas. Recarregue a página; se continuar, o site pode estar sendo atualizado."; });
 })();
 </script>

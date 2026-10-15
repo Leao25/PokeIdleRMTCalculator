@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.1.0
+// @version      1.2.0
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -9,7 +9,7 @@
 // @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @connect      pokeidle-rmt-calculator.vercel.app
-// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=1
+// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=2
 // @downloadURL  https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // @updateURL    https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // ==/UserScript==
@@ -88,7 +88,7 @@
       st.taxaPk = P.taxaPokemon(base);
       const kept = {};
       for (const m of ['coins', 'gemas']) { st.moeda = m; kept[m] = P.limpar(base.map((s) => ({ ...s }))).kept; }
-      hist = { kept, fim, n: base.length }; histEm = Date.now();
+      hist = { kept, fim, n: base.length, vendas30: P.vendasPorEspecie(base, fim) }; histEm = Date.now();
       pintar();
     } catch (e) { /* tenta na próxima hora */ }
   }
@@ -103,7 +103,17 @@
     if (!(est.p50 > 0) || !est.sameMatch.length) return null;
     // na unidade interna, Coins vêm ÷ cotação do diamante (como o site exibe): volta para Coins
     const emMoeda = (v) => (moeda === 'coins' ? v * st.rate : v);
-    return { valor: emMoeda(est.p50), p25: emMoeda(est.p25), n: est.sameMatch.length, convertido: false, misturado: !!est.ref, nPerto: est.ref?.nPerto, mesmaConta: true };
+    const pr = P.procura(hist.vendas30.get(P.norm(f.nome) + '|' + (f.shiny ? 1 : 0)) || 0, ref?.abertos?.[`${f.nome}|${f.shiny ? 1 : 0}`] ?? 0);
+    return { valor: emMoeda(est.p50), p25: emMoeda(est.p25), p75: emMoeda(est.p75), n: est.sameMatch.length, convertido: false, misturado: !!est.ref, nPerto: est.ref?.nPerto, mesmaConta: true,
+      procura: pr, ficha: { species: f.nome, lvl: f.level, pot: f.potencia || 1, nota: ficha.nota, q: ficha.q, iv: ficha.iv, shiny: !!f.shiny, moeda } };
+  }
+
+  /** Abre o Avaliar do site com a ficha do anúncio já preenchida (?f=… em base64). */
+  function abrirLaudo(x) {
+    if (!x?.laudo) return;
+    const j = JSON.stringify(x.laudo);
+    const b64 = btoa(unescape(encodeURIComponent(j))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    W.open(`${SITE}/?f=${b64}#avaliar`, '_blank', 'noopener');
   }
 
   function referenciaDe(a) {
@@ -195,6 +205,7 @@
       const f = a.ficha;
       novoAchado(`pk:${a.id}`, {
         tipo: 'pokemon', outland: ehOutland(f), id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
+        p25: r.p25, p75: r.p75, procura: r.procura, laudo: r.ficha,
         extra: `P${f.potencia || 1} · Nv ${fmt(f.level)} · nota ${f.nota != null ? String(f.nota).replace('.', ',') : '—'}${r.convertido ? ' · ref. da outra moeda' : ''}${r.misturado ? ` · ${r.nPerto ? 'poucas' : 'nenhuma'} venda${r.nPerto === 1 ? '' : 's'} da espécie nesse nível` : ''}${desc >= 0.9 ? ' · ⚠ bom demais' : ''}`,
       });
     }
@@ -294,6 +305,7 @@
       #rmt-sniper .top { display: flex; justify-content: space-between; gap: 8px; }
       #rmt-sniper .desc { color: #5cc77d; font-weight: 700; }
       #rmt-sniper .sub { color: #a59cb4; font-size: 11.5px; }
+      #rmt-sniper .aviso-procura { color: #f0b35a; }
       #rmt-sniper .vazio { padding: 10px; color: #a59cb4; }
       #rmt-sniper .rod { padding: 6px 10px; font-size: 11px; color: #a59cb4; border-top: 1px solid #342c42; }`;
     document.head.appendChild(css);
@@ -311,6 +323,7 @@
       if (ac === 'alvo' && cfg.alvo !== b.dataset.v) { cfg.alvo = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'moeda' && cfg.moeda !== b.dataset.v) { cfg.moeda = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'ver') abrirAnuncio(Number(b.dataset.id));
+      if (ac === 'laudo') abrirLaudo(achados.get(b.dataset.k));
       if (ac === 'outland') { cfg.semOutland = !cfg.semOutland; if (cfg.semOutland) for (const [k, x] of achados) if (x.outland) achados.delete(k); }
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
       salvar(); pintar();
@@ -373,9 +386,10 @@
       </div>
       <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">
           <div class="top"><span>${esc(x.nome)}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
-          <div class="sub">${precoTxt(x.preco, x.moeda)} · ref. ${precoTxt(Math.round(x.ref), x.moeda)} · ${esc(x.extra)}</div>
+          <div class="sub">${precoTxt(x.preco, x.moeda)} · ${x.p25 ? `justo <b>${precoTxt(Math.round(x.ref), x.moeda)}</b> (rápido ${precoTxt(Math.round(x.p25), x.moeda)} · paciência ${precoTxt(Math.round(x.p75), x.moeda)})` : `ref. ${precoTxt(Math.round(x.ref), x.moeda)}`} · ${esc(x.extra)}</div>
+          ${x.procura?.nivel === 'baixa' ? `<div class="sub aviso-procura">⚠ pouca procura: ${x.procura.vendas} venda${x.procura.vendas === 1 ? '' : 's'} em 30 dias e ${x.procura.abertos} anúncio${x.procura.abertos === 1 ? '' : 's'} aberto${x.procura.abertos === 1 ? '' : 's'} — pode ser difícil revender</div>` : ''}
           <div class="sub">${(() => { const l = liquidoRevenda(x.ref, x.moeda, x.tipo) - x.preco; return l > 0 ? `<span class="desc">+${precoTxt(Math.round(l), x.moeda)}</span> revendendo pela ref., já sem a comissão` : 'sem lucro revendendo pela ref., depois da comissão'; })()}</div>
-          <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${Number(x.id) || 0}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${esc(k)}">ok</button>` : ''}</div></div>`).join('')
+          <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${Number(x.id) || 0}">Ver anúncio</button>${x.laudo ? ` <button data-acao="laudo" data-k="${esc(k)}" title="Abre o Avaliar do site com esta ficha">Laudo</button>` : ''}` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${esc(k)}">ok</button>` : ''}</div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
       <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · ${hist ? `preço justo do site (${hist.n.toLocaleString('pt-BR')} vendas)` : `referência ${ref ? `resumida de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (carregando as vendas…)` : 'carregando'}`} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. O preço justo é a mesma conta do Avaliar do site, mas o mercado varia muito: confira o laudo antes de comprar caro.</div>`;
   }
