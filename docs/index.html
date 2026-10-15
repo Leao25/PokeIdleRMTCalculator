@@ -161,6 +161,9 @@ th.ordena { cursor: pointer; user-select: none; }
 th.ordena:hover { color: var(--ink); }
 th.ordena[aria-sort="ascending"]::after { content: " ▲"; color: var(--acc); }
 th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
+.farm-top { display: grid; gap: 4px; }
+.farm-top-t { font-weight: 600; }
+.farm-top-n { font: 700 1.5rem var(--f-body); font-variant-numeric: tabular-nums; }
 .aviso-jogo { color: var(--warn); font-weight: 600; }
 .tema { border: 1px solid var(--line); background: var(--sunk); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 600 .85rem var(--f-body); display: inline-flex; gap: 6px; align-items: center; }
 .tema:hover { border-color: var(--acc); }
@@ -1388,6 +1391,8 @@ const EXPO = { hp: .95, atk: .8, def: .8, spAtk: .8, spDef: .8, speed: .95 };
 // s por abate quando se mata com 1 golpe (andar + golpe + bola): medido 15/10, Blastoise Nv 203 na
 // Magikarp Nv 1 a noite inteira, 8.211 abates em 7h15 = 3,18 s (o Hunt Analyser do jogo supõe 3,66 s)
 const T_ANDAR = 3.18;
+// s de luta para os próximos selvagens chegarem e ficarem colados (hipótese: ~10 passos a 0,29 s)
+const APROX = 3;
 function stats(base, L, ivs, q, mult) {
   const k = ['hp', 'atk', 'def', 'spAtk', 'spDef', 'speed'];
   return Object.fromEntries(k.map((s, i) => [s, (base[i] + 2 * ivs[i]) * (L / 100) * Math.pow(q, EXPO[s]) * mult]));
@@ -1458,8 +1463,12 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     golpesNaLuta++;
     vida -= d;
     if (vida <= 0) {
-      if (golpesNaLuta > 1) danoTomado += danoNaLuta(t - inicioLuta);
-      abates++; vida = hp; t += tAndar; inicioLuta = -1; golpesNaLuta = 0;
+      const dur = t - inicioLuta;
+      if (golpesNaLuta > 1) danoTomado += danoNaLuta(dur);
+      // Enquanto a luta dura, os outros selvagens vêm e ficam em volta esperando a vez (visto no
+      // jogo): numa luta longa o próximo já está colado. Caminhada cheia no abate de 1 golpe, e
+      // ~0,3 s (um passo) a partir de APROX s de luta.
+      abates++; vida = hp; t += Math.max(0.3, tAndar * Math.max(0, 1 - dur / APROX)); inicioLuta = -1; golpesNaLuta = 0;
     } else t += 0.9;
   }
   const danoPorAbate = abates ? danoTomado / abates : danoNaLuta(SIM_S);
@@ -1481,6 +1490,16 @@ function chanceCaptura(npc, bola = 4) {
 const xpPorAbate = (n) => n <= 150 ? Math.floor((6 * n * n) / 10) + 8 : Math.round(13500 * (n / 150) ** 1.25);
 /** Ouro de um abate (mesma fonte), com o teto do Nv 25.000. */
 const ouroPorAbate = (n) => Math.min(15776, Math.max(1, Math.round(36 * Math.max(1, n) ** 0.6006668740248916)));
+/** Quantos níveis o pokémon sobe em uma hora ganhando xpH, a partir do nível L (o custo cresce a cada nível). */
+function niveisPorHora(L, xpH) {
+  let n = Math.floor(L), resta = xpH, frac = L - n, niveis = 0;
+  for (let i = 0; i < 1000 && resta > 0; i++) {
+    const custo = (xpTotal(n + 1) - xpTotal(n)) * (1 - frac);
+    if (resta >= custo) { resta -= custo; niveis += 1 - frac; n++; frac = 0; } else { niveis += resta / (xpTotal(n + 1) - xpTotal(n)); resta = 0; }
+  }
+  return niveis;
+}
+const fmtNiveis = (v) => (v < 1 ? `${nf(0).format(v * 100)}% de nível` : `${nf(v < 10 ? 1 : 0).format(v)} níveis`);
 /** XP total para chegar ao nível L (wiki, "A curva"). */
 const xpTotal = (L) => Math.round(50 / 3 * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
 /** O NPC paga: valor da espécie × (1 + nível/50) × qualidade (sell-value.mjs). Acima do Nv 150, o valor é limitado pela curva do nível. */
@@ -1575,8 +1594,16 @@ async function renderFarm() {
   const efTxt = (v) => v >= 5.5 ? "×5,5" : v >= 2.5 ? "×2,5" : v >= 1 ? "neutro" : v > 0 ? "×" + nf(2).format(v) : "imune";
   const gemasHTxt = (g) => state.moeda === "gemas" ? nf(g < 10 ? 1 : 0).format(g) : short(g * state.rate);
   out.innerHTML = `<p class="muted small">Com seu <b>${f.shiny ? "✨ " : ""}${esc(meu.nome)}</b> P${voce.pot} Nv ${nf(0).format(L)}${state.ivs ? "" : " (IV de cada stat estimado pela soma)"}${nivelT > 0 ? `, em hunts até o Nv ${nf(0).format(nivelT)}` : ", em todas as hunts (diga o nível do treinador para filtrar as que você alcança)"}. ${!modoXp && comum ? `Comum: cada captura vai para o NPC (valor da espécie × (1 + nível/50)) ou, quando nasce P4/P5 (${nf(2).format(REGRAS.chanceP4mais * 100)}% das capturas), para o Mercado. Bola: ${$("farm-bola").selectedOptions[0].text}.` : modoXp ? `XP com bônus de ×${nf(2).format(bonusXp)} (campo "Bônus de XP").` : `Shiny sai 1 em ${nf(0).format(Math.round(1 / REGRAS.chanceShiny))} arremessos, e a bola ainda precisa fechar.`}</p>
-    ${modoXp && lista.length ? (() => { const top = lista[0], falta = xpTotal(Math.floor(L) + 1) - xpTotal(Math.floor(L)), h = falta / top.xpH;
-      return `<div class="alert ok">Na melhor hunt (<b>${esc(top.e.nome)}</b>, Nv ${nf(0).format(top.e.L)}): <b>${short(top.xpH)} XP/h</b> e ${short(top.ouroH)} Coins/h. Seu ${esc(meu.nome)} sobe do Nv ${nf(0).format(L)} para o ${nf(0).format(L + 1)} em <b>${h < 1 ? nf(0).format(h * 60) + " min" : nf(1).format(h) + " h"}</b>.</div>`; })() : ""}
+    ${modoXp && lista.length ? (() => {
+      const top = lista[0], nv = niveisPorHora(L, top.xpH), pocao = (x) => x.risco === "pocao" ? `gasta ~${short(x.hpPerdidoH / 1000)} Hyper Potions/h` : "sem poção";
+      const quase = lista.slice(1).find((x) => x.xpH >= top.xpH * 0.9);
+      const tranquila = top.risco === "pocao" ? lista.find((x) => x.risco === "seguro" || (x.risco === "pocao" && x.hpPerdidoH < top.hpPerdidoH / 3)) : null;
+      const linha = (x) => `<b>${esc(x.e.nome)}</b> <span class="muted">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span>`;
+      return `<div class="alert ok farm-top"><div class="farm-top-t">Melhor para XP: ${linha(top)}</div>
+        <div class="farm-top-n">~${fmtNiveis(nv)} por hora</div>
+        <div class="small">≈ ${short(top.xpH)} XP/h · ${short(top.ouroH)} Coins/h · ${nf(0).format(top.abates)} abates/h · ${pocao(top)}</div>
+        ${quase ? `<div class="small muted">Quase empatada: ${linha(quase)} (~${fmtNiveis(niveisPorHora(L, quase.xpH))}/h, ${pocao(quase)}). A diferença cabe na margem do cálculo.</div>` : ""}
+        ${tranquila && tranquila !== quase ? `<div class="small muted">Mais tranquila: ${linha(tranquila)} (~${fmtNiveis(niveisPorHora(L, tranquila.xpH))}/h, ${pocao(tranquila)}).</div>` : ""}</div>`; })() : ""}
     <div class="farm-modos">
     <div class="seg" role="group" aria-label="O que caçar">
       <button data-fg="shiny" aria-pressed="${!comum}">✨ Shiny</button>
@@ -1591,21 +1618,22 @@ async function renderFarm() {
       <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
     </div>
     </div>
-    <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th title="Quantas lutas seu pokémon aguenta sem poção, contando o dano que o selvagem dá">Risco</th><th class="r">Abates/h</th>${!modoXp && comum ? `<th class="r">Capturas/h</th><th class="r">Coins/h no NPC</th><th class="r">1 P4+ a cada</th><th class="r">P4+ vale</th><th class="r">Valor/h (${unit()})</th>` : modoXp ? `<th class="r">XP/abate</th><th class="r">XP/h</th><th class="r">Coins/h</th>` : `<th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th>`}</tr></thead>
+    <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th title="Quantas lutas seu pokémon aguenta sem poção, contando o dano que o selvagem dá">Risco</th><th class="r">Abates/h</th>${!modoXp && comum ? `<th class="r">Capturas/h</th><th class="r">Coins/h no NPC</th><th class="r">1 P4+ a cada</th><th class="r">P4+ vale</th><th class="r">Valor/h (${unit()})</th>` : modoXp ? `<th class="r" title="Quantos níveis o seu pokémon sobe por hora nessa hunt, no nível de agora">Níveis/h</th><th class="r">XP/h</th><th class="r">Coins/h</th>` : `<th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th>`}</tr></thead>
     <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, !comum && !modoXp); // shiny só no modo Shiny
-      return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
+      const balao = `${x.e.nome} Nv ${nf(0).format(x.e.L)}: ~${nf(0).format(x.abates)} abates/h · ${nf(0).format(xpPorAbate(x.e.L))} XP por abate (sem bônus) · ${short(x.xpH)} XP/h · ${short(x.ouroH)} Coins/h${x.risco === "pocao" ? ` · ~${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions/h (${short(x.hpPerdidoH * 0.8)} Coins)` : ""}`;
+      return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0" title="${esc(balao)}"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
         <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
         <td data-v="${Math.min(x.lutas, 999).toFixed(1)}"><span class="risco ${x.risco}" title="${x.lutas === Infinity ? "o selvagem não consegue ferir" : `aguenta ~${nf(x.lutas < 10 ? 1 : 0).format(x.lutas)} lutas sem poção; toma ~${short(x.hpPerdidoH)} de dano por hora ≈ ${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions (+1.000 HP, 800 Coins) = ${short(x.hpPerdidoH * 0.8)} Coins/h`}">${x.risco === "seguro" ? "Seguro" : x.risco === "pocao" ? `Poção · ~${short(x.hpPerdidoH / 1000)} Hyper/h` : "Morre"}</span></td>
         <td class="r n">${nf(0).format(x.abates)}</td>
         ${!modoXp && comum ? `<td class="r n">${nf(x.capturasH < 10 ? 1 : 0).format(x.capturasH)}</td><td class="r n">${short(x.npcH)}</td>
           <td class="r n">${x.p4H > 0 ? fmtTempo(1 / x.p4H) : "—"}</td>
           <td class="r n">${x.medP4 != null ? `${fmtShow(x.medP4)} <span class="muted">(${x.nP4})</span>` : '<span class="muted">sem vendas</span>'}</td>
-          <td class="r n"><b>${gemasHTxt(x.cValorH)}</b></td></tr>` : modoXp ? `<td class="r n">${nf(0).format(xpPorAbate(x.e.L))}</td><td class="r n"><b>${short(x.xpH)}</b></td><td class="r n">${short(x.ouroH)}</td></tr>` : `<td class="r n">${x.shinyH > 0 ? fmtTempo(1 / x.shinyH) : "—"}</td>
+          <td class="r n"><b>${gemasHTxt(x.cValorH)}</b></td></tr>` : modoXp ? `<td class="r n" data-v="${x.xpH}"><b>${fmtNiveis(niveisPorHora(L, x.xpH))}</b></td><td class="r n">${short(x.xpH)}</td><td class="r n">${short(x.ouroH)}</td></tr>` : `<td class="r n">${x.shinyH > 0 ? fmtTempo(1 / x.shinyH) : "—"}</td>
         <td class="r n">${x.med != null ? `${fmtShow(x.med)} <span class="muted">(${x.n})</span>` : '<span class="muted">sem vendas</span>'}</td>
         <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`}`; }).join("")}</tbody></table></div>
     ${nMorre ? `<label class="check-mini small"><input type="checkbox" id="farm-mortes"${mostrarMortes ? " checked" : ""}> Mostrar as ${nMorre} hunts em que seu pokémon morre</label>` : ""}
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
-    <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e 3,18 s por abate de caminhada, conferida com medições reais do painel Sessão (erro de 0% a −7%). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Poção" é quando o dano passa de uma barra de HP por hora (não há cura natural na hunt), com o gasto em Hyper Potions; cada selvagem novo abre a luta com todos os golpes carregados, do mais forte para o mais fraco (medido no jogo), e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
+    <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e a caminhada até o próximo selvagem (de 1,6 a 3,2 s quando ele morre num golpe; quase nada em luta longa, porque os outros chegam e esperam em volta), conferida com medições reais no jogo (erro de 0% a −8% nos abates). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Poção" é quando o dano passa de uma barra de HP por hora (não há cura natural na hunt), com o gasto em Hyper Potions; cada selvagem novo abre a luta com todos os golpes carregados, do mais forte para o mais fraco (medido no jogo), e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); nas hunts fáceis (um golpe por abate) o ritmo depende do mapa e a margem é maior. Passe o mouse numa linha para ver os detalhes. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
   out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = null; state.farmTodos = false; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
