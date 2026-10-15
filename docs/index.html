@@ -198,7 +198,7 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .risco.seguro { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
 .risco.pocao { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .risco.morre { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
-.farm-modos { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.farm-modos { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; } /* sempre duas linhas: nada pula ao trocar de modo ou moeda */
 .sp-mini { width: 32px; height: 32px; image-rendering: pixelated; vertical-align: middle; margin: -6px 6px -6px -4px; }
 .ef { font: 600 .75rem var(--f-mono); padding: 1px 6px; border-radius: 4px; background: var(--sunk); }
 .ef.forte { background: var(--gem-soft); color: var(--gem); }
