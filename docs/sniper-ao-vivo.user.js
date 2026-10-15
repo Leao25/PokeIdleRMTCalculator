@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.8
+// @version      1.0.9
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -46,7 +46,7 @@
   const enviar = (msg) => { if (socket && socket.readyState === 1) { socket.send(JSON.stringify(msg)); return true; } return false; };
 
   // ---------- configuração ----------
-  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, alvo: 'pokemon', moeda: 'orb', minimizado: false },
+  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, alvo: 'pokemon', moeda: 'orb', minimizado: false, semOutland: false },
     (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } })());
   if (cfg.alvo !== 'pokemon' && cfg.alvo !== 'itens') cfg.alvo = 'pokemon';
   if (cfg.moeda !== 'gold' && cfg.moeda !== 'orb') cfg.moeda = 'orb';
@@ -134,18 +134,27 @@
       }
     }
   }
+  // variantes de Outland (Brave, Furious, Toxic…): #2001–#2999 no jogo, ou pelo nome (lista do site)
+  const OUTLAND_RESERVA = ['Brave', 'Tribal', 'Ancient', 'War', 'Furious', 'Enigmatic', 'Charged', 'Magnetic', 'Evil', 'Freezing', 'Psy', 'Heavy', 'Milch-Miltank', 'Roll', 'Hard', 'Brute', 'Enraged', 'Dark', 'Trickmaster', 'Banshee', 'Taekwondo', 'Magma', 'Toxic'];
+  function ehOutland(f) {
+    const id = Number(f.speciesId);
+    if (id >= 2001 && id < 3000) return true;
+    if (Array.isArray(ref?.outland) && ref.outland.length) return ref.outland.includes(f.nome);
+    return id > 0 ? false : OUTLAND_RESERVA.includes(String(f.nome).split(' ')[0]) && String(f.nome).includes(' ');
+  }
   function avaliarAnuncios(linhas) {
     if (cfg.alvo !== 'pokemon') return;
     for (const a of linhas) {
       if (a.tipo !== 'pokemon' || !a.ficha || a.estado !== 'aberto') continue;
       if ((a.moeda === 'gold' ? 'gold' : 'orb') !== cfg.moeda) continue;
+      if (cfg.semOutland && ehOutland(a.ficha)) continue;
       const r = referenciaDe(a);
       if (!r || !(a.preco > 0)) continue;
       const desc = 1 - a.preco / r.valor;
       if (desc < cfg.desconto) continue;
       const f = a.ficha;
       novoAchado(`pk:${a.id}`, {
-        tipo: 'pokemon', id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
+        tipo: 'pokemon', outland: ehOutland(f), id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
         extra: `P${f.potencia || 1} · Nv ${fmt(f.level)} · nota ${f.nota != null ? String(f.nota).replace('.', ',') : '—'}${r.convertido ? ' · ref. da outra moeda' : ''}${r.misturado ? ` · ${r.nPerto ? 'poucas' : 'nenhuma'} venda${r.nPerto === 1 ? '' : 's'} da espécie nesse nível` : ''}${desc >= 0.9 ? ' · ⚠ bom demais' : ''}`,
       });
     }
@@ -227,6 +236,7 @@
       #rmt-sniper header b { flex: 1; font-size: 13px; }
       #rmt-sniper button { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 6px; padding: 2px 8px; cursor: pointer; font: inherit; }
       #rmt-sniper .cfg { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 6px 10px; border-bottom: 1px solid #342c42; font-size: 12px; color: #a59cb4; }
+      #rmt-sniper .chk { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; color: #eee9f5; }
       #rmt-sniper .cfg select { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 4px; }
       #rmt-sniper .seg { display: inline-flex; border: 1px solid #4a3f5c; border-radius: 6px; overflow: hidden; }
       #rmt-sniper .seg button { border: 0; border-radius: 0; background: #2a2236; padding: 2px 9px; }
@@ -258,6 +268,7 @@
       if (ac === 'alvo' && cfg.alvo !== b.dataset.v) { cfg.alvo = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'moeda' && cfg.moeda !== b.dataset.v) { cfg.moeda = b.dataset.v; achados.clear(); ultimaLeitura = 0; }
       if (ac === 'ver') abrirAnuncio(Number(b.dataset.id));
+      if (ac === 'outland') { cfg.semOutland = !cfg.semOutland; if (cfg.semOutland) for (const [k, x] of achados) if (x.outland) achados.delete(k); }
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
       salvar(); pintar();
     });
@@ -314,6 +325,7 @@
         <label>Desconto ${sel('desconto', [[0.2, '20%'], [0.3, '30%'], [0.4, '40%'], [0.5, '50%']], cfg.desconto)}</label>
         <label>A cada ${sel('intervalo', [[10, '10 s'], [30, '30 s'], [60, '60 s'], [120, '2 min'], [300, '5 min']], cfg.intervalo)}</label>
         <span class="seg"><button data-acao="alvo" data-v="pokemon" class="${cfg.alvo === 'pokemon' ? 'on' : ''}">Pokémon</button><button data-acao="alvo" data-v="itens" class="${cfg.alvo === 'itens' ? 'on' : ''}">Itens</button></span>
+        ${cfg.alvo === 'pokemon' ? `<label class="chk" title="Esconde as variantes de Outland (Brave, Furious, Toxic…)"><input type="checkbox" data-acao="outland"${cfg.semOutland ? ' checked' : ''}> Sem Outland</label>` : ''}
         <span class="seg"><button data-acao="moeda" data-v="gold" class="${cfg.moeda === 'gold' ? 'on' : ''}">Coins</button><button data-acao="moeda" data-v="orb" class="${cfg.moeda === 'orb' ? 'on' : ''}">Gemas</button></span>
       </div>
       <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">

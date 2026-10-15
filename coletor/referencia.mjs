@@ -51,6 +51,9 @@ export async function gerarReferencia() {
   }
   const comum = razoes[0].length >= 8 ? mediana(razoes[0]) : null;
   const taxa = { comum, shiny: razoes[1].length >= 8 ? mediana(razoes[1]) : comum, diamante: indice.cotacao?.coinsPorGema ?? null };
-  await writeFile(path.join(PASTA_DADOS, 'referencia.json'), JSON.stringify({ em: new Date().toISOString(), dias: 30, versao: 2, taxa, pk, faixa }));
+  // nomes das variantes de Outland (#2001–#2999 no catálogo), para o script poder escondê-las
+  let outland = [];
+  try { outland = JSON.parse(await readFile(path.join(PASTA_DADOS, 'especies.json'), 'utf8')).e.filter((x) => x[1] >= 2001 && x[1] < 3000).map((x) => x[0]); } catch { /* sem catálogo */ }
+  await writeFile(path.join(PASTA_DADOS, 'referencia.json'), JSON.stringify({ em: new Date().toISOString(), dias: 30, versao: 2, taxa, pk, faixa, outland }));
   return Object.keys(pk).length;
 }
