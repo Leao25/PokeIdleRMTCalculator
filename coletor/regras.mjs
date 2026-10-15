@@ -45,6 +45,7 @@ export async function gravarRegras(welcome) {
   try { regras.comissao = await lerComissao(); } catch (e) { console.log(`Comissão: ${e.message}`); }
   // as hunts do mapa, com quantos de cada espécie nascem por onda ("pontos"): o ritmo de abates
   // depende do tamanho da onda (pausa de ~2,6 s entre ondas, até 16 por onda)
+  console.log(`Welcome: hunts ${Array.isArray(welcome?.hunts) ? welcome.hunts.length : typeof welcome?.hunts}; campos ${Object.keys(welcome ?? {}).length} (${Object.keys(welcome ?? {}).filter((k) => /hunt|mapa|area|spawn/i.test(k)).join(', ') || 'nenhum de hunt'}).`);
   if (Array.isArray(welcome?.hunts) && welcome.hunts.length) {
     await writeFile(path.join(PASTA_DADOS, 'hunts.json'), JSON.stringify({
       em: regras.em,
