@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "DRAGON"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "PSYCHIC"
     },
     {
@@ -86,7 +82,16 @@
       "novas": 578,
       "cortado": false,
       "em": "2026-10-14T23:25:39.814Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "DRAGON",
+      "linhas": 366,
+      "novas": 205,
+      "cortado": false,
+      "em": "2026-10-15T01:28:21.700Z"
     }
   ],
-  "explorado": "2026-10-14T22:24:30.614Z"
+  "explorado": "2026-10-14T22:24:30.614Z",
+  "exploradoPvp": "2026-10-15T01:28:21.628Z"
 }
