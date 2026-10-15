@@ -1,5 +1,450 @@
 {
- "em": "2026-10-15T01:28:21.626Z",
- "rankingElo": "falhou: O jogo recusou: Devagar aí — muitas mensagens.",
- "pvpInfo": "falhou: O jogo recusou: Devagar aí — muitas mensagens."
+ "em": "2026-10-15T06:38:22.554Z",
+ "rankingElo": {
+  "t": "\"ranking\"",
+  "aba": "\"elo\"",
+  "linhas": {
+   "lista": 50,
+   "item": {
+    "nick": "texto(7)",
+    "level": 3481,
+    "valor": 4688,
+    "abates": 547,
+    "mortes": 1,
+    "tierId": "\"challenger\"",
+    "inativo": false,
+    "looktype": 20029,
+    "vs": {
+     "lista": 4,
+     "item": 78,
+     "segundo": 69
+    },
+    "rank": 1
+   },
+   "segundo": {
+    "nick": "texto(8)",
+    "level": 3681,
+    "valor": 4572,
+    "abates": 677,
+    "mortes": 285,
+    "tierId": "\"challenger\"",
+    "inativo": false,
+    "looktype": 20029,
+    "vs": {
+     "lista": 4,
+     "item": 91,
+     "segundo": 114
+    },
+    "rank": 2
+   }
+  }
+ },
+ "pvpInfo": {
+  "t": "\"pvp\"",
+  "rank": {
+   "posicao": null,
+   "aguardandoVaga": false,
+   "vagaDecaiu": false,
+   "faltamPosicoes": null,
+   "decaiEm": null,
+   "pontos": 0,
+   "pico": 0,
+   "vitorias": 0,
+   "derrotas": 0,
+   "partidas": 0,
+   "sequencia": 0,
+   "escudo": 0,
+   "tierId": "\"bronze\"",
+   "divisao": 1,
+   "divisaoNum": "\"I\"",
+   "de": 0,
+   "ate": 100,
+   "progresso": 0,
+   "naFaixa": 0,
+   "larguraFaixa": 100
+  },
+  "posicao": null,
+  "posicaoFinal": null,
+  "corteFinal": 3420,
+  "totalClassificados": 1637,
+  "time": {
+   "lista": 0,
+   "item": null
+  },
+  "historico": {
+   "lista": 0,
+   "item": null
+  },
+  "ladder": {
+   "lista": 100,
+   "item": {
+    "pos": 1,
+    "posicao": 1,
+    "aguardandoVaga": false,
+    "vagaDecaiu": false,
+    "faltamPosicoes": null,
+    "pontos": 4688,
+    "pico": 4688,
+    "vitorias": 547,
+    "derrotas": 1,
+    "partidas": 548,
+    "sequencia": 104,
+    "escudo": 1,
+    "tierId": "\"challenger\"",
+    "divisao": 0,
+    "divisaoNum": "\"\"",
+    "de": 1500,
+    "ate": null,
+    "progresso": null,
+    "naFaixa": 3188,
+    "larguraFaixa": null,
+    "nick": "texto(7)",
+    "looktype": 20029,
+    "visual": {
+     "pes": 114,
+     "corpo": 69,
+     "cabeca": 78,
+     "pernas": 114
+    }
+   },
+   "segundo": {
+    "pos": 2,
+    "posicao": 2,
+    "aguardandoVaga": false,
+    "vagaDecaiu": false,
+    "faltamPosicoes": null,
+    "pontos": 4572,
+    "pico": 4572,
+    "vitorias": 677,
+    "derrotas": 285,
+    "partidas": 962,
+    "sequencia": 2,
+    "escudo": 1,
+    "tierId": "\"challenger\"",
+    "divisao": 0,
+    "divisaoNum": "\"\"",
+    "de": 1500,
+    "ate": null,
+    "progresso": null,
+    "naFaixa": 3072,
+    "larguraFaixa": null,
+    "nick": "texto(8)",
+    "looktype": 20029,
+    "visual": {
+     "pes": 114,
+     "corpo": 114,
+     "cabeca": 91,
+     "pernas": 91
+    }
+   }
+  },
+  "fila": {
+   "na": false,
+   "desde": 0,
+   "tamanho": 179,
+   "janela": null,
+   "cooldownMs": 0
+  },
+  "naoVistas": {
+   "lista": 0,
+   "item": null
+  },
+  "regras": {
+   "nivelMin": 150,
+   "posicionamento": 5,
+   "entrePartidasMs": 20000,
+   "revancheMs": 600000
+  },
+  "formacoes": {
+   "lista": 0,
+   "item": null
+  }
+ },
+ "perfilDoPrimeiro": {
+  "t": "\"perfil\"",
+  "perfil": {
+   "nick": "texto(7)",
+   "level": 3481,
+   "xp": 702232862523,
+   "looktype": 20029,
+   "vs": {
+    "lista": 4,
+    "item": 78,
+    "segundo": 69
+   },
+   "capturasEsp": 87,
+   "capturas": 17715,
+   "derrotas": 793002,
+   "vistas": 97,
+   "bossPontos": 9762,
+   "gold": 27095700726,
+   "orbs": 38763,
+   "vipAte": 1793393394156,
+   "time": 1112,
+   "statsPublico": true,
+   "shinysVistos": 58,
+   "shinysTem": 11,
+   "p5Tem": 1,
+   "xpNivel": 701798144000,
+   "xpProximo": 702403490100,
+   "vip": true,
+   "vitrine": {
+    "lista": 6,
+    "item": {
+     "id": 943689,
+     "speciesId": 3009,
+     "nome": "texto(14)",
+     "looktype": 80009,
+     "lookShiny": 85009,
+     "tipos": {
+      "lista": 1,
+      "item": "\"WATER\""
+     },
+     "level": 3477,
+     "xp": 699781951745,
+     "quality": 1.705,
+     "potencia": 1,
+     "ivs": {
+      "hp": 25,
+      "atk": 20,
+      "def": 21,
+      "spAtk": 16,
+      "spDef": 30,
+      "speed": 31
+     },
+     "refino": {
+      "hp": 2,
+      "atk": 2,
+      "def": 2,
+      "spAtk": 3,
+      "spDef": 2
+     },
+     "refinoTotal": 11,
+     "stats": {
+      "hp": 22685,
+      "atk": 23178,
+      "def": 26215,
+      "spAtk": 27174,
+      "spDef": 28293,
+      "speed": 24243
+     },
+     "maxHp": 272220,
+     "hp": 89678,
+     "shiny": true,
+     "poder": 27086,
+     "nota": 7.575,
+     "tmElemental": "\"WATER\"",
+     "tmAoe": true,
+     "heldItemId": null,
+     "caughtAt": 1787625619547,
+     "caughtBy": "texto(6)",
+     "medalhasGuerra": 3,
+     "apelido": "texto(6)",
+     "dono": "texto(7)"
+    },
+    "segundo": {
+     "id": 7161612,
+     "speciesId": 3323,
+     "nome": "texto(13)",
+     "looktype": 80323,
+     "lookShiny": 85323,
+     "tipos": {
+      "lista": 2,
+      "item": "\"FIRE\"",
+      "segundo": "\"GROUND\""
+     },
+     "level": 2905,
+     "xp": 407859791673,
+     "quality": 1.462,
+     "potencia": 3,
+     "ivs": {
+      "hp": 21,
+      "atk": 21,
+      "def": 27,
+      "spAtk": 32,
+      "spDef": 20,
+      "speed": 7
+     },
+     "refino": {
+      "hp": 4,
+      "atk": 5,
+      "def": 4,
+      "spAtk": 5,
+      "spDef": 4
+     },
+     "refinoTotal": 22,
+     "stats": {
+      "hp": 15952,
+      "atk": 21694,
+      "def": 20525,
+      "spAtk": 27799,
+      "spDef": 19355,
+      "speed": 4676
+     },
+     "maxHp": 191424,
+     "hp": 191424,
+     "shiny": true,
+     "poder": 21273,
+     "nota": 7.18,
+     "tmElemental": "\"GROUND\"",
+     "tmAoe": false,
+     "heldItemId": null,
+     "caughtAt": 1790546429230,
+     "caughtBy": true,
+     "medalhasGuerra": 1,
+     "apelido": "texto(9)",
+     "dono": "texto(7)"
+    }
+   },
+   "pvpTime": {
+    "lista": 5,
+    "item": {
+     "id": 4654532,
+     "speciesId": 3003,
+     "nome": "texto(13)",
+     "looktype": 80003,
+     "lookShiny": 85003,
+     "tipos": {
+      "lista": 2,
+      "item": "\"GRASS\"",
+      "segundo": "\"POISON\""
+     },
+     "level": 2953,
+     "xp": 428420216692,
+     "quality": 1.48,
+     "potencia": 1,
+     "ivs": {
+      "hp": 32,
+      "atk": 8,
+      "def": 26,
+      "spAtk": 28,
+      "spDef": 30,
+      "speed": 29
+     },
+     "refino": {
+      "hp": 3,
+      "atk": 2,
+      "def": 3,
+      "spAtk": 4,
+      "spDef": 3
+     },
+     "refinoTotal": 15,
+     "stats": {
+      "hp": 18900,
+      "atk": 14305,
+      "def": 21578,
+      "spAtk": 22063,
+      "spDef": 22184,
+      "speed": 17742
+     },
+     "maxHp": 226800,
+     "hp": 226800,
+     "shiny": true,
+     "poder": 22044,
+     "nota": 7.23,
+     "tmElemental": "\"GRASS\"",
+     "tmAoe": false,
+     "heldItemId": null,
+     "caughtAt": 1789683599776,
+     "caughtBy": "texto(12)",
+     "apelido": "texto(8)",
+     "dono": "texto(7)"
+    },
+    "segundo": {
+     "id": 943689,
+     "speciesId": 3009,
+     "nome": "texto(14)",
+     "looktype": 80009,
+     "lookShiny": 85009,
+     "tipos": {
+      "lista": 1,
+      "item": "\"WATER\""
+     },
+     "level": 3477,
+     "xp": 699781951745,
+     "quality": 1.705,
+     "potencia": 1,
+     "ivs": {
+      "hp": 25,
+      "atk": 20,
+      "def": 21,
+      "spAtk": 16,
+      "spDef": 30,
+      "speed": 31
+     },
+     "refino": {
+      "hp": 2,
+      "atk": 2,
+      "def": 2,
+      "spAtk": 3,
+      "spDef": 2
+     },
+     "refinoTotal": 11,
+     "stats": {
+      "hp": 22685,
+      "atk": 23178,
+      "def": 26215,
+      "spAtk": 27174,
+      "spDef": 28293,
+      "speed": 24243
+     },
+     "maxHp": 272220,
+     "hp": 89678,
+     "shiny": true,
+     "poder": 27086,
+     "nota": 7.575,
+     "tmElemental": "\"WATER\"",
+     "tmAoe": true,
+     "heldItemId": null,
+     "caughtAt": 1787625619547,
+     "caughtBy": "texto(6)",
+     "medalhasGuerra": 3,
+     "apelido": "texto(6)",
+     "dono": "texto(7)"
+    }
+   },
+   "pvpRank": {
+    "posicao": 1,
+    "aguardandoVaga": false,
+    "vagaDecaiu": false,
+    "faltamPosicoes": null,
+    "pontos": 4688,
+    "pico": 4688,
+    "vitorias": 547,
+    "derrotas": 1,
+    "partidas": 548,
+    "sequencia": 104,
+    "escudo": 1,
+    "tierId": "\"challenger\"",
+    "divisao": 0,
+    "divisaoNum": "\"\"",
+    "de": 1500,
+    "ate": null,
+    "progresso": null,
+    "naFaixa": 3188,
+    "larguraFaixa": null
+   },
+   "fundador": null,
+   "guildTag": "texto(2)",
+   "guildTagCor": "texto(7)",
+   "guildNome": "texto(12)",
+   "conquistas": {
+    "lista": 2,
+    "item": {
+     "id": "\"2026-10-15\"",
+     "tipo": "\"amador\"",
+     "numero": 1,
+     "dia": "\"2026-10-15\"",
+     "lugar": 3
+    },
+    "segundo": {
+     "id": "\"2026-09-30\"",
+     "tipo": "\"mundial\"",
+     "numero": 1,
+     "dia": "\"2026-09-30\"",
+     "lugar": 2
+    }
+   }
+  }
+ }
 }

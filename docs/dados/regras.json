@@ -1,0 +1,208 @@
+{
+ "em": "2026-10-15T06:38:23.012Z",
+ "tabelaTipos": {
+  "NORMAL": {
+   "ROCK": 0.5,
+   "GHOST": 0,
+   "STEEL": 0.5
+  },
+  "FIRE": {
+   "WATER": 0.5,
+   "GRASS": 2,
+   "ICE": 2,
+   "BUG": 2,
+   "ROCK": 0.5,
+   "DRAGON": 0.5,
+   "STEEL": 2
+  },
+  "WATER": {
+   "FIRE": 2,
+   "GRASS": 0.5,
+   "GROUND": 2,
+   "ROCK": 2,
+   "DRAGON": 0.5
+  },
+  "ELECTRIC": {
+   "WATER": 2,
+   "GRASS": 0.5,
+   "GROUND": 0,
+   "FLYING": 2,
+   "DRAGON": 0.5
+  },
+  "GRASS": {
+   "FIRE": 0.5,
+   "WATER": 2,
+   "POISON": 0.5,
+   "GROUND": 2,
+   "FLYING": 0.5,
+   "BUG": 0.5,
+   "ROCK": 2,
+   "DRAGON": 0.5,
+   "STEEL": 0.5
+  },
+  "ICE": {
+   "FIRE": 0.5,
+   "WATER": 0.5,
+   "GRASS": 2,
+   "GROUND": 2,
+   "FLYING": 2,
+   "DRAGON": 2,
+   "STEEL": 0.5
+  },
+  "FIGHTING": {
+   "NORMAL": 2,
+   "ICE": 2,
+   "POISON": 0.5,
+   "FLYING": 0.5,
+   "PSYCHIC": 0.5,
+   "BUG": 0.5,
+   "ROCK": 2,
+   "GHOST": 0,
+   "DARK": 2,
+   "STEEL": 2,
+   "FAIRY": 0.5
+  },
+  "POISON": {
+   "GRASS": 2,
+   "GROUND": 0.5,
+   "ROCK": 0.5,
+   "GHOST": 0.5,
+   "STEEL": 0,
+   "FAIRY": 2
+  },
+  "GROUND": {
+   "FIRE": 2,
+   "ELECTRIC": 2,
+   "GRASS": 0.5,
+   "POISON": 2,
+   "FLYING": 0,
+   "BUG": 0.5,
+   "ROCK": 2,
+   "STEEL": 2
+  },
+  "FLYING": {
+   "ELECTRIC": 0.5,
+   "GRASS": 2,
+   "FIGHTING": 2,
+   "BUG": 2,
+   "ROCK": 0.5,
+   "STEEL": 0.5
+  },
+  "PSYCHIC": {
+   "FIGHTING": 2,
+   "POISON": 2,
+   "DARK": 0,
+   "STEEL": 0.5
+  },
+  "BUG": {
+   "FIRE": 0.5,
+   "GRASS": 2,
+   "FIGHTING": 0.5,
+   "POISON": 0.5,
+   "FLYING": 0.5,
+   "PSYCHIC": 2,
+   "GHOST": 0.5,
+   "DARK": 2,
+   "STEEL": 0.5,
+   "FAIRY": 0.5
+  },
+  "ROCK": {
+   "FIRE": 2,
+   "ICE": 2,
+   "FIGHTING": 0.5,
+   "GROUND": 0.5,
+   "FLYING": 2,
+   "BUG": 2,
+   "STEEL": 0.5
+  },
+  "GHOST": {
+   "NORMAL": 0,
+   "PSYCHIC": 2,
+   "DARK": 0.5
+  },
+  "DRAGON": {
+   "STEEL": 0.5,
+   "FAIRY": 0
+  },
+  "DARK": {
+   "FIGHTING": 0.5,
+   "PSYCHIC": 2,
+   "GHOST": 2,
+   "FAIRY": 0.5
+  },
+  "STEEL": {
+   "FIRE": 0.5,
+   "WATER": 0.5,
+   "ELECTRIC": 0.5,
+   "ICE": 2,
+   "ROCK": 2,
+   "FAIRY": 2
+  },
+  "FAIRY": {
+   "FIRE": 0.5,
+   "FIGHTING": 2,
+   "POISON": 0.5,
+   "DRAGON": 2,
+   "DARK": 2,
+   "STEEL": 0.5
+  }
+ },
+ "ampliacaoHunt": 1.5,
+ "multHpSelvagem": 5,
+ "multDanoSelvagem": 1.8,
+ "captura": {
+  "base": 0.0075,
+  "piso": 0.003,
+  "teto": 0.1,
+  "raridadeDiv": 17,
+  "precoSemPreco": 787928
+ },
+ "chanceShiny": 0.000041666666666666665,
+ "potencias": [
+  {
+   "n": 1,
+   "chance": 74.495,
+   "bonus": 0
+  },
+  {
+   "n": 2,
+   "chance": 20,
+   "bonus": 0.05
+  },
+  {
+   "n": 3,
+   "chance": 5,
+   "bonus": 0.1
+  },
+  {
+   "n": 4,
+   "chance": 0.5,
+   "bonus": 0.25
+  },
+  {
+   "n": 5,
+   "chance": 0.005,
+   "bonus": 1
+  }
+ ],
+ "multShinyStats": 3,
+ "maxEquipe": 5,
+ "comissao": {
+  "faixasOrbPokemon": [
+   {
+    "ate": 500,
+    "taxa": 0.13
+   },
+   {
+    "ate": 5000,
+    "taxa": 0.1
+   },
+   {
+    "ate": null,
+    "taxa": 0.075
+   }
+  ],
+  "orbPlana": 0.15,
+  "gold": 0.15
+ }
+}
