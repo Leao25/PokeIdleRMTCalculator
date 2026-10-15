@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.6
+// @version      1.0.7
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -215,7 +215,9 @@
       #rmt-sniper { position: fixed; right: 12px; bottom: 12px; z-index: 99999; width: 330px; max-height: 60vh; display: flex; flex-direction: column;
         background: #1d1826; color: #eee9f5; border: 1px solid #f36cb8; border-radius: 10px; font: 13px/1.4 system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
       #rmt-sniper.min { width: auto; max-height: none; }
-      #rmt-sniper header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #342c42; cursor: default; }
+      #rmt-sniper header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #342c42; cursor: grab; user-select: none; touch-action: none; }
+      #rmt-sniper.arrastando header { cursor: grabbing; }
+      #rmt-sniper.arrastando { opacity: .92; }
       #rmt-sniper header b { flex: 1; font-size: 13px; }
       #rmt-sniper button { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 6px; padding: 2px 8px; cursor: pointer; font: inherit; }
       #rmt-sniper .cfg { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 6px 10px; border-bottom: 1px solid #342c42; font-size: 12px; color: #a59cb4; }
@@ -223,7 +225,11 @@
       #rmt-sniper .seg { display: inline-flex; border: 1px solid #4a3f5c; border-radius: 6px; overflow: hidden; }
       #rmt-sniper .seg button { border: 0; border-radius: 0; background: #2a2236; padding: 2px 9px; }
       #rmt-sniper .seg button.on { background: #f36cb8; color: #1d1826; font-weight: 700; }
-      #rmt-sniper .lista { overflow-y: auto; padding: 4px 0; }
+      #rmt-sniper .lista { overflow-y: auto; padding: 4px 0; scrollbar-width: auto; scrollbar-color: #c9a7ff #2a2236; }
+      #rmt-sniper .lista::-webkit-scrollbar { width: 11px; }
+      #rmt-sniper .lista::-webkit-scrollbar-track { background: #2a2236; border-radius: 6px; }
+      #rmt-sniper .lista::-webkit-scrollbar-thumb { background: #c9a7ff; border-radius: 6px; border: 2px solid #2a2236; }
+      #rmt-sniper .lista::-webkit-scrollbar-thumb:hover { background: #e2ccff; }
       #rmt-sniper .ach { padding: 6px 10px; border-bottom: 1px solid #2a2236; display: grid; gap: 2px; }
       #rmt-sniper .ach.novo { background: rgba(92,199,125,.12); }
       #rmt-sniper .top { display: flex; justify-content: space-between; gap: 8px; }
@@ -249,6 +255,24 @@
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
       salvar(); pintar();
     });
+    // arrastar pelo cabeçalho (fora dos botões); a posição fica salva. Duplo clique no cabeçalho volta ao canto.
+    let arr = null;
+    caixa.addEventListener('pointerdown', (e) => {
+      if (!e.target.closest('header') || e.target.closest('button, select')) return;
+      const r = caixa.getBoundingClientRect();
+      arr = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+      caixa.classList.add('arrastando'); caixa.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    caixa.addEventListener('pointermove', (e) => {
+      if (!arr) return;
+      cfg.pos = { x: e.clientX - arr.dx, y: e.clientY - arr.dy };
+      posicionar();
+    });
+    const soltar = () => { if (!arr) return; arr = null; caixa.classList.remove('arrastando'); salvar(); };
+    caixa.addEventListener('pointerup', soltar);
+    caixa.addEventListener('pointercancel', soltar);
+    caixa.addEventListener('dblclick', (e) => { if (e.target.closest('header') && !e.target.closest('button, select')) { delete cfg.pos; salvar(); posicionar(); } });
+    W.addEventListener('resize', posicionar);
     caixa.addEventListener('change', (e) => {
       const s = e.target;
       if (s.dataset.cfg === 'desconto') cfg.desconto = +s.value;
@@ -256,18 +280,27 @@
       salvar(); pintar();
     });
   }
+  // mantém o painel dentro da tela (a posição salva pode ser de uma janela maior)
+  function posicionar() {
+    if (!caixa) return;
+    if (!cfg.pos) { caixa.style.left = caixa.style.top = ''; caixa.style.right = caixa.style.bottom = '12px'; return; }
+    const r = caixa.getBoundingClientRect(), w = W.innerWidth, h = W.innerHeight;
+    const x = Math.min(Math.max(0, cfg.pos.x), Math.max(0, w - r.width)), y = Math.min(Math.max(0, cfg.pos.y), Math.max(0, h - 40));
+    caixa.style.right = caixa.style.bottom = 'auto'; caixa.style.left = x + 'px'; caixa.style.top = y + 'px';
+  }
   function pintar() {
     montar();
     if (!caixa) return;
+    requestAnimationFrame(posicionar);
     caixa.classList.toggle('min', cfg.minimizado);
     const lista = [...achados.entries()].sort((a, b) => b[1].desc - a[1].desc);
     const novos = lista.filter(([, x]) => x.novo).length;
     if (cfg.minimizado) {
-      caixa.innerHTML = `<header><b>🎯 Sniper · ${cfg.alvo === 'itens' ? 'Itens' : 'Pokémon'} em ${cfg.moeda === 'gold' ? 'Coins' : 'Gemas'}${cfg.ligado ? '' : ' (pausado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
+      caixa.innerHTML = `<header title="Arraste para mover · duplo clique volta ao canto"><b>🎯 Sniper · ${cfg.alvo === 'itens' ? 'Itens' : 'Pokémon'} em ${cfg.moeda === 'gold' ? 'Coins' : 'Gemas'}${cfg.ligado ? '' : ' (pausado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
       return;
     }
     const sel = (nome, valores, atual) => `<select data-cfg="${nome}">${valores.map(([v, t]) => `<option value="${v}"${+v === +atual ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
-    caixa.innerHTML = `<header><b>🎯 Sniper ao vivo</b>
+    caixa.innerHTML = `<header title="Arraste para mover · duplo clique volta ao canto"><b>🎯 Sniper ao vivo</b>
         <button data-acao="ligar" title="Ligar ou desligar as consultas">${cfg.ligado ? 'Pausar' : 'Ligar'}</button>
         <button data-acao="som" title="Aviso sonoro">${cfg.som ? '🔔' : '🔕'}</button>
         <button data-acao="min" title="Minimizar">▾</button></header>
