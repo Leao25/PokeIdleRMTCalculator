@@ -1489,7 +1489,9 @@ async function renderFarm() {
   const todosShiny = [...shinyPor.values()].flat().sort((a, b) => a - b);
   const medGeral = todosShiny.length ? quant(todosShiny, 0.5) : 0;
   const PESO_GERAL = 3;
-  const grupoF = state.farmGrupo || "comum"; // abre no Comum
+  // "Mais XP" é igual para shiny e comum: nele o grupo fica em Comum e o botão Shiny desliga
+  const xpPedido = (state.farmOrdem || "xp") === "xp";
+  const grupoF = xpPedido ? "comum" : state.farmGrupo || "comum"; // abre no Comum
   const comum = grupoF === "comum";
   let ordem = state.farmOrdem || "xp"; // abre em "Mais XP"
   // cada grupo tem suas ordens; "Mais XP" e "Mais abates" valem para os dois
@@ -1549,7 +1551,7 @@ async function renderFarm() {
     <div class="farm-modos">
     <div class="seg" role="group" aria-label="O que caçar">
       <button data-fg="comum" aria-pressed="${comum}">Comum</button>
-      <button data-fg="shiny" aria-pressed="${!comum}">✨ Shiny</button>
+      <button data-fg="shiny" aria-pressed="${!comum}"${xpPedido ? ' disabled title="No Mais XP a conta é a mesma para shiny e comum"' : ""}>✨ Shiny</button>
     </div>
     <div class="seg" role="group" aria-label="Ordenar">
       <button data-fo="xp" aria-pressed="${modoXp}">Mais XP</button>
@@ -1591,7 +1593,7 @@ async function renderFarm() {
     $("farm-bonus").classList.add("pede");
   } else $("farm-bonus").classList.remove("pede");
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
-  out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = null; state.farmTodos = false; renderFarm(); }; });
+  out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = b.dataset.fg === "shiny" ? "valor" : null; state.farmTodos = false; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
   const fm = $("farm-mortes"); if (fm) fm.onchange = () => { state.farmMortes = fm.checked; renderFarm(); };
   out.querySelectorAll("tr[data-farm]").forEach((tr) => {
