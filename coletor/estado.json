@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "GROUND"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "STEEL"
     },
     {
@@ -114,6 +110,14 @@
       "novas": 786,
       "cortado": false,
       "em": "2026-10-15T18:58:18.903Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "GROUND",
+      "linhas": 1770,
+      "novas": 103,
+      "cortado": false,
+      "em": "2026-10-15T21:00:55.615Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
