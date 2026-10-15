@@ -29,6 +29,7 @@ import { gerarReferencia } from './referencia.mjs';
 import { gravarRegras, verificarVersao } from './regras.mjs';
 import { gravarCatalogo } from './catalogo.mjs';
 import { registrarAnuncios } from './anuncios-historico.mjs';
+import { atualizarMetaPvp } from './pvp-meta.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -208,6 +209,9 @@ async function main() {
     }
     // reconhecimento do PvP (ranking e perfil do 1º): uma vez só
     if (!estado.exploradoPvp || estado.exploradoPvpFalhou) { const ok = await explorarPvp(sessao).catch((e) => { console.log(`Reconhecimento PvP: ${e.message}`); return false; }); estado.exploradoPvp = new Date().toISOString(); estado.exploradoPvpFalhou = !ok; }
+    // meta do PvP: escada do top 100 e ~12 times por coleta, em rodízio
+    const pv = await atualizarMetaPvp(sessao, estado, sal).catch((e) => { console.log(`Meta do PvP: ${e.message}`); return null; });
+    if (pv) console.log(`Meta do PvP: ${pv.lidos} times lidos agora; ${pv.comTime} de ${pv.total} do top 100 com time.`);
     console.log(`Mercado aberto: ${aberto.anuncios?.length ?? 0} anúncios de pokémon e ${Object.keys(itens?.resumo ?? {}).length} itens, em ${Math.round((Date.now() - t0) / 1000)} s.`);
   } finally {
     sessao.fechar();

@@ -164,6 +164,7 @@ th.ordena:hover { color: var(--ink); }
 th.ordena[aria-sort="ascending"]::after { content: " ▲"; color: var(--acc); }
 th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .farm-top { display: grid; gap: 4px; }
+.pvp-seu { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: .88rem; }
 .farm-top-t { font-weight: 600; }
 .farm-top-n { font: 700 1.5rem var(--f-body); font-variant-numeric: tabular-nums; }
 .aviso-jogo { color: var(--warn); font-weight: 600; }
@@ -431,6 +432,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             <label class="time-ficha"><span class="lbl">Pokémon 4</span><textarea id="tm-f4" rows="3" spellcheck="false" aria-label="Ficha do pokémon 4"></textarea><span class="small muted" id="tm-r4"></span></label>
           </div>
           <div id="time-out"></div>
+          <div id="pvp-out" class="pvp-meta"></div>
         </section>
       </div>
 
@@ -2087,9 +2089,58 @@ function analisarTime(E, membros) {
   return { def, buracos: def.filter((x) => x.peso >= 1).sort((a, b) => b.peso - a.peso), semCobertura: cobertura.filter((c) => !c.ok).map((c) => c.d) };
 }
 
+// ---------- meta do PvP (times do top 100, lidos pelo coletor: dados/pvp-meta.json) ----------
+let pvpMeta = null, pvpMetaPedido = false;
+const familiaPk = (n) => norm(String(n).replace(/^mega\s+/i, "").replace(/\s+[xy]$/i, ""));
+/** Quantos times da faixa usam cada espécie, e como (nível, poder, shiny, TM). */
+function usoNoMeta(meta, faixa) {
+  const m = new Map();
+  const jogs = meta.jogadores.filter((j) => j.pos <= faixa && Array.isArray(j.time) && j.time.length);
+  for (const j of jogs) for (const p of j.time) {
+    const k = norm(p.nome), u = m.get(k) || m.set(k, { nome: p.nome, times: 0, melhor: Infinity, nv: [], poder: [], shiny: 0, tm: 0, aoe: 0 }).get(k);
+    u.times++; u.melhor = Math.min(u.melhor, j.pos); u.nv.push(p.nv); u.poder.push(p.poder || 0); u.shiny += p.shiny ? 1 : 0; u.tm += p.tm ? 1 : 0; u.aoe += p.aoe ? 1 : 0;
+  }
+  return { m, jogs: jogs.length };
+}
+function renderMetaPvp(fichas) {
+  const out = $("pvp-out");
+  if (!out) return;
+  if (!pvpMeta) {
+    if (!pvpMetaPedido) { pvpMetaPedido = true; fetch("dados/pvp-meta.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { pvpMeta = j; if (j) renderTime(); else out.innerHTML = '<p class="muted small">O meta do PvP chega com as próximas coletas.</p>'; }).catch(() => { out.innerHTML = '<p class="muted small">O meta do PvP chega com as próximas coletas.</p>'; }); }
+    return;
+  }
+  const faixa = state.pvpFaixa || 100;
+  const { m, jogs } = usoNoMeta(pvpMeta, faixa);
+  const lidos = pvpMeta.jogadores.filter((j) => Array.isArray(j.time) && j.time.length).length;
+  const med = (a) => (a.length ? quant(a.slice().sort((x, y) => x - y), 0.5) : NaN);
+  const pct = (x, n) => (n ? `${Math.round(x / n * 100)}%` : "—");
+  const lista = [...m.values()].sort((a, b) => b.times - a.times || a.melhor - b.melhor).slice(0, 15);
+  const todosPoder = [...m.values()].flatMap((u) => u.poder).filter((p) => p > 0);
+  // o seu time contra o topo (usa a faixa do top 100 inteiro)
+  const tudo = usoNoMeta(pvpMeta, 100).m;
+  const linhaSua = (f) => {
+    if (!f?.species) return "";
+    const exata = tudo.get(norm(f.species)), mega = tudo.get(norm("Mega " + f.species.replace(/^mega\s+/i, "")));
+    const usos = [exata, mega].filter(Boolean);
+    const poderTxt = f.poder > 0 ? ` (⚔ ${short(f.poder)})` : "";
+    if (!usos.length) return `<li><b>${esc(f.species)}</b>${poderTxt}: nenhum time do top 100 usa ${esc(f.species)} nem a Mega dela.</li>`;
+    return `<li><b>${esc(f.species)}</b>${poderTxt}: ${usos.map((u) => { const min = Math.min(...u.poder.filter((p) => p > 0));
+      return `<b>${esc(u.nome)}</b> está em ${u.times} time${u.times > 1 ? "s" : ""} do top 100 (melhor posição: ${u.melhor}º), com ⚔ de ${short(min)} a ${short(Math.max(...u.poder))}${f.poder > 0 && min > 0 ? ` — o seu tem <b>${nf(0).format(f.poder / min * 100)}%</b> do mais fraco` : ""}`; }).join("; ")}.</li>`;
+  };
+  out.innerHTML = `<h3 style="margin-top:14px">Meta do PvP Ranqueado</h3>
+    <p class="muted small">Times dos 100 primeiros da escada (${lidos} de ${pvpMeta.jogadores.length} lidos; atualizado ${fmtIdade(Date.parse(pvpMeta.em))} atrás). O jogo só mostra o topo${pvpMeta.total ? `, de ${nf(0).format(pvpMeta.total)} classificados` : ""}. Um pokémon no topo tem ⚔ mediano de <b>${short(med(todosPoder))}</b>.</p>
+    <div class="seg" role="group" aria-label="Faixa do ranking">${[10, 50, 100].map((n) => `<button data-pf="${n}" aria-pressed="${faixa === n}">Top ${n}</button>`).join("")}</div>
+    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Times</th><th class="r">Melhor posição</th><th class="r">Nv típico</th><th class="r" title="Poder (⚔), a mesma escala da ficha">⚔ típico</th><th class="r">✨</th><th class="r">TM</th><th class="r">AoE</th></tr></thead><tbody>
+      ${lista.map((u) => { const foto = urlFoto(u.nome, u.shiny > u.times / 2); return `<tr><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(u.nome)}</td><td class="r n">${u.times} <span class="muted small">(${pct(u.times, jogs)})</span></td><td class="r n">${u.melhor}º</td><td class="r n">${nf(0).format(med(u.nv))}</td><td class="r n">${short(med(u.poder))}</td><td class="r n">${pct(u.shiny, u.times)}</td><td class="r n">${pct(u.tm, u.times)}</td><td class="r n">${pct(u.aoe, u.times)}</td></tr>`; }).join("")}
+    </tbody></table></div>` : '<p class="muted">Ainda sem times lidos nessa faixa.</p>'}
+    ${fichas.length ? `<h3 style="margin-top:10px">Seu time contra o topo</h3><ul class="pvp-seu">${fichas.map(linhaSua).join("")}</ul>` : '<p class="muted small">Cole as fichas do seu time acima para ver como cada um se compara com o topo.</p>'}`;
+  out.querySelectorAll("[data-pf]").forEach((b) => { b.onclick = () => { state.pvpFaixa = +b.dataset.pf; renderMetaPvp(fichas); }; });
+}
+
 async function renderTime() {
   const out = $("time-out");
   const fichas = [1, 2, 3, 4].map((i) => $(`tm-f${i}`).value.trim()).filter(Boolean).map((t) => ({ t, f: parseFicha(t) }));
+  renderMetaPvp(fichas.map((x) => x.f));
   // resumo de cada ficha colada, embaixo da caixa
   [1, 2, 3, 4].forEach((i) => {
     const txt = $(`tm-f${i}`).value.trim(), r = $(`tm-r${i}`);
@@ -2158,7 +2209,7 @@ async function renderTime() {
     <h3 style="margin-top:6px">Quem completa o time${orc > 0 ? ` por até ${fmtVal(orc)} ${unit()}` : ""}</h3>
     ${top.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th>Tipos</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r" title="Poder no PvE (⚔) que o jogo mostra na ficha">Poder</th><th class="r">Preço</th><th class="r">Justo</th><th>Resiste a</th><th>Passa a acertar</th><th class="r">Encaixe</th></tr></thead><tbody>
       ${top.map((c) => { const a = c.a, foto = urlFoto(a.species, a.shiny); const est = estimate({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny }, state.kept, state.fim);
-        return `<tr class="click" data-tm="${a.id}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}</td>
+        return `<tr class="click" data-tm="${a.id}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${(() => { if (!pvpMeta) return ""; const u = [...usoNoMeta(pvpMeta, 100).m.values()].filter((x) => familiaPk(x.nome) === familiaPk(a.species)); const n = u.reduce((t, x) => t + x.times, 0); return n ? ` <span class="tag" title="Aparece em ${n} time${n > 1 ? "s" : ""} do top 100 do PvP (${u.map((x) => x.nome).join(", ")})">meta · ${n}</span>` : ""; })()}</td>
           <td>${c.tipos.map(chipTipo).join("")}</td><td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
           <td class="r n">${c.poder ? short(c.poder) : "—"}</td><td class="r n"><b>${fmtShow(c.precoGem)}</b></td><td class="r n muted">${est.items.length ? fmtShow(est.p50) : "—"}</td>
           <td>${c.corrige.map(chipTipo).join("") || '<span class="muted">—</span>'}${c.piora.length ? ` <span class="ruim small" title="Também apanha deste tipo">fraco a ${c.piora.map((t) => TIPOS_PT[t]).join(", ")}</span>` : ""}</td>
