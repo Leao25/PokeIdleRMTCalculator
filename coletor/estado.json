@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "FLYING"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "GRASS"
     },
     {
@@ -94,10 +90,18 @@
       "novas": 404,
       "cortado": false,
       "em": "2026-10-15T08:41:32.881Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FLYING",
+      "linhas": 3249,
+      "novas": 424,
+      "cortado": false,
+      "em": "2026-10-15T10:44:38.709Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 60,
+  "livroRodizio": 85,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T06:38:30.517Z"
