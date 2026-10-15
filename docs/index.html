@@ -360,7 +360,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
         <section class="panel" id="compra">
           <div><span class="lbl">Antes de comprar</span><h2>Esse anúncio vale o preço?</h2></div>
           <p class="muted small">No Mercado, abra a ficha do pokémon anunciado, clique em <b>Copiar p/ ChatGPT</b> e cole na caixa ao lado. Depois digite o preço do anúncio.</p>
-          <label class="calc-linha compra-linha" for="c-anuncio">Está anunciado por <input id="c-anuncio" inputmode="numeric" placeholder="3.000" aria-label="Preço do anúncio"> <span class="u">Gemas</span></label>
+          <label class="calc-linha compra-linha" for="c-anuncio">Está anunciado por <input id="c-anuncio" inputmode="decimal" placeholder="3.000 ou 1,13M" aria-label="Preço do anúncio"> <span class="u">Gemas</span></label>
           <div id="compra-out"></div>
         </section>
       </div>
@@ -533,6 +533,23 @@ try {
 // ---------- números ----------
 const nf = (d = 0) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: d, minimumFractionDigits: d });
 const parseBR = (s) => { if (s == null) return NaN; s = String(s).trim(); if (!s) return NaN; return parseFloat(s.replace(/\./g, "").replace(",", ".")); };
+/**
+ * Valor digitado ou copiado do jogo: "1,13M", "20M", "1.5B", "250K", "3.000", "3000", "1,5 bi".
+ * Com letra, o ponto ou a vírgula é decimal; sem letra, "3.000" é milhar e "2,5" é decimal.
+ */
+function parseValor(s) {
+  if (s == null) return NaN;
+  const t = String(s).trim().toLowerCase().replace(/\s+/g, "").replace(/coins?|gemas?|💎/g, "");
+  const m = t.match(/^([\d.,]+)(k|mil|kk|mi|m|bi|b|t)?$/);
+  if (!m) return parseBR(s);
+  let n = m[1];
+  const mult = { k: 1e3, mil: 1e3, kk: 1e6, mi: 1e6, m: 1e6, bi: 1e9, b: 1e9, t: 1e12 }[m[2]] || 1;
+  if (n.includes(".") && n.includes(",")) n = n.replace(/\./g, "").replace(",", ".");
+  else if (n.includes(",")) n = n.replace(/,/g, ".");
+  else if (n.includes(".") && mult === 1 && /^\d{1,3}(\.\d{3})+$/.test(n)) n = n.replace(/\./g, "");
+  const v = parseFloat(n) * mult;
+  return Number.isFinite(v) ? v : NaN;
+}
 const parseEN = (s) => { if (s == null) return NaN; s = String(s).trim(); if (!s) return NaN; return parseFloat(s.replace(/,/g, "")); };
 function short(v) {
   const a = Math.abs(v);
@@ -1042,7 +1059,7 @@ function precoParaReceber(liq) {
 }
 function atualizarCalcs() {
   document.querySelectorAll("#calcs .u, #time .u, #trocar .u").forEach((u) => { u.textContent = unit(); });
-  const liq = parseBR($("c-liq").value);
+  const liq = parseValor($("c-liq").value);
   if (liq > 0) {
     const p = precoParaReceber(liq);
     $("c-liq-out").innerHTML = `Anuncie por <b>${fmtVal(p)}</b>: a comissão leva ${fmtVal(p - liquido(p))} (${nf(1).format((1 - liquido(p) / p) * 100)}%).`;
@@ -1052,7 +1069,7 @@ function atualizarCalcs() {
 function renderCompra() {
   document.querySelectorAll("#compra .u").forEach((u) => { u.textContent = unit(); });
   const out = $("compra-out");
-  const preco = parseBR($("c-anuncio").value);
+  const preco = parseValor($("c-anuncio").value);
   const est = state.est, f = state.f;
   if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon anunciado na caixa ao lado.</p>'; return; }
   if (!est?.items?.length) { out.innerHTML = `<p class="muted">Sem vendas parecidas com esse ${esc(f.species)}${f.shiny ? " shiny" : ""} no período para comparar. Tente um período maior.</p>`; return; }
@@ -1711,7 +1728,7 @@ async function renderInvestir() {
 async function renderTrocar() {
   const out = $("trocar-out");
   const f = state.f;
-  const orc = parseBR($("tr-orc").value);
+  const orc = parseValor($("tr-orc").value);
   document.querySelectorAll("#trocar .u").forEach((u) => { u.textContent = unit(); });
   if (!f?.species) { out.innerHTML = '<p class="muted">Cole a ficha do pokémon que você usa hoje, na caixa ao lado.</p>'; return; }
   if (!(orc > 0)) { out.innerHTML = '<p class="muted">Digite quanto você aceita gastar.</p>'; return; }
@@ -1897,7 +1914,7 @@ async function renderTime() {
   // candidatos: anúncios dentro do orçamento, fora das espécies que o time já tem
   let A;
   try { A = await carregarAnuncios(); } catch (e) { out.innerHTML = grade + '<p class="muted">Os anúncios ainda não foram coletados.</p>'; return; }
-  const orc = parseBR($("tm-orc").value);
+  const orc = parseValor($("tm-orc").value);
   const orcGem = orc > 0 ? (state.moeda === "gemas" ? orc : orc / state.rate) : Infinity;
   const jaTem = new Set(membros.map((m) => norm(m.esp.nome)));
   const poderes = membros.map((m) => m.poder).filter((p) => p > 0).sort((a, b) => a - b);
