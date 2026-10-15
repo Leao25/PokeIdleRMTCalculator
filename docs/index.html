@@ -1057,13 +1057,15 @@ function renderCompra() {
     return;
   }
   const dif = preco / j - 1;
-  const cls = preco <= p25 ? "bom" : preco <= p75 ? "meio" : "ruim";
-  const txt = cls === "bom" ? "Barato" : cls === "meio" ? "Preço normal" : "Caro";
+  // o selo olha a distância até o preço justo e a faixa das vendas parecidas
+  const nivelCompra = dif <= -0.40 ? "otimo" : (dif <= -0.15 || preco <= p25) ? "bom" : dif <= 0.15 ? "justo" : preco <= p75 ? "acima" : "caro";
+  const cls = { otimo: "bom", bom: "bom", justo: "meio", acima: "meio", caro: "ruim" }[nivelCompra];
+  const txt = { otimo: "Vale muito a pena", bom: "Vale a pena", justo: "Preço justo", acima: "Acima do justo", caro: "Caro" }[nivelCompra];
   const lo = Math.min(p25, preco) * 0.85, hi = Math.max(p75, preco) * 1.15;
   const pos = (v) => `${((v - lo) / (hi - lo) * 100).toFixed(1)}%`;
   out.innerHTML = `<div class="veredito">
     <span class="selo ${cls}">${txt}</span>
-    <p>O anúncio está <b>${nf(0).format(Math.abs(dif) * 100)}% ${dif < 0 ? "abaixo" : "acima"}</b> do preço justo de um <b>${nome}</b> (${fmtVal(j)} ${unit()}).${cls === "bom" ? " Abaixo de 3 em cada 4 vendas parecidas." : cls === "ruim" ? " Acima de 3 em cada 4 vendas parecidas." : ""}</p>
+    <p>O anúncio está <b>${nf(0).format(Math.abs(dif) * 100)}% ${dif < 0 ? "abaixo" : "acima"}</b> do preço justo de um <b>${nome}</b> (${fmtVal(j)} ${unit()}).${preco <= p25 ? " Mais barato que 3 em cada 4 vendas parecidas." : preco > p75 ? " Mais caro que 3 em cada 4 vendas parecidas." : ""}${state.est.ess < 3 ? " Poucas vendas parecidas: confira o laudo antes." : ""}</p>
     <div class="faixa" role="img" aria-label="Faixa normal de ${fmtVal(p25)} a ${fmtVal(p75)}; anúncio a ${fmtVal(preco)}">
       <span class="trilho"></span>
       <span class="normal" style="left:${pos(p25)};width:calc(${pos(p75)} - ${pos(p25)})"></span>
