@@ -163,6 +163,9 @@ th.ordena[aria-sort="ascending"]::after { content: " ▲"; color: var(--acc); }
 th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .tema { border: 1px solid var(--line); background: var(--sunk); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 600 .85rem var(--f-body); display: inline-flex; gap: 6px; align-items: center; }
 .tema:hover { border-color: var(--acc); }
+a.tema { text-decoration: none; }
+a.tema[aria-current="page"] { border-color: var(--acc); color: var(--acc); }
+.plugin-pagina { display: grid; gap: 12px; }
 .abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .abas button { border: 0; background: none; padding: 8px 14px 10px; font: 600 .95rem var(--f-display); color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
 .abas button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--acc); }
@@ -299,6 +302,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
         <button id="m-gemas" aria-pressed="true"><span class="dot gem"></span>Gemas</button>
         <button id="m-coins" aria-pressed="false"><span class="dot coin"></span>Coins</button>
       </div>
+      <a class="tema" id="btn-extensao" href="#extensao">🎯 Extensão Sniper</a>
       <button class="tema" id="tema" type="button" aria-label="Alternar entre modo claro e escuro"></button>
       <div class="rate" id="rate-box">1 Gema ≈ <b id="rate">3.000.000</b> Coins</div>
     </div>
@@ -311,8 +315,6 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
     <button role="tab" data-aba="investir" aria-selected="false">Vale investir?</button>
     <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
     <button role="tab" data-aba="time" aria-selected="false">Complete meu time</button>
-    <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
-    <button role="tab" data-aba="sniperitens" aria-selected="false">Sniper de itens</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -441,37 +443,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
               <label class="mini">Buscar <input id="sn-busca" placeholder="espécie" autocomplete="off"></label>
             </div>
           </div>
-          <details class="plugin" id="plugin-pk">
-            <summary><span class="plugin-tag">Plugin opcional</span> <b>Sniper ao vivo</b>: avisos dentro do jogo, em tempo real <span class="muted small">(clique para ver como funciona e instalar)</span></summary>
-            <div class="plugin-corpo">
-              <p class="small">Esta aba é um <b>radar</b>: os dados vêm da última coleta (de hora em hora), e pechinchas costumam sumir em minutos. Para pegar a pechincha na hora, existe o <b>Sniper ao vivo</b>: um script que roda <b>dentro da aba do jogo</b>, no seu navegador, e mostra um painel no canto da tela.</p>
-              <div class="plugin-col">
-                <div><span class="lbl">O que ele faz</span>
-                  <ul class="small">
-                    <li>A cada 30 s a 5 min (você escolhe), pede ao jogo as mesmas telas que você abriria no Mercado: a vitrine de itens e os 24 anúncios de pokémon mais novos.</li>
-                    <li>Compara com a referência do site (mediana de 30 dias por espécie, shiny e potência, ajustada ao nível) e, nos itens, com a média de 7 dias do próprio jogo.</li>
-                    <li>Lista as pechinchas acima do desconto escolhido, com aviso sonoro opcional, e um botão <b>Ver anúncio</b> que abre o anúncio no jogo.</li>
-                    <li><b>Não compra nada sozinho.</b> Comprar é sempre com você.</li>
-                  </ul></div>
-                <div><span class="lbl">Antes de decidir</span>
-                  <ul class="small">
-                    <li>Ele usa a <b>sua sessão</b> do jogo: só funciona com o jogo aberto no navegador e não pausa nenhuma conta.</li>
-                    <li>Os Termos do PokeIdle permitem automações no Mercado (wiki, "Automação de fora do jogo"), e o jogo limita mensagens por segundo; o script consulta devagar, como uma pessoa navegando.</li>
-                    <li>É um script de terceiros, feito para o RMT Calculator, sem ligação com o PokeIdle. O código é aberto: dá para ler antes de instalar.</li>
-                    <li>A referência é simples (não olha nota nem IV): antes de comprar caro, confira o laudo no site.</li>
-                  </ul></div>
-              </div>
-              <span class="lbl">Como instalar (Chrome ou Edge)</span>
-              <ol class="small">
-                <li>Instale a extensão <b>Tampermonkey</b> na loja do Chrome ou do Edge.</li>
-                <li>Libere scripts de usuário: abra <code>chrome://extensions</code> (no Edge, <code>edge://extensions</code>), ligue o <b>Modo de desenvolvedor</b> e, nos <b>Detalhes</b> do Tampermonkey, ligue <b>Permitir scripts de usuário</b> se aparecer.</li>
-                <li>Clique em <a class="btn" href="sniper-ao-vivo.user.js" target="_blank" rel="noopener">Instalar o Sniper ao vivo</a>. O Tampermonkey abre uma página com o código: clique em <b>Instalar</b>.</li>
-                <li>Recarregue a aba do jogo (pokeidle.io). O painel "🎯 Sniper ao vivo" aparece no canto de baixo, à direita. Na primeira vez, o Tampermonkey pode pedir permissão para o script acessar o RMT Calculator: escolha <b>Sempre permitir este domínio</b>.</li>
-                <li>Escolha o desconto mínimo e o intervalo no painel. Para desligar, use <b>Pausar</b> no painel ou desative o script no Tampermonkey.</li>
-              </ol>
-              <p class="small muted">Atualizações chegam sozinhas pelo Tampermonkey. Se você joga com duas contas em navegadores diferentes, instale só no navegador da conta que vai comprar.</p>
-            </div>
-          </details>
+          
           <div id="sniper-out"></div>
         </section>
       </div>
@@ -494,10 +466,17 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             </div>
           </div>
           <p class="muted small">Oportunidades de compra e revenda de itens, como numa bolsa: o anúncio mais barato agora contra o preço médio dos <b>últimos 7 dias</b> (a média que o próprio jogo calcula), na mesma moeda ou trocando Coins por Gemas.</p>
-          <details class="plugin" id="plugin-it">
-            <summary><span class="plugin-tag">Plugin opcional</span> <b>Sniper ao vivo</b>: avisos dentro do jogo, em tempo real <span class="muted small">(clique para ver como funciona e instalar)</span></summary>
+          
+          <div id="si-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="extensao" hidden>
+        <section class="panel">
+          <div class="plugin plugin-pagina" id="extensao-sniper">
+            <div class="head-row"><div><span class="plugin-tag">Extensão opcional</span><h2 style="margin-top:6px">🎯 Sniper ao vivo</h2></div></div>
             <div class="plugin-corpo">
-              <p class="small">Esta aba é um <b>radar</b>: os dados vêm da última coleta (de hora em hora), e pechinchas costumam sumir em minutos. Para pegar a pechincha na hora, existe o <b>Sniper ao vivo</b>: um script que roda <b>dentro da aba do jogo</b>, no seu navegador, e mostra um painel no canto da tela.</p>
+              <p class="small">Pechinchas no Mercado somem em minutos, então o sniper do RMT Calculator roda <b>dentro da aba do jogo</b>, no seu navegador: um script que olha o Mercado de tempos em tempos e mostra as pechinchas num painel no canto da tela, com o lucro de revenda já sem a comissão. Usar é opcional: instale só se quiser.</p>
               <div class="plugin-col">
                 <div><span class="lbl">O que ele faz</span>
                   <ul class="small">
@@ -524,8 +503,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
               </ol>
               <p class="small muted">Atualizações chegam sozinhas pelo Tampermonkey. Se você joga com duas contas em navegadores diferentes, instale só no navegador da conta que vai comprar.</p>
             </div>
-          </details>
-          <div id="si-out"></div>
+          </div>
         </section>
       </div>
 
@@ -1148,14 +1126,16 @@ const tendHTML = (t, lim = 0.03, titulo = "mediana da última semana contra a an
 // ---------- abas ----------
 function abrirAba(aba) {
   if (aba === "itens") aba = "mercado"; // a lista de itens mora na aba Mercado
-  if (!["avaliar", "comprar", "investir", "trocar", "time", "sniper", "sniperitens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (aba === "sniper" || aba === "sniperitens") aba = "extensao"; // os snipers viraram a extensão
+  if (!["avaliar", "comprar", "investir", "trocar", "time", "extensao", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
   // itens usam sempre a média de 7 dias do jogo: o seletor de período (vendas de pokémon) some lá
   $("seg-periodo").hidden = aba === "sniperitens";
   // a ficha só serve onde se avalia um pokémon
-  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "sniperitens", "mercado", "time"].includes(aba));
+  document.querySelector(".grid").classList.toggle("sem-ficha", ["extensao", "mercado", "time"].includes(aba));
+  if (aba === "extensao") $("btn-extensao").setAttribute("aria-current", "page"); else $("btn-extensao").removeAttribute("aria-current");
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") { renderCotacao(); renderItens(); }
