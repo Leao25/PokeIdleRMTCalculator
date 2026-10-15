@@ -2101,46 +2101,79 @@ function analisarTime(E, membros) {
 // ---------- meta do PvP (times do top 100, lidos pelo coletor: dados/pvp-meta.json) ----------
 let pvpMeta = null, pvpMetaPedido = false;
 const familiaPk = (n) => norm(String(n).replace(/^mega\s+/i, "").replace(/\s+[xy]$/i, ""));
-/** Quantos times da faixa usam cada espécie, e como (nível, poder, shiny, TM). */
-function usoNoMeta(meta, faixa) {
+/**
+ * O PODER NO PvP, a mesma conta do jogo (shared/ginasios.mjs, "Poder no PvP" da ficha): no nível que
+ * o PvP conta — inteiro até 150, 150 × (nível/150)^0,45 acima —, o dano por segundo do melhor golpe
+ * × o HP de combate × a defesa média, ÷ 10⁷. Conferido com a ficha: Alakazam P4 Nv ~563 → conta
+ * como 272–273, ⚔ 6.568 calculado contra 6.657 do jogo (a diferença é o nível exato).
+ * stats: os stats REAIS no nível L (da ficha ou do time do ranking); são levados ao nível do PvP.
+ */
+const fmtPvp = (v) => (v >= 100000 ? short(v) : nf(0).format(v));
+const nivelPvp = (n) => { n = Math.max(1, Math.floor(Number(n) || 1)); return n <= 150 ? n : Math.max(150, Math.round(150 * (n / 150) ** 0.45)); };
+function poderPvp(esp, tiposNomes, stats, L, tm) {
+  if (!esp || !stats || !(L > 0)) return 0;
+  const nivel = nivelPvp(L);
+  const s = {}; for (const k of ["hp", "atk", "def", "spAtk", "spDef"]) s[k] = Math.round((Number(stats[k]) || 0) * nivel / L);
+  const golpes = esp.golpes.filter((g) => g[4] <= nivel).map(([pw, cd, fis, ti]) => ({ power: pw, cd: cd * 1000, esp: !fis, tipo: tiposNomes[ti] }));
+  if (tm) golpes.push({ power: 2800, cd: 60000, esp: true, tipo: String(tm).toUpperCase() });
+  const tiposDele = [tiposNomes[esp.t1], esp.t2 >= 0 ? tiposNomes[esp.t2] : null].filter(Boolean);
+  let melhor = { power: 30, cd: 2000, esp: false }, nota = -1;
+  for (const g of golpes) {
+    const a = g.esp ? s.spAtk : s.atk, d = g.esp ? s.spDef : s.def;
+    const n = ((((2 * nivel) / 5 + 2) * g.power * (a / Math.max(1, d))) / 50 + 2) * (tiposDele.includes(g.tipo) ? 1.5 : 1);
+    if (n > nota) { nota = n; melhor = g; }
+  }
+  const dps = (((2 * nivel) / 5 + 2) * melhor.power * Math.max(s.atk, s.spAtk)) / 50 / (Math.max(400, melhor.cd) / 1000);
+  return Math.max(1, Math.round(dps * Math.max(24, Math.round(s.hp * 12)) * ((s.def + s.spDef) / 2) / 1e7));
+}
+/** Quantos times da faixa usam cada espécie, e como (nível, poder no PvP, shiny, TM). */
+function usoNoMeta(meta, faixa, E) {
   const m = new Map();
   const jogs = meta.jogadores.filter((j) => j.pos <= faixa && Array.isArray(j.time) && j.time.length);
   for (const j of jogs) for (const p of j.time) {
-    const k = norm(p.nome), u = m.get(k) || m.set(k, { nome: p.nome, times: 0, melhor: Infinity, nv: [], poder: [], shiny: 0, tm: 0, aoe: 0 }).get(k);
-    u.times++; u.melhor = Math.min(u.melhor, j.pos); u.nv.push(p.nv); u.poder.push(p.poder || 0); u.shiny += p.shiny ? 1 : 0; u.tm += p.tm ? 1 : 0; u.aoe += p.aoe ? 1 : 0;
+    const k = norm(p.nome), u = m.get(k) || m.set(k, { nome: p.nome, times: 0, melhor: Infinity, nv: [], pvp: [], shiny: 0, tm: 0, aoe: 0 }).get(k);
+    if (p._pvp == null) p._pvp = E ? poderPvp(E.porNome.get(norm(p.nome)), E.tipos, p.stats, p.nv, p.tm) : 0;
+    u.times++; u.melhor = Math.min(u.melhor, j.pos); u.nv.push(p.nv); if (p._pvp > 0) u.pvp.push(p._pvp); u.shiny += p.shiny ? 1 : 0; u.tm += p.tm ? 1 : 0; u.aoe += p.aoe ? 1 : 0;
   }
   return { m, jogs: jogs.length };
 }
-function renderMetaPvp(fichas) {
+async function renderMetaPvp(fichas) {
   const out = $("pvp-out");
   if (!out) return;
+  const E = await carregarEspecies();
   if (!pvpMeta) {
     if (!pvpMetaPedido) { pvpMetaPedido = true; fetch("dados/pvp-meta.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { pvpMeta = j; if (j) renderTime(); else out.innerHTML = '<p class="muted small">O meta do PvP chega com as próximas coletas.</p>'; }).catch(() => { out.innerHTML = '<p class="muted small">O meta do PvP chega com as próximas coletas.</p>'; }); }
     return;
   }
   const faixa = state.pvpFaixa || 100;
-  const { m, jogs } = usoNoMeta(pvpMeta, faixa);
+  const { m, jogs } = usoNoMeta(pvpMeta, faixa, E);
   const lidos = pvpMeta.jogadores.filter((j) => Array.isArray(j.time) && j.time.length).length;
   const med = (a) => (a.length ? quant(a.slice().sort((x, y) => x - y), 0.5) : NaN);
   const pct = (x, n) => (n ? `${Math.round(x / n * 100)}%` : "—");
   const lista = [...m.values()].sort((a, b) => b.times - a.times || a.melhor - b.melhor).slice(0, 15);
-  const todosPoder = [...m.values()].flatMap((u) => u.poder).filter((p) => p > 0);
-  // o seu time contra o topo (usa a faixa do top 100 inteiro)
-  const tudo = usoNoMeta(pvpMeta, 100).m;
+  // o seu time contra o topo, pelo PODER NO PvP (usa o top 100 inteiro)
+  const tudo = usoNoMeta(pvpMeta, 100, E).m;
+  const todosPvp = [...tudo.values()].flatMap((u) => u.pvp).sort((a, b) => a - b);
   const linhaSua = (f) => {
     if (!f?.species) return "";
-    const exata = tudo.get(norm(f.species)), mega = tudo.get(norm("Mega " + f.species.replace(/^mega\s+/i, "")));
-    const usos = [exata, mega].filter(Boolean);
-    const poderTxt = f.poder > 0 ? ` (⚔ ${short(f.poder)})` : "";
-    if (!usos.length) return `<li><b>${esc(f.species)}</b>${poderTxt}: nenhum time do top 100 usa ${esc(f.species)} nem a Mega dela.</li>`;
-    return `<li><b>${esc(f.species)}</b>${poderTxt}: ${usos.map((u) => { const min = Math.min(...u.poder.filter((p) => p > 0));
-      return `<b>${esc(u.nome)}</b> está em ${u.times} time${u.times > 1 ? "s" : ""} do top 100 (melhor posição: ${u.melhor}º), com ⚔ de ${short(min)} a ${short(Math.max(...u.poder))}${f.poder > 0 && min > 0 ? ` — o seu tem <b>${nf(0).format(f.poder / min * 100)}%</b> do mais fraco` : ""}`; }).join("; ")}.</li>`;
+    const esp = E.porNome.get(norm(f.species));
+    const st = f.statsAtuais ? { hp: f.statsAtuais[0], atk: f.statsAtuais[1], def: f.statsAtuais[2], spAtk: f.statsAtuais[3], spDef: f.statsAtuais[4] } : null;
+    const seu = esp && st && f.lvl > 0 ? poderPvp(esp, E.tipos, st, f.lvl, null) : 0;
+    const seuTxt = seu ? ` — <b>Poder no PvP ⚔ ${nf(0).format(seu)}</b> (Nv ${nf(0).format(f.lvl)} conta como ${nivelPvp(f.lvl)})` : " — cole a ficha completa (com a tabela de stats) para calcular o Poder no PvP";
+    const abaixo = seu && todosPvp.length ? todosPvp.filter((p) => p <= seu).length / todosPvp.length : null;
+    // proporção legível: "65% do mais fraco" ou, muito abaixo, "o mais fraco tem ~2.600× o seu"
+    const relacao = (a, b) => (a / b >= 0.01 ? `o seu tem <b>${nf(0).format(a / b * 100)}%</b> do poder do mais fraco` : `o mais fraco tem <b>~${nf(0).format(b / a)}×</b> o poder do seu`);
+    const geral = seu && todosPvp.length ? ` No top 100, o pokémon mais fraco tem ⚔ ${fmtPvp(todosPvp[0])} e o mediano ${fmtPvp(med(todosPvp))}: ${abaixo > 0 ? `o seu passa <b>${nf(0).format(abaixo * 100)}%</b> deles` : relacao(seu, todosPvp[0])}.` : "";
+    const usos = [tudo.get(norm(f.species)), tudo.get(norm("Mega " + f.species.replace(/^mega\s+/i, "")))].filter(Boolean);
+    const especie = usos.length ? ` ${usos.map((u) => { const min = u.pvp.length ? Math.min(...u.pvp) : 0;
+      return `<b>${esc(u.nome)}</b> está em ${u.times} time${u.times > 1 ? "s" : ""} do top 100 (melhor posição: ${u.melhor}º)${min ? `, com ⚔ PvP de ${fmtPvp(min)} a ${fmtPvp(Math.max(...u.pvp))}` : ""}${seu && min ? ` — ${relacao(seu, min)}` : ""}`; }).join("; ")}.` : ` Nenhum time do top 100 usa ${esc(f.species)} nem a Mega dela.`;
+    return `<li><b>${esc(f.species)}</b>${seuTxt}.${geral}${especie}</li>`;
   };
   out.innerHTML = `<h3 style="margin-top:14px">Meta do PvP Ranqueado</h3>
-    <p class="muted small">Times dos 100 primeiros da escada (${lidos} de ${pvpMeta.jogadores.length} lidos; atualizado ${fmtIdade(Date.parse(pvpMeta.em))} atrás). O jogo só mostra o topo${pvpMeta.total ? `, de ${nf(0).format(pvpMeta.total)} classificados` : ""}. Um pokémon no topo tem ⚔ mediano de <b>${short(med(todosPoder))}</b>.</p>
+    <p class="muted small">Times dos 100 primeiros da escada (${lidos} de ${pvpMeta.jogadores.length} lidos; atualizado ${fmtIdade(Date.parse(pvpMeta.em))} atrás). O jogo só mostra o topo${pvpMeta.total ? `, de ${nf(0).format(pvpMeta.total)} classificados` : ""}. Força medida pelo <b>Poder no PvP</b> (a mesma conta da ficha do jogo, com o nível comprimido acima do 150): um pokémon no topo tem ⚔ PvP mediano de <b>${fmtPvp(med(todosPvp))}</b>.</p>
     <div class="seg" role="group" aria-label="Faixa do ranking">${[10, 50, 100].map((n) => `<button data-pf="${n}" aria-pressed="${faixa === n}">Top ${n}</button>`).join("")}</div>
-    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Times</th><th class="r">Melhor posição</th><th class="r">Nv típico</th><th class="r" title="Poder (⚔), a mesma escala da ficha">⚔ típico</th><th class="r">✨</th><th class="r">TM</th><th class="r">AoE</th></tr></thead><tbody>
-      ${lista.map((u) => { const foto = urlFoto(u.nome, u.shiny > u.times / 2); return `<tr><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(u.nome)}</td><td class="r n">${u.times} <span class="muted small">(${pct(u.times, jogs)})</span></td><td class="r n">${u.melhor}º</td><td class="r n">${nf(0).format(med(u.nv))}</td><td class="r n">${short(med(u.poder))}</td><td class="r n">${pct(u.shiny, u.times)}</td><td class="r n">${pct(u.tm, u.times)}</td><td class="r n">${pct(u.aoe, u.times)}</td></tr>`; }).join("")}
+    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Times</th><th class="r">Melhor posição</th><th class="r">Nv típico</th><th class="r" title="Poder no PvP (⚔), a mesma conta da ficha do jogo">⚔ PvP típico</th><th class="r">✨</th><th class="r">TM</th><th class="r">AoE</th></tr></thead><tbody>
+      ${lista.map((u) => { const foto = urlFoto(u.nome, u.shiny > u.times / 2); return `<tr><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(u.nome)}</td><td class="r n">${u.times} <span class="muted small">(${pct(u.times, jogs)})</span></td><td class="r n">${u.melhor}º</td><td class="r n">${nf(0).format(med(u.nv))}</td><td class="r n">${u.pvp.length ? fmtPvp(med(u.pvp)) : "—"}</td><td class="r n">${pct(u.shiny, u.times)}</td><td class="r n">${pct(u.tm, u.times)}</td><td class="r n">${pct(u.aoe, u.times)}</td></tr>`; }).join("")}
     </tbody></table></div>` : '<p class="muted">Ainda sem times lidos nessa faixa.</p>'}
     ${fichas.length ? `<h3 style="margin-top:10px">Seu time contra o topo</h3><ul class="pvp-seu">${fichas.map(linhaSua).join("")}</ul>` : '<p class="muted small">Cole as fichas do seu time acima para ver como cada um se compara com o topo.</p>'}`;
   out.querySelectorAll("[data-pf]").forEach((b) => { b.onclick = () => { state.pvpFaixa = +b.dataset.pf; renderMetaPvp(fichas); }; });
