@@ -235,6 +235,20 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .inv-det summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
 .inv-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
 .inv-card h3 { font-size: 1rem; }
+.time-fichas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 900px) { .time-fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .time-fichas { grid-template-columns: minmax(0, 1fr); } }
+.time-ficha { display: grid; gap: 4px; align-content: start; }
+.time-ficha textarea { min-height: 70px; }
+.time-resumo { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
+.time-resumo .chips { align-items: center; margin-top: 4px; }
+.tipo { display: inline-block; font: 600 .7rem/1.6 var(--f-body); padding: 0 7px; border-radius: 4px; margin-right: 3px; color: #fff; background: #777; white-space: nowrap; }
+.t-normal { background: #8f8f78; } .t-fire { background: #d9662b; } .t-water { background: #4a7fd6; } .t-grass { background: #4f9f3a; }
+.t-electric { background: #c9a10f; } .t-ice { background: #4fb3b0; } .t-fighting { background: #a83a2f; } .t-poison { background: #8c4a9c; }
+.t-ground { background: #a8873f; } .t-flying { background: #7d7ad0; } .t-psychic { background: #d24d79; } .t-bug { background: #8a9a1f; }
+.t-rock { background: #9a8636; } .t-ghost { background: #5f4f8f; } .t-dragon { background: #5d3fd6; } .t-dark { background: #5b4a40; }
+.t-steel { background: #7e8aa0; } .t-fairy { background: #c86fa4; }
+td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
 .pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
 .aviso { color: var(--warn); cursor: help; }
 .spark { width: 80px; height: 20px; display: block; }
@@ -278,6 +292,7 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
     <button role="tab" data-aba="comprar" aria-selected="false">Comprar</button>
     <button role="tab" data-aba="investir" aria-selected="false">Vale investir?</button>
     <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
+    <button role="tab" data-aba="time" aria-selected="false">Complete meu time</button>
     <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
@@ -367,6 +382,23 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
           </div>
           <p class="muted small">Cole a ficha do seu pokémon atual ao lado. O site procura nos anúncios abertos quem farma melhor que ele dentro do seu orçamento.</p>
           <div id="trocar-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="time" hidden>
+        <section class="panel" id="time">
+          <div class="head-row">
+            <div><span class="lbl">Fraquezas e cobertura</span><h2>Complete meu time</h2></div>
+            <div class="farm-ctrl"><label class="mini">Aceito gastar até <span class="calc-linha"><input id="tm-orc" inputmode="numeric" placeholder="sem limite"> <span class="u">Gemas</span></span></label></div>
+          </div>
+          <p class="muted small">Cole a ficha de cada pokémon do seu time (botão Copiar p/ ChatGPT do jogo), até 4. O site mostra as fraquezas do time e procura nos anúncios o 5º que mais ajuda.</p>
+          <div class="time-fichas">
+            <label class="time-ficha"><span class="lbl">Pokémon 1</span><textarea id="tm-f1" rows="3" spellcheck="false" aria-label="Ficha do pokémon 1"></textarea><span class="small muted" id="tm-r1"></span></label>
+            <label class="time-ficha"><span class="lbl">Pokémon 2</span><textarea id="tm-f2" rows="3" spellcheck="false" aria-label="Ficha do pokémon 2"></textarea><span class="small muted" id="tm-r2"></span></label>
+            <label class="time-ficha"><span class="lbl">Pokémon 3</span><textarea id="tm-f3" rows="3" spellcheck="false" aria-label="Ficha do pokémon 3"></textarea><span class="small muted" id="tm-r3"></span></label>
+            <label class="time-ficha"><span class="lbl">Pokémon 4</span><textarea id="tm-f4" rows="3" spellcheck="false" aria-label="Ficha do pokémon 4"></textarea><span class="small muted" id="tm-r4"></span></label>
+          </div>
+          <div id="time-out"></div>
         </section>
       </div>
 
@@ -608,6 +640,7 @@ function parseFicha(t) {
     f.q = parseEN(g(/^\s*-\s*(?:Qualidade|Calidad|Quality)\s*:\s*([\d.]+)/im));
     f.iv = parseEN(g(/^\s*-\s*(?:IV somado|IV total|Total IV)\s*:\s*([\d,]+)/im));
     f.nota = parseEN(g(/^\s*-\s*(?:Nota da Calculadora|Nota de la Calculadora|Calculator Score)\s*:\s*([\d.]+)/im));
+    f.poder = parseEN(g(/^\s*-\s*(?:Poder|Power)\s*\(⚔\)\s*:\s*([\d,]+)/im));
     // A tabela de stats: | Stat | Base | IV (1–32) | Stat atual |
     const tab = t.split(/\r?\n/).filter((l) => /^\s*\|/.test(l)).map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
     const iIv = tab.length ? tab[0].findIndex((c) => /^IV/i.test(c)) : -1;
@@ -629,6 +662,7 @@ function parseFicha(t) {
     f.iv = parseBR(g(/IV\s*(?:somado|total)\s*:?\s*(\d+)/i));
     f.nota = parseBR(g(/(\d+,\d+)\s*\/\s*10/));
     f.shiny = /✨\s*shiny|\bshiny\b/i.test(t);
+    f.poder = parseBR(g(/Poder no PvE\s*⚔?\s*([\d.]+)/i));
     // "HP988IV 30" na tela da ficha
     const ivs = ["HP", "ATK", "DEF", "SP\\.ATK", "SP\\.DEF", "SPD"].map((k) => +(t.match(new RegExp("^" + k + "[\\d.]+IV (\\d+)", "m")) || [])[1]);
     if (ivs.every((v) => v > 0)) f.ivs = ivs;
@@ -870,6 +904,7 @@ function render() {
   if (state.aba === "mercado") renderItens();
   if (state.aba === "investir") renderInvestir();
   if (state.aba === "trocar") renderTrocar();
+  if (state.aba === "time") renderTime();
 
   if (temFicha) {
   grafico(f, kept, est, fim);
@@ -949,12 +984,12 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 // ---------- abas ----------
 function abrirAba(aba) {
   if (aba === "itens") aba = "mercado"; // a lista de itens mora na aba Mercado
-  if (!["avaliar", "comprar", "investir", "trocar", "sniper", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (!["avaliar", "comprar", "investir", "trocar", "time", "sniper", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
   // a ficha só serve onde se avalia um pokémon
-  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "mercado"].includes(aba));
+  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "mercado", "time"].includes(aba));
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") { renderCotacao(); renderItens(); }
@@ -962,6 +997,7 @@ function abrirAba(aba) {
   if (aba === "sniper") renderSniper();
   if (aba === "investir") renderInvestir();
   if (aba === "trocar") renderTrocar();
+  if (aba === "time") renderTime();
 }
 
 // ---------- calculadoras ----------
@@ -973,7 +1009,7 @@ function precoParaReceber(liq) {
   return Math.ceil(5000 + (liq - 4485) / 0.925);
 }
 function atualizarCalcs() {
-  document.querySelectorAll("#calcs .u").forEach((u) => { u.textContent = unit(); });
+  document.querySelectorAll("#calcs .u, #time .u, #trocar .u").forEach((u) => { u.textContent = unit(); });
   const liq = parseBR($("c-liq").value);
   if (liq > 0) {
     const p = precoParaReceber(liq);
@@ -1748,6 +1784,123 @@ $("tema").onclick = () => {
 };
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (!document.documentElement.dataset.theme) aplicarTema(null); });
 
+// ---------- complete meu time ----------
+const TIPOS_PT = { NORMAL: "Normal", FIRE: "Fogo", WATER: "Água", GRASS: "Planta", ELECTRIC: "Elétrico", ICE: "Gelo", FIGHTING: "Lutador", POISON: "Veneno", GROUND: "Terra", FLYING: "Voador", PSYCHIC: "Psíquico", BUG: "Inseto", ROCK: "Pedra", GHOST: "Fantasma", DRAGON: "Dragão", DARK: "Sombrio", STEEL: "Aço", FAIRY: "Fada" };
+const chipTipo = (t) => `<span class="tipo t-${t.toLowerCase()}">${TIPOS_PT[t] || t}</span>`;
+/** Efetividade fora da hunt (PvP): a tabela de tipos sem a ampliação da hunt. */
+const efetPvp = (a, d1, d2) => mult1(a, d1) * (d2 && d2 !== d1 ? mult1(a, d2) : 1);
+
+function membroDoTime(E, f) {
+  const esp = E.porNome.get(norm(f.species)) || E.porNome.get(norm(f.species.replace(/^mega\s+/i, "")));
+  if (!esp) return null;
+  const tipos = [E.tipos[esp.t1], esp.t2 >= 0 ? E.tipos[esp.t2] : null].filter(Boolean);
+  const L = Number.isFinite(f.lvl) ? f.lvl : 100;
+  const golpes = [...new Set(esp.golpes.filter((g) => g[4] <= L && g[0] > 0).map((g) => E.tipos[g[3]]))];
+  return { f, esp, tipos, golpes, poder: f.poder };
+}
+/** Fraquezas e cobertura de um time: para cada tipo de ataque, quantos apanham ×2+ e quantos resistem. */
+function analisarTime(E, membros) {
+  const def = E.tipos.map((a) => {
+    const ms = membros.map((m) => efetPvp(a, m.tipos[0], m.tipos[1]));
+    const fracos = ms.filter((x) => x >= 2).length, resistem = ms.filter((x) => x <= 0.5).length;
+    return { a, ms, fracos, resistem, peso: Math.max(0, fracos - resistem) };
+  });
+  const golpesTime = new Set(membros.flatMap((m) => m.golpes));
+  const cobertura = E.tipos.map((d) => ({ d, ok: [...golpesTime].some((a) => mult1(a, d) >= 2) }));
+  return { def, buracos: def.filter((x) => x.peso >= 1).sort((a, b) => b.peso - a.peso), semCobertura: cobertura.filter((c) => !c.ok).map((c) => c.d) };
+}
+
+async function renderTime() {
+  const out = $("time-out");
+  const fichas = [1, 2, 3, 4].map((i) => $(`tm-f${i}`).value.trim()).filter(Boolean).map((t) => ({ t, f: parseFicha(t) }));
+  // resumo de cada ficha colada, embaixo da caixa
+  [1, 2, 3, 4].forEach((i) => {
+    const txt = $(`tm-f${i}`).value.trim(), r = $(`tm-r${i}`);
+    if (!txt) { r.textContent = ""; return; }
+    const f = parseFicha(txt);
+    r.innerHTML = f.species ? `${f.shiny ? "✨ " : ""}<b>${esc(f.species)}</b> P${f.pot}${Number.isFinite(f.lvl) ? " · Nv " + nf(0).format(f.lvl) : ""}` : '<span class="ruim">não reconheci a espécie</span>';
+  });
+  if (!fichas.length) { out.innerHTML = '<p class="muted">Cole a ficha (Copiar p/ ChatGPT) de cada pokémon do seu time, até 4. O site procura nos anúncios o 5º que mais ajuda o time.</p>'; return; }
+  out.innerHTML = '<p class="muted">Analisando…</p>';
+  const E = await carregarEspecies();
+  const membros = fichas.map((x) => membroDoTime(E, x.f)).filter(Boolean);
+  if (!membros.length) { out.innerHTML = '<p class="muted">Não reconheci nenhuma espécie das fichas.</p>'; return; }
+  const an = analisarTime(E, membros);
+
+  // grade de fraquezas: uma coluna por tipo de ataque, cor pelo saldo
+  const grade = `<div class="tbl"><table class="grade-tipos"><thead><tr><th>Ataque de</th>${membros.map((m) => `<th class="r">${esc(m.esp.nome)}</th>`).join("")}<th class="r">Saldo</th></tr></thead><tbody>
+    ${an.def.filter((x) => x.fracos || x.resistem).sort((a, b) => (b.fracos - b.resistem) - (a.fracos - a.resistem)).map((x) => `<tr><td>${chipTipo(x.a)}</td>${x.ms.map((m) => `<td class="r n ${m >= 2 ? "ruim" : m <= 0.5 ? "bom" : "muted"}">${m === 0 ? "imune" : "×" + nf(m < 1 ? 2 : 0).format(m).replace(/,00$/, "")}</td>`).join("")}<td class="r n"><b class="${x.fracos > x.resistem ? "ruim" : x.resistem > x.fracos ? "bom" : ""}">${x.fracos} fracos · ${x.resistem} resistem</b></td></tr>`).join("")}
+  </tbody></table></div>`;
+
+  // candidatos: anúncios dentro do orçamento, fora das espécies que o time já tem
+  let A;
+  try { A = await carregarAnuncios(); } catch (e) { out.innerHTML = grade + '<p class="muted">Os anúncios ainda não foram coletados.</p>'; return; }
+  const orc = parseBR($("tm-orc").value);
+  const orcGem = orc > 0 ? (state.moeda === "gemas" ? orc : orc / state.rate) : Infinity;
+  const jaTem = new Set(membros.map((m) => norm(m.esp.nome)));
+  const poderes = membros.map((m) => m.poder).filter((p) => p > 0).sort((a, b) => a - b);
+  // o Poder (⚔) da ficha e o "poder" dos anúncios não estão na mesma escala: a força compara só os candidatos
+  const poderRef = null;
+  const cands = [];
+  for (const a of A.lista) {
+    const precoGem = a.moeda === "gemas" ? a.preco : a.preco / state.rate;
+    if (precoGem > orcGem || jaTem.has(norm(a.species))) continue;
+    const esp = E.porNome.get(norm(a.species));
+    if (!esp) continue;
+    const tipos = [E.tipos[esp.t1], esp.t2 >= 0 ? E.tipos[esp.t2] : null].filter(Boolean);
+    const golpes = [...new Set(esp.golpes.filter((g) => g[4] <= a.lvl && g[0] > 0).map((g) => E.tipos[g[3]]))];
+    // tipo: resistir aos buracos do time, sem abrir buraco novo, e cobrir quem o time não acerta
+    let tipo = 0; const corrige = [], cobre = [], piora = [];
+    for (const b of an.buracos) {
+      const m = efetPvp(b.a, tipos[0], tipos[1]);
+      if (m <= 0.5) { tipo += b.peso * (m === 0 ? 1.5 : 1); corrige.push(b.a); }
+      else if (m >= 2) { tipo -= b.peso; piora.push(b.a); }
+    }
+    for (const d of an.semCobertura) if (golpes.some((g) => mult1(g, d) >= 2)) { tipo += 0.5; cobre.push(d); }
+    if (tipo <= 0) continue;
+    cands.push({ a, esp, tipos, precoGem, tipo, corrige, cobre, piora, poder: a.poder || 0 });
+  }
+  const maxPoder = Math.max(1, ...cands.map((c) => c.poder));
+  for (const c of cands) {
+    const forca = poderRef ? Math.min(1.2, c.poder / poderRef) : c.poder / maxPoder;
+    c.forca = forca;
+    c.score = c.tipo * (0.35 + 0.65 * forca);
+  }
+  // um por espécie (o de maior nota), os melhores no topo
+  const porEsp = new Map();
+  for (const c of cands.sort((x, y) => y.score - x.score)) if (!porEsp.has(norm(c.a.species))) porEsp.set(norm(c.a.species), c);
+  const top = [...porEsp.values()].slice(0, 12);
+  const maxScore = Math.max(1e-9, ...top.map((c) => c.score));
+
+  out.innerHTML = `<div class="time-resumo">
+      <div><span class="lbl">Seu time</span><div class="chips">${membros.map((m) => `<span class="tag">${m.f.shiny ? "✨ " : ""}${esc(m.esp.nome)} ${m.tipos.map(chipTipo).join("")}</span>`).join("")}</div></div>
+      <div><span class="lbl">Fraquezas do time</span><div class="chips">${an.buracos.length ? an.buracos.map((b) => `${chipTipo(b.a)}<span class="muted small">${b.fracos}× fraco</span>`).join(" ") : '<span class="bom small">nenhuma fraqueza sem resistência</span>'}</div></div>
+      <div><span class="lbl">Sem golpe super efetivo contra</span><div class="chips">${an.semCobertura.length ? an.semCobertura.map(chipTipo).join("") : '<span class="bom small">o time acerta todos os tipos</span>'}</div></div>
+    </div>
+    <details class="inv-det"><summary>Tabela de fraquezas tipo a tipo</summary>${grade}</details>
+    <h3 style="margin-top:6px">Quem completa o time${orc > 0 ? ` por até ${fmtVal(orc)} ${unit()}` : ""}</h3>
+    ${top.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th>Tipos</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r" title="Poder no PvE (⚔) que o jogo mostra na ficha">Poder</th><th class="r">Preço</th><th class="r">Justo</th><th>Resiste a</th><th>Passa a acertar</th><th class="r">Encaixe</th></tr></thead><tbody>
+      ${top.map((c) => { const a = c.a, foto = urlFoto(a.species, a.shiny); const est = estimate({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny }, state.kept, state.fim);
+        return `<tr class="click" data-tm="${a.id}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}</td>
+          <td>${c.tipos.map(chipTipo).join("")}</td><td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
+          <td class="r n">${c.poder ? short(c.poder) : "—"}</td><td class="r n"><b>${fmtShow(c.precoGem)}</b></td><td class="r n muted">${est.items.length ? fmtShow(est.p50) : "—"}</td>
+          <td>${c.corrige.map(chipTipo).join("") || '<span class="muted">—</span>'}${c.piora.length ? ` <span class="ruim small" title="Também apanha deste tipo">fraco a ${c.piora.map((t) => TIPOS_PT[t]).join(", ")}</span>` : ""}</td>
+          <td>${c.cobre.map(chipTipo).join("") || '<span class="muted">—</span>'}</td>
+          <td class="r" data-v="${c.score.toFixed(3)}"><span class="simbar"><i style="width:${Math.round(c.score / maxScore * 100)}%"></i></span></td></tr>`; }).join("")}
+    </tbody></table></div>` : '<p class="muted">Nenhum anúncio dentro do orçamento corrige as fraquezas do time. Aumente o orçamento.</p>'}
+    <p class="muted small">Fraqueza do time = tipo de ataque contra o qual mais membros apanham (×2 ou ×4) do que resistem. O encaixe soma quanto o candidato resiste a essas fraquezas (imunidade vale mais), desconta as que ele também tem e dá um bônus por acertar tipos que o time não acerta; depois pesa pelo poder dele${poderRef ? ` comparado com o do seu time (⚔ ${short(poderRef)})` : ""}. Tabela de tipos fora da hunt (sem a ampliação ×1,5 da hunt). Um por espécie; clique para abrir na aba Comprar.</p>`;
+  out.querySelectorAll("tr[data-tm]").forEach((tr) => {
+    const a = A.lista.find((x) => String(x.id) === tr.dataset.tm);
+    const go = () => {
+      $("ficha").value = ""; state.ivs = a.ivs || null;
+      fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
+      $("c-anuncio").value = state.moeda === "gemas" ? Math.round(a.moeda === "gemas" ? a.preco : a.preco / state.rate) : Math.round(a.moeda === "coins" ? a.preco : a.preco * state.rate);
+      abrirAba("comprar"); render();
+    };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
+  });
+}
+
 // ---------- eventos ----------
 $("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
@@ -1782,6 +1935,8 @@ $("it-cat").addEventListener("change", renderItens);
 let timerTr = 0;
 $("tr-orc").addEventListener("input", () => { clearTimeout(timerTr); timerTr = setTimeout(renderTrocar, 400); });
 $("tr-crit").addEventListener("change", renderTrocar);
+let timerTm = 0;
+["tm-f1", "tm-f2", "tm-f3", "tm-f4", "tm-orc"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(timerTm); timerTm = setTimeout(renderTime, 400); }));
 let timerIt = 0;
 $("it-busca").addEventListener("input", () => { clearTimeout(timerIt); timerIt = setTimeout(renderItens, 200); });
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
