@@ -198,6 +198,10 @@ a.tema[aria-current="page"] { border-color: var(--acc); color: var(--acc); }
 .calc-out .ruim { color: var(--bad); font-weight: 600; }
 .calc-out .meio { color: var(--warn); font-weight: 600; }
 .farm-ctrl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.farm-extras { margin: 10px 0 4px; align-items: center; font-size: .85rem; }
+.farm-extras .chk { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.farm-extras .mini input { width: 4.5em; }
+.marg { color: var(--warn); cursor: help; }
 .mini { display: grid; gap: 3px; font-size: .75rem; color: var(--muted); font-weight: 600; }
 .mini select { width: auto; }
 .check-mini { display: flex; align-items: center; gap: 6px; align-self: end; padding-bottom: 6px; }
@@ -522,6 +526,13 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
                 <select id="farm-bola"><option value="4">Ultra Ball</option><option value="8">Beast Ball</option><option value="3">Super Ball</option><option value="2">Great Ball</option></select>
               </label>
             </div>
+          </div>
+          <div class="farm-ctrl farm-extras">
+            <label class="chk" title="Golpe especial de 2.800, recarga de 60 s, acerta o alvo e quem estiver colado nele (3×3). O tipo tem que ser um dos tipos do pokémon."><input type="checkbox" id="farm-tm"> TM Elemental</label>
+            <select id="farm-tm-tipo" aria-label="Tipo do TM Elemental"></select>
+            <label class="chk" title="Os golpes passam a acertar todos os selvagens em volta (11×11), o que rende muito quando eles se amontoam em volta do seu pokémon."><input type="checkbox" id="farm-aoe"> TM AoE</label>
+            <label class="chk" title="XP Share: o pokémon do posto da casa ganha esta % do XP que o de batalha ganha, por cima (o de batalha continua com 100%)."><input type="checkbox" id="farm-casa"> Tenho casa</label>
+            <label class="mini">XP Share (%) <input id="farm-casa-pct" inputmode="decimal" placeholder="5"></label>
           </div>
           <div id="farm-out"></div>
         </section>
@@ -1427,6 +1438,13 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     golpes.push({ d: dano(voce.L, pw, fis ? me.atk : me.spAtk, fis ? ele.def : ele.spDef, stab, ef), cd, pronto: 0 });
     melhorEf = Math.max(melhorEf, ef);
   }
+  // TM Elemental (wiki): golpe especial novo, power 2.800, recarga 60 s, tipo de um dos tipos do pokémon;
+  // acerta o alvo e quem estiver colado nele (3×3: até 3 quando o alvo está na diagonal, o caso comum)
+  if (voce.tm) {
+    const ef = efet(voce.tm, tw[0], tw[1]);
+    golpes.push({ d: dano(voce.L, 2800, me.spAtk, ele.spDef, voce.tipos.includes(voce.tm) ? 1.5 : 1, ef), cd: 60, pronto: 0, tm: true });
+    melhorEf = Math.max(melhorEf, ef);
+  }
   golpes.sort((a, b) => b.d - a.d);
   // Speed (wiki): a recarga dos golpes cai até 7% (Speed base da espécie × IV de SPD ÷ 32), e o IV de
   // SPD tira 10 ms por ponto do intervalo entre ataques (0,9 s) e da Investida (2 s).
@@ -1468,6 +1486,14 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
 
   const golpesHist = {};
   let t = 0, abates = 0, vida = hp * HP_VAR[0], proxBasico = 0, inicioLuta = -1, golpesNaLuta = 0, danoTomado = 0;
+  // Em área (TM Elemental 3×3, disco AoE 11×11): o dano também cai em quem está esperando em volta.
+  // "cercando" = quantos selvagens já chegaram e esperam (até 8 em volta, como no jogo); "pre" guarda
+  // o dano que cada um deles já levou antes da vez dele. Sem medição ainda: regra da wiki.
+  let cercando = 0, tUlt = t; const pre = [];
+  const golpeEmArea = (d, tm) => {
+    const k = Math.min(Math.floor(cercando), tm ? 2 : voce.aoe ? 8 : 0);
+    for (let i = 0; i < k; i++) pre[i] = (pre[i] || 0) + d;
+  };
   t += tAndar;
   while (t < SIM_S) {
     const g = golpes.find((x) => x.pronto <= t && x.d > 0);
@@ -1476,8 +1502,10 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
     else if (t >= proxBasico) { d = basico; proxBasico = t + T_INVESTIDA; }
     else { const prox = Math.min(proxBasico, ...golpes.filter((x) => x.d > 0).map((x) => x.pronto)); t = Math.max(t + 0.01, prox); continue; }
     if (inicioLuta < 0) inicioLuta = t;
+    cercando = Math.min(8, cercando + 8 * (t - tUlt) / APROX); tUlt = t;
     golpesNaLuta++;
     vida -= d;
+    if (g?.tm || voce.aoe) golpeEmArea(d, !!g?.tm);
     if (vida <= 0) {
       const dur = t - inicioLuta;
       if (golpesNaLuta > 1) danoTomado += danoNaLuta(dur);
@@ -1485,7 +1513,10 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
       // Enquanto a luta dura, os outros selvagens vêm e ficam em volta esperando a vez (visto no
       // jogo): numa luta longa o próximo já está colado. Caminhada cheia no abate de 1 golpe, e
       // ~0,3 s (um passo) a partir de APROX s de luta.
-      abates++; vida = hp * HP_VAR[abates % HP_VAR.length]; t += Math.max(0.3, tAndar * Math.max(0, 1 - dur / APROX)); inicioLuta = -1; golpesNaLuta = 0;
+      abates++; vida = hp * HP_VAR[abates % HP_VAR.length] - (pre.shift() || 0); cercando = Math.max(0, cercando - 1);
+      // quem já morreu pela área enquanto esperava conta como abate, sem luta
+      while (vida <= 0 && abates < 1e5) { abates++; golpesHist[0] = (golpesHist[0] || 0) + 1; cercando = Math.max(0, cercando - 1); vida = hp * HP_VAR[abates % HP_VAR.length] - (pre.shift() || 0); }
+      t += Math.max(0.3, tAndar * Math.max(0, 1 - dur / APROX)); tUlt = t; inicioLuta = -1; golpesNaLuta = 0;
     } else t += INTERVALO;
   }
   const danoPorAbate = abates ? danoTomado / abates : danoNaLuta(SIM_S);
@@ -1494,7 +1525,10 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   // não há cura natural na hunt (só ao subir de nível): perder mais de uma barra de HP por hora já
   // é gasto de poção de verdade
   const risco = lutas < 1.5 ? "morre" : danoPorAbate * porHora > hpVoce ? "pocao" : "seguro";
-  return { porHora, hp, melhorEf, hpVoce, danoPorAbate, lutas, risco, hpPerdidoH: danoPorAbate * porHora, golpesHist };
+  // golpes por luta de verdade (fora quem morreu pela área esperando a vez)
+  const lutasReais = Object.entries(golpesHist).filter(([k]) => +k > 0), nLutas = lutasReais.reduce((a, [, v]) => a + v, 0);
+  const golpesPorAbate = nLutas ? lutasReais.reduce((a, [k, v]) => a + k * v, 0) / nLutas : 0;
+  return { porHora, hp, melhorEf, hpVoce, danoPorAbate, lutas, risco, hpPerdidoH: danoPorAbate * porHora, golpesHist, golpesPorAbate };
 }
 function chanceCaptura(npc, bola = 4) {
   const c = REGRAS.captura;
@@ -1554,6 +1588,13 @@ async function renderFarm() {
     ivs: state.ivs || [ivMed, ivMed, ivMed, ivMed, ivMed, ivMed], q: Number.isFinite(f.q) ? f.q : 1, pot: f.pot || 1, shiny: f.shiny, golpes: meu.golpes,
     // os stats atuais da ficha já contam refino, lendário ×4, mega, shiny e tudo o mais: valem mais que a conta
     atuais: state.atuais && Math.abs(state.atuais.lvl - L) < 0.5 ? state.atuais.v : null };
+  // TM Elemental: o tipo tem que ser um dos tipos do pokémon; TM AoE e casa vêm das caixas
+  { const sel = $("farm-tm-tipo"), atual = sel.value, ops = voce.tipos.join("|");
+    if (sel.dataset.ops !== ops) { sel.innerHTML = voce.tipos.map((t) => `<option value="${t}">${t[0] + t.slice(1).toLowerCase()}</option>`).join(""); sel.dataset.ops = ops; if (voce.tipos.includes(atual)) sel.value = atual; }
+    sel.disabled = !$("farm-tm").checked; }
+  voce.tm = $("farm-tm").checked ? $("farm-tm-tipo").value || voce.tipos[0] : null;
+  voce.aoe = $("farm-aoe").checked;
+  const casaPct = $("farm-casa").checked ? (parseFloat(String($("farm-casa-pct").value).replace(",", ".")) || 0) : 0;
   // preço dos shiny de cada espécie no período
   const shinyPor = new Map();
   for (const s of state.kept.filter((x) => x.shiny)) { const k = norm(s.species); if (!shinyPor.has(k)) shinyPor.set(k, []); shinyPor.get(k).push(s.gem); }
@@ -1598,7 +1639,7 @@ async function renderFarm() {
     const p4Ajust = (p4.length * (medP4 || 0) + 3 * geralAqui) / (p4.length + 3);
     const p4H = capturasH * chanceP4mais();
     const cValorH = npcH / state.rate + p4H * liquidoGemas(p4Ajust);
-    return { e, outland, risco, lutas, hpPerdidoH, abates: r.porHora, ef: r.melhorEf, shinyH: outland ? 0 : shinyH, med, n: vendas.length, xpH, ouroH,
+    return { e, outland, risco, lutas, hpPerdidoH, gp: r.golpesPorAbate, abates: r.porHora, ef: r.melhorEf, shinyH: outland ? 0 : shinyH, med, n: vendas.length, xpH, ouroH,
       capturasH, npcH, p4H, medP4, nP4: p4.length, cValorH,
       gemasH: !outland && ajustado != null ? shinyH * liquidoGemas(ajustado) : null };
   }).filter((x) => x.abates > 0);
@@ -1620,7 +1661,9 @@ async function renderFarm() {
       const linha = (x) => `<b>${esc(x.e.nome)}</b> <span class="muted">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span>`;
       return `<div class="alert ok farm-top"><div class="farm-top-t">Melhor para XP: ${linha(top)}</div>
         <div class="farm-top-n">~${fmtNiveis(nv)} por hora</div>
-        <div class="small">≈ ${short(top.xpH)} XP/h · ${short(top.ouroH)} Coins/h · ${nf(0).format(top.abates)} abates/h · ${pocao(top)}</div>
+        <div class="small">≈ ${short(top.xpH)} XP/h · ${short(top.ouroH)} Coins/h · ${nf(0).format(top.abates)} abates/h${top.gp > 0 && top.gp < 1.5 ? " (±30%: abates de 1 golpe dependem do mapa)" : ""} · ${pocao(top)}</div>
+        ${casaPct > 0 ? `<div class="small">Casa (${nf(casaPct % 1 ? 1 : 0).format(casaPct)}% de XP Share): o pokémon do posto ganha <b>+${short(top.xpH * casaPct / 100)} XP/h</b>, por cima.</div>` : ""}
+        ${voce.tm || voce.aoe ? `<div class="small muted">Com ${[voce.tm ? "TM Elemental " + voce.tm : "", voce.aoe ? "TM AoE" : ""].filter(Boolean).join(" e ")}: pela regra da wiki, ainda sem medição no jogo.</div>` : ""}
         ${quase ? `<div class="small muted">Quase empatada: ${linha(quase)} (~${fmtNiveis(niveisPorHora(L, quase.xpH))}/h, ${pocao(quase)}). A diferença cabe na margem do cálculo.</div>` : ""}
         ${tranquila && tranquila !== quase ? `<div class="small muted">Mais tranquila: ${linha(tranquila)} (~${fmtNiveis(niveisPorHora(L, tranquila.xpH))}/h, ${pocao(tranquila)}).</div>` : ""}</div>`; })() : ""}
     <div class="farm-modos">
@@ -1639,11 +1682,11 @@ async function renderFarm() {
     </div>
     <div class="tbl"><table><thead><tr><th>Hunt</th><th>Sua vantagem</th><th title="Quantas lutas seu pokémon aguenta sem poção, contando o dano que o selvagem dá">Risco</th><th class="r">Abates/h</th>${!modoXp && comum ? `<th class="r">Capturas/h</th><th class="r">Coins/h no NPC</th><th class="r">1 P4+ a cada</th><th class="r">P4+ vale</th><th class="r">Valor/h (${unit()})</th>` : modoXp ? `<th class="r" title="Quantos níveis o seu pokémon sobe por hora nessa hunt, no nível de agora">Níveis/h</th><th class="r">XP/h</th><th class="r">Coins/h</th>` : `<th class="r">1 shiny a cada</th><th class="r">Shiny vale</th><th class="r">${unit()}/h</th>`}</tr></thead>
     <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, !comum && !modoXp); // shiny só no modo Shiny
-      const balao = `${x.e.nome} Nv ${nf(0).format(x.e.L)}: ~${nf(0).format(x.abates)} abates/h · ${nf(0).format(xpPorAbate(x.e.L))} XP por abate (sem bônus) · ${short(x.xpH)} XP/h · ${short(x.ouroH)} Coins/h${x.risco === "pocao" ? ` · ~${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions/h (${short(x.hpPerdidoH * 0.8)} Coins)` : ""}`;
+      const balao = `${x.e.nome} Nv ${nf(0).format(x.e.L)}: ~${nf(0).format(x.abates)} abates/h · ${nf(0).format(xpPorAbate(x.e.L))} XP por abate (sem bônus) · ${short(x.xpH)} XP/h · ${short(x.ouroH)} Coins/h${x.risco === "pocao" ? ` · ~${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions/h (${short(x.hpPerdidoH * 0.8)} Coins)` : ""}${casaPct > 0 && modoXp ? ` · casa: +${short(x.xpH * casaPct / 100)} XP/h para o pokémon do posto` : ""} · ${nf(1).format(x.gp)} golpe(s) por abate${x.gp > 0 && x.gp < 1.5 ? " (margem maior: depende da caminhada do mapa)" : ""}`;
       return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0" title="${esc(balao)}"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
         <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
         <td data-v="${Math.min(x.lutas, 999).toFixed(1)}"><span class="risco ${x.risco}" title="${x.lutas === Infinity ? "o selvagem não consegue ferir" : `aguenta ~${nf(x.lutas < 10 ? 1 : 0).format(x.lutas)} lutas sem poção; toma ~${short(x.hpPerdidoH)} de dano por hora ≈ ${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions (+1.000 HP, 800 Coins) = ${short(x.hpPerdidoH * 0.8)} Coins/h`}">${x.risco === "seguro" ? "Seguro" : x.risco === "pocao" ? `Poção · ~${short(x.hpPerdidoH / 1000)} Hyper/h` : "Morre"}</span></td>
-        <td class="r n">${nf(0).format(x.abates)}</td>
+        <td class="r n">${nf(0).format(x.abates)}${x.gp > 0 && x.gp < 1.5 ? ' <span class="marg" title="Quase todo abate é de 1 golpe: aqui o ritmo depende da caminhada do mapa, e a margem é maior (±30%)">±</span>' : ""}</td>
         ${!modoXp && comum ? `<td class="r n">${nf(x.capturasH < 10 ? 1 : 0).format(x.capturasH)}</td><td class="r n">${short(x.npcH)}</td>
           <td class="r n">${x.p4H > 0 ? fmtTempo(1 / x.p4H) : "—"}</td>
           <td class="r n">${x.medP4 != null ? `${fmtShow(x.medP4)} <span class="muted">(${x.nP4})</span>` : '<span class="muted">sem vendas</span>'}</td>
@@ -2359,6 +2402,11 @@ camposNivel.forEach((c) => c.addEventListener("input", () => {
 }));
 $("farm-bola").addEventListener("change", renderFarm);
 try { const b = localStorage.getItem("rtm-bonus"); if (b) $("farm-bonus").value = b; } catch (e) {}
+// TM e casa: lembrados neste navegador
+const EXTRAS_FARM = ["farm-tm", "farm-aoe", "farm-casa", "farm-casa-pct", "farm-tm-tipo"];
+try { const x = JSON.parse(localStorage.getItem("rtm-farm-extras") || "{}"); for (const id of EXTRAS_FARM) if (x[id] != null) { if ($(id).type === "checkbox") $(id).checked = !!x[id]; else $(id).value = x[id]; } } catch (e) {}
+const salvarExtras = () => { try { localStorage.setItem("rtm-farm-extras", JSON.stringify(Object.fromEntries(EXTRAS_FARM.map((id) => [id, $(id).type === "checkbox" ? $(id).checked : $(id).value])))); } catch (e) {} };
+for (const id of EXTRAS_FARM) $(id).addEventListener(id === "farm-casa-pct" ? "input" : "change", () => { salvarExtras(); clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 250); });
 let timerBx = 0;
 $("farm-bonus").addEventListener("input", () => { try { localStorage.setItem("rtm-bonus", $("farm-bonus").value); } catch (e) {} clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 300); });
 ["sn-desc", "sn-grupo", "sn-ordem", "sn-conf"].forEach((id) => $(id).addEventListener("change", () => { state.snTodos = false; renderSniper(); }));
