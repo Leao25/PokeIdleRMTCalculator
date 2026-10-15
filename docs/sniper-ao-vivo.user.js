@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.10
+// @version      1.1.0
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -9,6 +9,7 @@
 // @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @connect      pokeidle-rmt-calculator.vercel.app
+// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=1
 // @downloadURL  https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // @updateURL    https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // ==/UserScript==
@@ -19,8 +20,9 @@
 //   a vitrine de itens (menor preço e média de 7 dias de cada item) e os 24 anúncios de pokémon
 //   mais recentes. Com o Mercado aberto na sua tela, pula os anúncios de pokémon para não mexer
 //   no que você está vendo.
-// · Compara com a referência do RMT Calculator (mediana dos últimos 30 dias por espécie, shiny e
-//   potência, ajustada ao nível), baixada uma vez por hora.
+// · Compara com o PREÇO JUSTO do RMT Calculator, com a mesma conta do site (preco.js, via @require):
+//   baixa as vendas dos últimos 30 dias uma vez por hora e avalia cada anúncio como o Avaliar faria.
+//   Enquanto as vendas não chegam, usa a referência resumida (referencia.json).
 // · Mostra as pechinchas num painel no canto da tela. "Ver anúncio" abre o anúncio no jogo, como
 //   o link do chat. Comprar é com você.
 (function () {
@@ -68,7 +70,45 @@
    * pelos de Nv 100 vezes 4,5.
    */
   const faixaDoNivel = (n) => Math.round(2 * Math.log2(Math.max(1, n)));
+
+  // ---------- o mesmo preço justo do site (preco.js) ----------
+  const st = { moeda: 'gemas', rate: 3e6, dias: 30, taxaPk: null };
+  const P = typeof criarPreco === 'function' ? criarPreco(st) : null;
+  let hist = null, histEm = 0;
+  const pegarJson = (url) => new Promise((ok, falha) => GM_xmlhttpRequest({ method: 'GET', url: `${SITE}/${url}?t=${Date.now()}`, onload: (r) => { try { ok(JSON.parse(r.responseText)); } catch (e) { falha(e); } }, onerror: falha }));
+  async function baixarHistorico() {
+    if (!P) return;
+    try {
+      const idx = await pegarJson('dados/indice.json');
+      const meses = await Promise.all(idx.meses.slice(-2).map((m) => pegarJson(`dados/${m}.json`)));
+      const todas = meses.flatMap((m) => m.vendas.map((v) => P.venda(...v)));
+      const fim = Math.max(...todas.map((s) => s.min)), base = todas.filter((s) => s.min >= fim - 30 * 1440);
+      if (idx.cotacao?.coinsPorGema > 0) st.rate = Math.round(idx.cotacao.coinsPorGema / 1000) * 1000;
+      P.limparCaches();
+      st.taxaPk = P.taxaPokemon(base);
+      const kept = {};
+      for (const m of ['coins', 'gemas']) { st.moeda = m; kept[m] = P.limpar(base.map((s) => ({ ...s }))).kept; }
+      hist = { kept, fim, n: base.length }; histEm = Date.now();
+      pintar();
+    } catch (e) { /* tenta na próxima hora */ }
+  }
+  function precoJusto(a) {
+    const f = a.ficha;
+    if (!hist || !f) return null;
+    const moeda = a.moeda === 'gold' ? 'coins' : 'gemas';
+    st.moeda = moeda;
+    const ficha = { species: f.nome, shiny: !!f.shiny, lvl: f.level, pot: f.potencia || 1, nota: f.nota != null ? Number(f.nota) : NaN,
+      q: f.quality != null ? Number(f.quality) : NaN, iv: f.ivTotal != null ? Number(f.ivTotal) : NaN, mega: /^mega\s/i.test(String(f.nome)) };
+    const est = P.estimate(ficha, hist.kept[moeda], hist.fim);
+    if (!(est.p50 > 0) || !est.sameMatch.length) return null;
+    // na unidade interna, Coins vêm ÷ cotação do diamante (como o site exibe): volta para Coins
+    const emMoeda = (v) => (moeda === 'coins' ? v * st.rate : v);
+    return { valor: emMoeda(est.p50), p25: emMoeda(est.p25), n: est.sameMatch.length, convertido: false, misturado: !!est.ref, nPerto: est.ref?.nPerto, mesmaConta: true };
+  }
+
   function referenciaDe(a) {
+    const justo = precoJusto(a);
+    if (justo) return justo;
     const f = a.ficha;
     if (!ref || !f) return null;
     const sh = f.shiny ? 1 : 0, pot = f.potencia || 1, L = f.level || 1;
@@ -199,6 +239,7 @@
   function ciclo() {
     if (cfg.ligado && socket && socket.readyState === 1) {
       if (Date.now() - refEm > 3600e3) baixarReferencia();
+      if (Date.now() - histEm > 3600e3) { histEm = Date.now(); baixarHistorico(); }
       if (cfg.alvo === 'itens') enviar({ t: 'market.itens' });
       if (cfg.alvo === 'pokemon' && !mercadoAbertoNaTela()) {
         setTimeout(() => {
@@ -336,7 +377,7 @@
           <div class="sub">${(() => { const l = liquidoRevenda(x.ref, x.moeda, x.tipo) - x.preco; return l > 0 ? `<span class="desc">+${precoTxt(Math.round(l), x.moeda)}</span> revendendo pela ref., já sem a comissão` : 'sem lucro revendendo pela ref., depois da comissão'; })()}</div>
           <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${Number(x.id) || 0}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${esc(k)}">ok</button>` : ''}</div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
-      <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · referência ${ref ? `de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'carregando'} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. Referência simples (espécie, shiny, potência e nível): confira o laudo no RMT Calculator antes de comprar caro.</div>`;
+      <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · ${hist ? `preço justo do site (${hist.n.toLocaleString('pt-BR')} vendas)` : `referência ${ref ? `resumida de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (carregando as vendas…)` : 'carregando'}`} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. O preço justo é a mesma conta do Avaliar do site, mas o mercado varia muito: confira o laudo antes de comprar caro.</div>`;
   }
   // apito curto (só toca depois de você clicar em algo na página — regra do navegador)
   let audio = null;
@@ -350,6 +391,7 @@
   }
 
   baixarReferencia();
+  histEm = Date.now(); baixarHistorico();
   document.addEventListener('DOMContentLoaded', () => { pintar(); setTimeout(ciclo, 15000); });
   setInterval(pintar, 15000); // atualiza o "há X s"
 })();

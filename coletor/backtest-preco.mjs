@@ -1,4 +1,4 @@
-// Mede o erro do preço justo do site (função estimate de docs/index.html) contra vendas reais.
+// Mede o erro do preço justo (docs/preco.js: o mesmo do site e do Sniper) contra vendas reais.
 //
 // Para cada dia de teste, o Avaliar vê só as vendas ANTERIORES àquele dia (janela de 30 dias) e
 // estima cada venda real do dia com a própria ficha dela (espécie, shiny, nível, potência, nota,
@@ -10,26 +10,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const html = await readFile(path.join(RAIZ, 'docs/index.html'), 'utf8');
-const js = html.split('<script>')[1].split('</script>')[0];
 
-// as funções de preço, copiadas do site como estão (o teste mede o código publicado)
-const pegar = (inicio) => {
-  const i = js.indexOf(inicio);
-  if (i < 0) throw new Error(`não achei ${inicio}`);
-  if (inicio.startsWith('const ')) return js.slice(i, js.indexOf('\n', i));
-  let d = 0, j = js.indexOf('{', i);
-  for (; j < js.length; j++) { if (js[j] === '{') d++; else if (js[j] === '}' && --d === 0) break; }
-  return js.slice(i, j + 1);
-};
-const fontes = ['const quant =', 'const norm =', 'const speciesOf =', 'function venda(', 'let taxaCache', 'function taxaPokemon', 'function emExibicao',
-  'const gemOf =', 'function limpar', 'function dist(', 'function wQuant', 'let elasticCache', 'function elasticidadeNivel', 'function estimate']
-  .map((n) => (n.startsWith('let ') ? js.slice(js.indexOf(n), js.indexOf('\n', js.indexOf(n))) : pegar(n)));
-const state = { moeda: 'coins', rate: 3e6, dias: 30, taxaPk: null };
+// as funções de preço: o mesmo docs/preco.js que o site e o Sniper ao vivo carregam
+let codigo = await readFile(path.join(RAIZ, 'docs/preco.js'), 'utf8');
 // PATCH='[["texto","troca"],…]' testa uma variação da fórmula sem mexer no site
-let codigo = fontes.join('\n');
 for (const [a, b] of JSON.parse(process.env.PATCH || '[]')) { if (!codigo.includes(a)) throw new Error(`patch não achou: ${a}`); codigo = codigo.split(a).join(b); }
-const M = new Function('state', `${codigo}\nreturn { venda, limpar, estimate, taxaPokemon, norm, setCache: () => { elasticCache = null; taxaCache = null; } };`)(state);
+const criarPreco = new Function(`${codigo}
+return criarPreco;`)();
+const state = { moeda: 'coins', rate: 3e6, dias: 30, taxaPk: null };
+const P = criarPreco(state);
+const M = { ...P, setCache: P.limparCaches };
 
 const indice = JSON.parse(await readFile(path.join(RAIZ, 'docs/dados/indice.json'), 'utf8'));
 state.rate = Math.round((indice.cotacao?.coinsPorGema || 3e6) / 1000) * 1000;
