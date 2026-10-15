@@ -193,6 +193,7 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .farm-ctrl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
 .mini { display: grid; gap: 3px; font-size: .75rem; color: var(--muted); font-weight: 600; }
 .mini select { width: auto; }
+.check-mini { display: flex; align-items: center; gap: 6px; align-self: end; padding-bottom: 6px; }
 .farm-modos { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .sp-mini { width: 32px; height: 32px; image-rendering: pixelated; vertical-align: middle; margin: -6px 6px -6px -4px; }
 .ef { font: 600 .75rem var(--f-mono); padding: 1px 6px; border-radius: 4px; background: var(--sunk); }
@@ -294,6 +295,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
     <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
     <button role="tab" data-aba="time" aria-selected="false">Complete meu time</button>
     <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
+    <button role="tab" data-aba="sniperitens" aria-selected="false">Sniper de itens</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -423,6 +425,28 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             </div>
           </div>
           <div id="sniper-out"></div>
+        </section>
+      </div>
+
+      <div class="vista" data-vista="sniperitens" hidden>
+        <section class="panel" id="sniperitens">
+          <div class="head-row">
+            <div><span class="lbl">Comprar barato, vender caro</span><h2>Sniper de itens</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Estratégia
+                <select id="si-estr"><option value="todas">Todas</option><option value="mesma">Revender na mesma moeda</option><option value="gold-orb">Comprar em Coins, vender em Gemas</option><option value="orb-gold">Comprar em Gemas, vender em Coins</option></select>
+              </label>
+              <label class="mini">Lucro mínimo
+                <select id="si-pct"><option value="0.05">5%</option><option value="0.1" selected>10%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="1">100%</option></select>
+              </label>
+              <label class="mini check-mini"><input type="checkbox" id="si-susp"> Mostrar as boas demais</label>
+              <label class="mini">Fila máxima
+                <select id="si-fila"><option value="1">1 dia</option><option value="3" selected>3 dias</option><option value="7">7 dias</option><option value="0">Qualquer</option></select>
+              </label>
+            </div>
+          </div>
+          <p class="muted small">Oportunidades de compra e revenda de itens, como numa bolsa: o anúncio mais barato agora contra o preço médio de 7 dias, na mesma moeda ou trocando Coins por Gemas.</p>
+          <div id="si-out"></div>
         </section>
       </div>
 
@@ -905,6 +929,7 @@ function render() {
   if (state.aba === "investir") renderInvestir();
   if (state.aba === "trocar") renderTrocar();
   if (state.aba === "time") renderTime();
+  if (state.aba === "sniperitens") renderSniperItens();
 
   if (temFicha) {
   grafico(f, kept, est, fim);
@@ -984,12 +1009,12 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 // ---------- abas ----------
 function abrirAba(aba) {
   if (aba === "itens") aba = "mercado"; // a lista de itens mora na aba Mercado
-  if (!["avaliar", "comprar", "investir", "trocar", "time", "sniper", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (!["avaliar", "comprar", "investir", "trocar", "time", "sniper", "sniperitens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
   // a ficha só serve onde se avalia um pokémon
-  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "mercado", "time"].includes(aba));
+  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "sniperitens", "mercado", "time"].includes(aba));
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
   if (aba === "mercado") { renderCotacao(); renderItens(); }
@@ -998,6 +1023,7 @@ function abrirAba(aba) {
   if (aba === "investir") renderInvestir();
   if (aba === "trocar") renderTrocar();
   if (aba === "time") renderTime();
+  if (aba === "sniperitens") renderSniperItens();
 }
 
 // ---------- calculadoras ----------
@@ -1901,6 +1927,95 @@ async function renderTime() {
   });
 }
 
+// ---------- sniper de itens ----------
+const COMISSAO_ITEM = 0.15; // item paga 15% nas duas moedas (wiki, A comissão)
+async function carregarItensDados() {
+  if (!itensDados) itensDados = await (await fetch("dados/itens.json", { cache: "no-cache" })).json();
+  return itensDados;
+}
+/**
+ * As oportunidades de um item. Quatro jeitos de lucrar:
+ *  · revender na mesma moeda: comprar o anúncio mais barato e vender perto da média de 7 dias;
+ *  · Coins → Gemas: comprar em Coins e vender em Gemas (e o contrário).
+ * Para vender, o preço é o MENOR entre a média de 7 dias e o anúncio mais barato da moeda de
+ * venda: é com ele que se entra na fila. A fila diz em quantos dias as unidades anunciadas na
+ * frente somem, no ritmo de vendas de 7 dias.
+ */
+function oportunidadesDoItem(id, x, rate) {
+  const out = [];
+  const lado = (m) => ({
+    min: m === "gold" ? x.minGold : x.minOrb, media: m === "gold" ? x.mediaGold : x.mediaOrb,
+    vendidos: m === "gold" ? x.vendidosGold : x.vendidosOrb, livro: x.livro?.[m] ?? null,
+  });
+  const emGem = (v, m) => (m === "gold" ? v / rate : v);
+  for (const [compra, venda] of [["gold", "gold"], ["orb", "orb"], ["gold", "orb"], ["orb", "gold"]]) {
+    const C = lado(compra), V = lado(venda);
+    if (!(C.min > 0) || !(V.media > 0) || !(V.vendidos > 0)) continue;
+    const precoVenda = V.min > 0 ? Math.min(V.media, V.min) : V.media;
+    // na mesma moeda, quem compra o mais barato vende na média; o menor anúncio é ele mesmo
+    const venderPor = compra === venda ? V.media : precoVenda;
+    const custo = emGem(C.min, compra), liquido = emGem(venderPor * (1 - COMISSAO_ITEM), venda);
+    const lucro = liquido - custo;
+    if (!(lucro > 0)) continue;
+    const porDia = V.vendidos / 7;
+    const naFrente = V.livro ? V.livro.unidades : null;
+    out.push({
+      id, item: x, compra, venda, precoCompra: C.min, precoVenda: venderPor, lucroGem: lucro, lucroPct: lucro / custo,
+      porDia, filaDias: naFrente != null && porDia > 0 ? naFrente / porDia : null,
+      qtdCompra: C.livro?.top?.[0]?.[1] ?? null, // unidades no anúncio mais barato
+      qtdSugerida: Math.max(1, Math.floor(porDia * 2)),
+    });
+  }
+  return out;
+}
+
+async function renderSniperItens() {
+  const out = $("si-out");
+  out.innerHTML = '<p class="muted">Lendo o Mercado…</p>';
+  let D;
+  try { D = await carregarItensDados(); } catch (e) { out.innerHTML = '<p class="muted">Os preços dos itens ainda não foram coletados.</p>'; return; }
+  const rate = state.rate;
+  const estr = $("si-estr").value, minPct = +$("si-pct").value, maxFila = +$("si-fila").value;
+  const temLivro = Object.values(D.itens).some((x) => x.livro);
+  let ops = Object.entries(D.itens).flatMap(([id, x]) => oportunidadesDoItem(+id, x, rate));
+  // "Bom demais": mais de 300% de lucro só entra se o livro de ofertas mostrar fila curta; sem isso,
+  // é quase sempre média distorcida por poucas vendas estranhas ou milhares de unidades já anunciadas.
+  ops.forEach((o) => { o.suspeita = o.lucroPct > 3 && !(o.filaDias != null && maxFila > 0 && o.filaDias <= maxFila); });
+  const mostrarSuspeitas = $("si-susp").checked;
+  const nSusp = ops.filter((o) => o.suspeita).length;
+  ops = ops.filter((o) => o.lucroPct >= minPct
+    && (estr === "todas" || (estr === "mesma" ? o.compra === o.venda : estr === o.compra + "-" + o.venda))
+    && (!(maxFila > 0) || o.filaDias == null || o.filaDias <= maxFila)
+    && (mostrarSuspeitas || !o.suspeita)
+    && o.porDia >= 1);
+  ops.sort((a, b) => b.lucroPct - a.lucroPct);
+  const NOME = { gold: "Coins", orb: "Gemas" };
+  const estrTxt = (o) => o.compra === o.venda ? `Revender em ${NOME[o.venda]}` : `${NOME[o.compra]} → ${NOME[o.venda]}`;
+  const preco = (v, m) => m === "gold" ? short(v) + " Coins" : nf(v < 10 ? 1 : 0).format(v) + " Gemas";
+  const lucroTxt = (g) => state.moeda === "gemas" ? (g < 1 ? short(g * rate) + " Coins" : nf(g < 10 ? 1 : 0).format(g) + " Gemas") : short(g * rate) + " Coins";
+  const c = state.meta?.cotacao;
+  out.innerHTML = `<div class="time-resumo">
+      <div><span class="lbl">Cotação de agora</span><p class="small">1 Gema ≈ <b>${nf(0).format(rate)} Coins</b>${c?.janela ? ` (${c.janela})` : ""}. As contas convertem tudo por ela, e a comissão de item é 15% em qualquer moeda.</p></div>
+      ${nSusp && !mostrarSuspeitas ? `<p class="small muted">${nSusp} oportunidade${nSusp > 1 ? "s" : ""} com mais de 300% de lucro ficaram de fora por parecerem boas demais (marque "Mostrar as boas demais" para ver).</p>` : ""}
+      ${temLivro ? "" : '<div class="alert">A fila de cada moeda (quantas unidades já estão anunciadas na sua frente) chega na próxima coleta. Até lá, confira a fila no jogo antes de comprar para revender.</div>'}
+    </div>
+    ${ops.length ? `<div class="tbl"><table><thead><tr><th>Item</th><th>Estratégia</th><th class="r">Compre por</th><th class="r">Venda por</th><th class="r">Lucro por unidade</th><th class="r">Lucro</th><th class="r" title="Unidades vendidas por dia na moeda de venda (média de 7 dias)">Vendidos/dia</th><th class="r" title="Dias para vender as unidades já anunciadas na moeda de venda, no ritmo de 7 dias">Fila</th><th class="r" title="Cerca de 2 dias de vendas: mais que isso tende a encalhar">Até quantas</th></tr></thead><tbody>
+      ${ops.slice(0, state.siTodos ? 200 : 40).map((o) => `<tr><td>${esc(o.item.nome)} <span class="muted small">${esc(o.item.categoria || "")}</span></td>
+        <td><span class="tag">${estrTxt(o)}</span></td>
+        <td class="r n">${preco(o.precoCompra, o.compra)}${o.qtdCompra ? `<div class="orig">${nf(0).format(o.qtdCompra)} un. nesse preço</div>` : ""}</td>
+        <td class="r n">${preco(o.precoVenda, o.venda)}</td>
+        <td class="r n" data-v="${o.lucroGem}"><b>${lucroTxt(o.lucroGem)}</b></td>
+        <td class="r" data-v="${(o.lucroPct * 100).toFixed(1)}"><span class="pill-desc">+${nf(0).format(o.lucroPct * 100)}%</span>${o.suspeita ? ' <span class="aviso" title="Bom demais para ser verdade sem conferir a fila: a média pode estar distorcida por poucas vendas estranhas, ou já há muitas unidades anunciadas nesse preço">⚠</span>' : ""}</td>
+        <td class="r n">${nf(o.porDia < 10 ? 1 : 0).format(o.porDia)}</td>
+        <td class="r n">${o.filaDias == null ? "—" : o.filaDias < 1 ? "< 1 dia" : nf(o.filaDias < 10 ? 1 : 0).format(o.filaDias) + " dias"}</td>
+        <td class="r n">${nf(0).format(o.qtdSugerida)}</td></tr>`).join("")}
+    </tbody></table></div>
+    ${ops.length > 40 ? `<button class="btn" id="si-todos">${state.siTodos ? "Mostrar menos" : `Mostrar todas (${ops.length})`}</button>` : ""}`
+    : '<p class="muted">Nenhuma oportunidade com esses filtros agora.</p>'}
+    <p class="muted small">Como ler: compre pelo anúncio mais barato da moeda de compra e anuncie na moeda de venda pelo preço mostrado (o menor entre a média de 7 dias e o anúncio mais barato de lá, para entrar na frente da fila). O lucro já desconta os 15% de comissão e converte as moedas pela cotação. "Até quantas" é cerca de 2 dias de vendas: comprar muito mais que isso tende a encalhar ou derrubar o preço. Os preços mudam a cada coleta; confira no jogo antes de comprar.</p>`;
+  const bt = $("si-todos"); if (bt) bt.onclick = () => { state.siTodos = !state.siTodos; renderSniperItens(); };
+}
+
 // ---------- eventos ----------
 $("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
@@ -1935,6 +2050,7 @@ $("it-cat").addEventListener("change", renderItens);
 let timerTr = 0;
 $("tr-orc").addEventListener("input", () => { clearTimeout(timerTr); timerTr = setTimeout(renderTrocar, 400); });
 $("tr-crit").addEventListener("change", renderTrocar);
+["si-estr", "si-pct", "si-fila", "si-susp"].forEach((id) => $(id).addEventListener("change", () => { state.siTodos = false; renderSniperItens(); }));
 let timerTm = 0;
 ["tm-f1", "tm-f2", "tm-f3", "tm-f4", "tm-orc"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(timerTm); timerTm = setTimeout(renderTime, 400); }));
 let timerIt = 0;
