@@ -157,6 +157,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .rate small { flex-basis: 100%; font-size: .72rem; }
 .panel, .vista { grid-template-columns: minmax(0, 1fr); }
 .panel > *, .vista > * { min-width: 0; }
+th.ordena { cursor: pointer; user-select: none; }
+th.ordena:hover { color: var(--ink); }
+th.ordena[aria-sort="ascending"]::after { content: " ▲"; color: var(--acc); }
+th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .tema { border: 1px solid var(--line); background: var(--sunk); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 600 .85rem var(--f-body); display: inline-flex; gap: 6px; align-items: center; }
 .tema:hover { border-color: var(--acc); }
 .abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
@@ -210,6 +214,24 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 .inv-topo { display: flex; flex-wrap: wrap; gap: 10px 32px; align-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); }
 .inv-topo .kv { min-width: 260px; }
 .inv-grade { display: grid; gap: 14px; }
+.inv-heroi { border: 1px solid var(--acc); background: var(--acc-soft); border-radius: 10px; padding: 16px; display: grid; gap: 14px; }
+.inv-id { display: flex; gap: 16px; align-items: center; }
+.inv-id > div { display: grid; gap: 6px; justify-items: start; }
+.selo { font: 700 1.3rem/1 var(--f-display); padding: 8px 14px; border-radius: 8px; background: var(--sunk); }
+.selo.bom { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.selo.meio { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.selo.ruim { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.inv-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .inv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; align-content: start; }
+.tile b { font: 700 1.25rem/1.2 var(--f-display); font-variant-numeric: tabular-nums; }
+.inv-barras { display: grid; gap: 6px; }
+.inv-barra { display: grid; grid-template-columns: minmax(0, 14em) minmax(0, 1fr) 6.5em; gap: 10px; align-items: center; font-size: .84rem; }
+.inv-barra .track { height: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.inv-barra .fill { display: block; height: 100%; background: var(--good); }
+.inv-barra .fill.neg { background: var(--bad); }
+.inv-barra .num { text-align: right; }
+.inv-det summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
 .inv-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
 .inv-card h3 { font-size: 1rem; }
 .pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
@@ -256,7 +278,6 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
     <button role="tab" data-aba="investir" aria-selected="false">Vale investir?</button>
     <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
     <button role="tab" data-aba="sniper" aria-selected="false">Sniper</button>
-    <button role="tab" data-aba="itens" aria-selected="false">Itens</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -372,19 +393,6 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
         </section>
       </div>
 
-      <div class="vista" data-vista="itens" hidden>
-        <section class="panel" id="itens">
-          <div class="head-row">
-            <div><span class="lbl">Pedras, caixas e mais</span><h2>Preço dos itens</h2></div>
-            <div class="farm-ctrl">
-              <label class="mini">Categoria <select id="it-cat"><option value="">Todas as categorias</option></select></label>
-              <label class="mini">Buscar <input id="it-busca" placeholder="Fire Stone" autocomplete="off"></label>
-            </div>
-          </div>
-          <div id="itens-out"></div>
-        </section>
-      </div>
-
       <div class="vista" data-vista="farmar" hidden>
         <section class="panel" id="farm">
           <div class="head-row">
@@ -403,6 +411,16 @@ details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 
       <div class="vista" data-vista="mercado" hidden>
         <section class="panel" id="cotacao"></section>
+        <section class="panel" id="itens">
+          <div class="head-row">
+            <div><span class="lbl">Pedras, caixas e mais</span><h2>Preço dos itens</h2></div>
+            <div class="farm-ctrl">
+              <label class="mini">Categoria <select id="it-cat"><option value="">Todas as categorias</option></select></label>
+              <label class="mini">Buscar <input id="it-busca" placeholder="Fire Stone" autocomplete="off"></label>
+            </div>
+          </div>
+          <div id="itens-out"></div>
+        </section>
         <section class="panel" id="ranking"></section>
       </div>
     </main>
@@ -848,7 +866,7 @@ function render() {
   if (state.aba === "farmar") renderFarm();
   if (state.aba === "mercado") renderCotacao();
   if (state.aba === "sniper") renderSniper();
-  if (state.aba === "itens") renderItens();
+  if (state.aba === "mercado") renderItens();
   if (state.aba === "investir") renderInvestir();
   if (state.aba === "trocar") renderTrocar();
 
@@ -929,18 +947,18 @@ const tendHTML = (t) => t == null ? '<span class="muted">—</span>'
 
 // ---------- abas ----------
 function abrirAba(aba) {
-  if (!["avaliar", "comprar", "investir", "trocar", "sniper", "itens", "farmar", "mercado"].includes(aba)) aba = "avaliar";
+  if (aba === "itens") aba = "mercado"; // a lista de itens mora na aba Mercado
+  if (!["avaliar", "comprar", "investir", "trocar", "sniper", "farmar", "mercado"].includes(aba)) aba = "avaliar";
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
   // a ficha só serve onde se avalia um pokémon
-  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "itens", "mercado"].includes(aba));
+  document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "mercado"].includes(aba));
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
   if (aba === "farmar") renderFarm();
-  if (aba === "mercado") renderCotacao();
+  if (aba === "mercado") { renderCotacao(); renderItens(); }
   if (aba === "comprar") renderCompra();
   if (aba === "sniper") renderSniper();
-  if (aba === "itens") renderItens();
   if (aba === "investir") renderInvestir();
   if (aba === "trocar") renderTrocar();
 }
@@ -1282,7 +1300,7 @@ async function renderSniper() {
       const suspeito = x.desc >= 0.9;
       const original = a.moeda !== state.moeda ? `<div class="orig">${a.moeda === "gemas" ? nf(0).format(a.preco) + " Gemas" : short(a.preco) + " Coins"}</div>` : "";
       return `<tr class="click" data-sn="${a.id}" tabindex="0">
-        <td><span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>${suspeito ? ' <span class="aviso" title="Desconto grande demais: pode ser um anúncio combinado entre amigos, que some na hora">⚠</span>' : ""}${x.confianca < 2 ? ' <span class="muted small" title="Poucas vendas parecidas para comparar">~</span>' : ""}</td>
+        <td data-v="${(x.desc * 100).toFixed(2)}"><span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>${suspeito ? ' <span class="aviso" title="Desconto grande demais: pode ser um anúncio combinado entre amigos, que some na hora">⚠</span>' : ""}${x.confianca < 2 ? ' <span class="muted small" title="Poucas vendas parecidas para comparar">~</span>' : ""}</td>
         <td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${a.tm ? ' <span class="tag">TM</span>' : ""}</td>
         <td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
         <td class="r n"><b>${valor(x.precoGem)}</b>${original}</td><td class="r n muted">${valor(x.est.p50)}</td>
@@ -1342,7 +1360,7 @@ async function renderItens() {
     <div class="tbl"><table><thead><tr><th>Item</th><th class="r">Agora</th><th class="r">Média 7 dias</th><th class="r" title="Menor anúncio contra a média">Agora × média</th><th class="r">Vendidos 7d</th><th class="r">Anúncios</th><th>Tendência</th></tr></thead>
     <tbody>${linhas.map((x) => `<tr><td>${esc(x.nome)} <span class="muted small">${esc(CATS[x.categoria] || x.categoria || "")}</span></td>
       <td class="r n"><b>${v(x.min)}</b></td><td class="r n">${v(x.media)}</td>
-      <td class="r">${x.desc == null ? '<span class="muted">—</span>' : x.desc >= 0.2 ? `<span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>` : x.desc <= -0.2 ? `<span class="tend desce">+${nf(0).format(-x.desc * 100)}%</span>` : `<span class="muted">${x.desc >= 0 ? "−" : "+"}${nf(0).format(Math.abs(x.desc) * 100)}%</span>`}</td>
+      <td class="r"${x.desc == null ? "" : ` data-v="${(x.desc * 100).toFixed(2)}"`}>${x.desc == null ? '<span class="muted">—</span>' : x.desc >= 0.2 ? `<span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>` : x.desc <= -0.2 ? `<span class="tend desce">+${nf(0).format(-x.desc * 100)}%</span>` : `<span class="muted">${x.desc >= 0 ? "−" : "+"}${nf(0).format(Math.abs(x.desc) * 100)}%</span>`}</td>
       <td class="r n">${x.vendidos != null ? nf(0).format(x.vendidos) : "—"}</td><td class="r n">${nf(0).format(x.anuncios || 0)}</td>
       <td>${spark(serieDe(x.id))}</td></tr>`).join("")}</tbody></table></div>
     <p class="muted small">A tendência é o preço médio a cada coleta; ela se forma com o tempo. Um menor anúncio bem abaixo da média é oportunidade de compra; bem acima, quase ninguém vende naquela moeda.</p>`;
@@ -1470,6 +1488,7 @@ async function renderInvestir() {
   const dif = (a, b) => a != null && b != null && b > 0 ? a / b - 1 : null;
   const pct = (x) => x == null ? "" : `<span class="tend ${x > 0.03 ? "sobe" : x < -0.03 ? "desce" : ""}">${x >= 0 ? "+" : "−"}${nf(0).format(Math.abs(x) * 100)}%</span>`;
   const cartoes = [];
+  const opcoes = []; // { nome, ganho } de cada caminho, para o veredito do topo
 
   // 1. upar
   const L = Number.isFinite(f.lvl) ? f.lvl : 100;
@@ -1477,6 +1496,7 @@ async function renderInvestir() {
     .filter((n, i, a) => i === 0 || n > a[i - 1] * 1.1).slice(0, 3);
   const linhasUp = niveis.map((n) => { const ff = { ...f, lvl: n }; const v = valorDe(ff); const fm = forcaFarm(voceDe(E, especie, ff, state.ivs), ctx, E); return { n, v, fm }; });
   const ganhoUp = linhasUp.length ? dif(linhasUp[0].v, agoraV) : null;
+  if (linhasUp.length && linhasUp[0].v != null && agoraV != null) opcoes.push({ nome: `Upar até o Nv ${nf(0).format(linhasUp[0].n)}`, ganho: linhasUp[0].v - agoraV, extra: "sem custo de item; só o tempo de farm" });
   cartoes.push(`<div class="inv-card"><span class="lbl">Upar</span><h3>${ganhoUp == null ? "Sem dados para comparar" : ganhoUp > 0.15 ? "Vale: o preço sobe com o nível" : "Pouco efeito no preço"}</h3>
     <div class="tbl"><table><thead><tr><th>Nível</th><th class="r">Vale</th><th>Força nas hunts altas</th></tr></thead><tbody>
     <tr><td>Agora (Nv ${nf(0).format(L)})</td><td class="r n">${g(agoraV)}</td><td class="small">${farmTxt(agoraF)}</td></tr>
@@ -1498,6 +1518,7 @@ async function renderInvestir() {
       return { d, nivelOk, v, custo, lucro, fm };
     }).sort((a, b) => (b.lucro ?? -1e12) - (a.lucro ?? -1e12));
     const melhor = linhas[0];
+    if (melhor.lucro != null) opcoes.push({ nome: `Evoluir para ${melhor.d.nome}`, ganho: melhor.lucro, extra: `${melhor.custo.nome}${melhor.nivelOk ? "" : `, depois do Nv ${nf(0).format(melhor.d.nivel)}`}` });
     cartoes.push(`<div class="inv-card"><span class="lbl">Evoluir</span><h3>${melhor.lucro == null ? "Sem vendas para comparar" : melhor.lucro > 0 ? `Vale: ${esc(melhor.d.nome)} rende ${g(melhor.lucro)} a mais` : "Não compensa pelo preço"}</h3>
       <div class="tbl"><table><thead><tr><th>Vira</th><th>Custo</th><th class="r">Vale depois</th><th class="r">Ganho líquido</th><th>Força nas hunts altas</th></tr></thead><tbody>
       ${linhas.map((x) => `<tr><td>${esc(x.d.nome)}${x.nivelOk ? "" : ` <span class="muted small">(precisa Nv ${nf(0).format(x.d.nivel)})</span>`}</td>
@@ -1516,6 +1537,7 @@ async function renderInvestir() {
     const custo = custoMega(mega, f.shiny);
     const lucro = v != null && agoraV != null && custo.gem != null ? v - agoraV - custo.gem : null;
     const fm = forcaFarm(voceDe(E, especieMega(E, especie, mega), f, state.ivs), ctx, E);
+    if (lucro != null) opcoes.push({ nome: `Virar ${mega.nome}`, ganho: lucro, extra: custo.nome });
     cartoes.push(`<div class="inv-card"><span class="lbl">Mega Evolução</span><h3>${esc(mega.nome)}: ${lucro == null ? (v == null ? "sem vendas da Mega para comparar" : "sem preço da pedra") : lucro > 0 ? `rende ${g(lucro)} a mais` : "não compensa pelo preço"}</h3>
       <dl class="kv"><dt>Custo</dt><dd>${esc(custo.nome)}${custo.detalhe ? ` (${custo.detalhe})` : ""}: ${g(custo.gem)}</dd>
         <dt>Vale depois</dt><dd>${g(v)}</dd><dt>Ganho líquido</dt><dd>${lucro == null ? "—" : (lucro > 0 ? "+" : "−") + fmtShow(Math.abs(lucro))}</dd>
@@ -1523,10 +1545,30 @@ async function renderInvestir() {
       <p class="muted small">A Mega troca as bases e ganha um golpe de 600 com recarga de 30 s. ${f.shiny ? "Shiny pede a Mega Shiny Stone." : ""}</p></div>`);
   }
 
-  out.innerHTML = `${nivelT > 0 ? "" : '<div class="alert">Diga o nível do treinador no campo acima: a força é medida nas hunts que você alcança. Sem ele, entram todas as hunts do jogo.</div>'}<div class="inv-topo"><div><span class="lbl">Hoje</span><h3>${f.shiny ? "✨ " : ""}${esc(f.species)} P${f.pot} Nv ${nf(0).format(L)}</h3></div>
-      <dl class="kv"><dt>Vale no Mercado</dt><dd>${g(agoraV)} ${unit()}</dd><dt>Força nas hunts altas</dt><dd>${farmTxt(agoraF)}</dd><dt>Melhor hunt de shiny</dt><dd>${agoraShiny.gem ? `${esc(agoraShiny.gem.alvo.nome)} · ${state.moeda === "gemas" ? nf(1).format(agoraShiny.gem.gemasH) : short(agoraShiny.gem.gemasH * state.rate)} ${unit()}/h` : "—"}</dd></dl></div>
+  // veredito: o caminho que mais rende, as estrelas da espécie e os números principais
+  opcoes.sort((a, b) => b.ganho - a.ganho);
+  const top = opcoes[0];
+  const nivelVeredito = !top || agoraV == null ? "meio" : top.ganho > agoraV * 0.15 ? "bom" : top.ganho > 0 ? "meio" : "ruim";
+  const tituloVeredito = !top ? "Sem vendas suficientes para decidir" : nivelVeredito === "bom" ? "Vale investir" : nivelVeredito === "meio" ? "Vale pouco" : "Não compensa investir";
+  const st = speciesStats(state.kept.filter((x) => x.shiny === f.shiny), state.fim).find((r) => norm(r.sp) === norm(f.species));
+  const foto = urlFoto(f.species, f.shiny);
+  const heroi = `<div class="inv-heroi">
+    <div class="inv-id">${foto ? `<img class="sprite${f.shiny ? " shiny" : ""}" src="${foto}" alt="" width="96" height="96" onerror="this.remove()">` : ""}
+      <div><span class="lbl">${f.shiny ? "✨ " : ""}${esc(f.species)} P${f.pot} · Nv ${nf(0).format(L)}</span>
+        <span class="selo ${nivelVeredito}">${tituloVeredito}</span>
+        <p class="small">${top ? `Melhor caminho: <b>${esc(top.nome)}</b> (${top.ganho >= 0 ? "+" : "−"}${g(Math.abs(top.ganho))} ${unit()}; ${esc(top.extra)}).` : "Cole uma ficha com nível para comparar os caminhos."}</p></div></div>
+    <div class="inv-tiles">
+      <div class="tile"><span class="lbl">Vale hoje</span><b>${g(agoraV)}</b><span class="muted small">${unit()}</span></div>
+      <div class="tile"><span class="lbl">Nota de mercado</span><b>${st ? starHTML(st.score, true) + " " + nf(1).format(st.score) : "—"}</b><span class="muted small">${st ? `${st.n} vendas no período` : "sem vendas"}</span></div>
+      <div class="tile"><span class="lbl">Nota da ficha</span><b>${Number.isFinite(f.nota) ? nf(2).format(f.nota) : "—"}</b><span class="muted small">Q ${Number.isFinite(f.q) ? nf(3).format(f.q) : "—"} · IV ${f.iv ?? "—"}</span></div>
+      <div class="tile"><span class="lbl">Força nas hunts altas</span><b>${nf(0).format(agoraF.media)}</b><span class="muted small">abates/h${agoraF.alcance ? ` · ritmo máx. até Nv ${nf(0).format(agoraF.alcance.L)}` : ""}</span></div>
+    </div>
+    ${opcoes.length > 1 ? `<div class="inv-barras">${(() => { const mx = Math.max(...opcoes.map((o) => Math.abs(o.ganho)), 1); return opcoes.map((o) => `<div class="inv-barra"><span>${esc(o.nome)}</span><span class="track"><span class="fill ${o.ganho < 0 ? "neg" : ""}" style="width:${Math.round(Math.abs(o.ganho) / mx * 100)}%"></span></span><span class="num">${o.ganho >= 0 ? "+" : "−"}${g(Math.abs(o.ganho))}</span></div>`).join(""); })()}</div>` : ""}
+  </div>`;
+  out.innerHTML = `${nivelT > 0 ? "" : '<div class="alert">Diga o nível do treinador no campo acima: a força é medida nas hunts que você alcança. Sem ele, entram todas as hunts do jogo.</div>'}${heroi}<details class="inv-det"><summary>Situação de hoje em detalhe</summary><div class="inv-topo"><div><span class="lbl">Hoje</span><h3>${f.shiny ? "✨ " : ""}${esc(f.species)} P${f.pot} Nv ${nf(0).format(L)}</h3></div>
+      <dl class="kv"><dt>Vale no Mercado</dt><dd>${g(agoraV)} ${unit()}</dd><dt>Força nas hunts altas</dt><dd>${farmTxt(agoraF)}</dd><dt>Melhor hunt de shiny</dt><dd>${agoraShiny.gem ? `${esc(agoraShiny.gem.alvo.nome)} · ${state.moeda === "gemas" ? nf(1).format(agoraShiny.gem.gemasH) : short(agoraShiny.gem.gemasH * state.rate)} ${unit()}/h` : "—"}</dd></dl></div></details>
     <div class="inv-grade">${cartoes.join("")}</div>
-    <p class="muted small">Preços de pedras e fragmentos: média de 7 dias do Mercado (aba Itens). Valores do pokémon: o mesmo cálculo do Avaliar, trocando nível ou espécie. "Força nas hunts altas" é a média de abates/h nas 40 hunts mais altas que o treinador alcança (nível do treinador da aba Onde farmar) e até onde ele mata no ritmo máximo: é onde um pokémon mais forte se separa, porque nas hunts baixas todos matam com um golpe.</p>`;
+    <p class="muted small">Preços de pedras e fragmentos: média de 7 dias do Mercado (aba Mercado, lista de itens). Valores do pokémon: o mesmo cálculo do Avaliar, trocando nível ou espécie. "Força nas hunts altas" é a média de abates/h nas 40 hunts mais altas que o treinador alcança (nível do treinador da aba Onde farmar) e até onde ele mata no ritmo máximo: é onde um pokémon mais forte se separa, porque nas hunts baixas todos matam com um golpe.</p>`;
 }
 
 // ---------- quero trocar ----------
@@ -1584,6 +1626,68 @@ async function renderTrocar() {
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
 }
+
+// ---------- ordenar tabelas pela coluna ----------
+// Vale para toda tabela do site. A ordem escolhida é lembrada por tabela (seção + colunas) e volta
+// quando a tabela é redesenhada. Ordena as linhas mostradas; "Mostrar mais" inclui as outras.
+const ordemTabelas = {};
+const chaveTabela = (t) => (t.closest("section")?.id || "") + "|" + [...(t.tHead?.rows[0]?.cells || [])].map((c) => c.textContent.trim()).join("|");
+const textoCelula = (td) => td.textContent.trim().replace(/\s+/g, " ");
+function numeroCelula(td) {
+  if (td.dataset.v != null) return +td.dataset.v;
+  const t = textoCelula(td);
+  if (!t || t === "—" || /^sem /i.test(t)) return null;
+  if (/^neutro/i.test(t)) return 1;
+  if (/^imune/i.test(t)) return 0;
+  const m = t.match(/(▼|−|-)?\s*\+?\s*(\d[\d.]*(?:,\d+)?)\s*(K|M|B)?(?![a-zà-ú])\s*(min|h|dias?|meses?)?/i);
+  if (!m) return null;
+  let v = parseFloat(m[2].replace(/\./g, "").replace(",", ".")) * ({ K: 1e3, M: 1e6, B: 1e9 }[(m[3] || "").toUpperCase()] || 1);
+  const u = (m[4] || "").toLowerCase();
+  if (u === "min") v /= 60; else if (u.startsWith("dia")) v *= 24; else if (u.startsWith("mes")) v *= 720;
+  return m[1] ? -v : v;
+}
+function ordenarTabela(t, col, dir) {
+  const corpo = t.tBodies[0];
+  if (!corpo) return;
+  const linhas = [...corpo.rows];
+  // coluna numérica: a maioria das células COMEÇA com número (ou é "neutro"/"imune"); "Magikarp Nv 1" é texto
+  const comecaNumero = linhas.filter((r) => r.cells[col] && /^(?:[−+▲▼■×~-]\s*)*\d|^(neutro|imune)/i.test(textoCelula(r.cells[col]))).length;
+  const preenchidas = linhas.filter((r) => r.cells[col] && !/^(—|sem )/.test(textoCelula(r.cells[col]))).length;
+  const numerica = comecaNumero > 0 && comecaNumero >= preenchidas / 2;
+  const chave = (r) => r.cells[col] ? (numerica ? numeroCelula(r.cells[col]) : textoCelula(r.cells[col]).replace(/^[^A-Za-zÀ-ú0-9]+/, "").toLowerCase()) : null;
+  linhas.map((r, i) => ({ r, i, k: chave(r) })).sort((a, b) => {
+    if (a.k == null && b.k == null) return a.i - b.i;
+    if (a.k == null) return 1;
+    if (b.k == null) return -1;
+    const c = numerica ? a.k - b.k : a.k.localeCompare(b.k, "pt-BR");
+    return (c || a.i - b.i) * (c ? dir : 1);
+  }).forEach((x) => corpo.appendChild(x.r));
+  [...t.tHead.rows[0].cells].forEach((c, i) => { if (i === col) c.setAttribute("aria-sort", dir > 0 ? "ascending" : "descending"); else c.removeAttribute("aria-sort"); });
+}
+function prepararTabela(t) {
+  if (!t.tHead) return;
+  [...t.tHead.rows[0].cells].forEach((c) => { c.tabIndex = 0; c.classList.add("ordena"); });
+  const o = ordemTabelas[chaveTabela(t)];
+  if (o) ordenarTabela(t, o.col, o.dir);
+}
+document.addEventListener("click", (e) => {
+  const th = e.target.closest("th.ordena");
+  if (!th) return;
+  const t = th.closest("table"), k = chaveTabela(t), col = th.cellIndex;
+  const atual = ordemTabelas[k];
+  // primeiro clique: números do maior para o menor, textos de A a Z
+  const dir = atual && atual.col === col ? -atual.dir : (/^[A-Za-zÀ-ú]/.test(th.textContent.trim()) && ["Pokémon", "Hunt", "Item", "Espécie", "Data"].includes(th.textContent.trim()) ? 1 : -1);
+  ordemTabelas[k] = { col, dir };
+  ordenarTabela(t, col, dir);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches?.("th.ordena")) e.target.click(); });
+new MutationObserver((muts) => {
+  for (const m of muts) for (const n of m.addedNodes) {
+    if (n.nodeType !== 1) continue;
+    if (n.matches?.(".tbl table")) prepararTabela(n);
+    n.querySelectorAll?.(".tbl table").forEach(prepararTabela);
+  }
+}).observe(document.body, { childList: true, subtree: true });
 
 // ---------- tema claro / escuro ----------
 // Sem escolha salva, segue o sistema (prefers-color-scheme); o botão grava a escolha da pessoa.
