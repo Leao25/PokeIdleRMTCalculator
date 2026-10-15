@@ -835,6 +835,11 @@ function parseFicha(t) {
     if (iIv > 0) {
       const ivs = ["HP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"].map((k) => parseEN((tab.find((r) => r[0] === k) || [])[iIv]));
       if (ivs.every(Number.isFinite)) f.ivs = ivs;
+      const iAt = tab[0].findIndex((c) => /atual|current|actual/i.test(c));
+      if (iAt > 0) {
+        const at = ["HP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"].map((k) => parseEN((tab.find((r) => r[0] === k) || [])[iAt]));
+        if (at.every((v) => Number.isFinite(v) && v > 0)) f.statsAtuais = at;
+      }
     }
   } else {
     // Texto copiado da tela da ficha: números no formato brasileiro.
@@ -1161,7 +1166,7 @@ function render() {
   const tg = $("toggle-all"); if (tg) tg.onclick = () => { state.showAll = !state.showAll; render(); };
   document.querySelectorAll("[data-gr]").forEach((b) => b.onclick = () => { state.grupoRank = b.dataset.gr; render(); });
   document.querySelectorAll("#ranking tr.click").forEach((tr) => {
-    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; state.ivs = null; abrirAba("avaliar"); render();
+    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; state.ivs = null; state.atuais = null; abrirAba("avaliar"); render();
       $("verdict").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
@@ -1408,7 +1413,8 @@ const hpMult = () => 12 * REGRAS.multHpSelvagem;
 // (média 10,1K). Com HP fixo o simulador errava quem morre num golpe só; aqui ele gira esta escada.
 const HP_VAR = [0.78, 0.88, 0.96, 1.04, 1.12, 1.24];
 function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
-  const me = stats(voce.base, voce.L, voce.ivs, voce.q, (1 + BONUS_POT[voce.pot - 1]) * (voce.shiny ? 3 : 1));
+  const me = voce.atuais ? Object.fromEntries(['hp', 'atk', 'def', 'spAtk', 'spDef', 'speed'].map((k, i) => [k, voce.atuais[i]]))
+    : stats(voce.base, voce.L, voce.ivs, voce.q, (1 + BONUS_POT[voce.pot - 1]) * (voce.shiny ? 3 : 1));
   const tw = [tipos[alvo.t1], alvo.t2 >= 0 ? tipos[alvo.t2] : null];
   const ele = stats(alvo.base, alvo.L, [16.5, 16.5, 16.5, 16.5, 16.5, 16.5], 1, 1);
   const hp = ele.hp * hpMult();
@@ -1545,7 +1551,9 @@ async function renderFarm() {
   const L = Number.isFinite(f.lvl) ? f.lvl : 100;
   const ivMed = Number.isFinite(f.iv) ? f.iv / 6 : 16.5;
   const voce = { tipos: [E.tipos[meu.t1], meu.t2 >= 0 ? E.tipos[meu.t2] : null].filter(Boolean), base: meu.base, L,
-    ivs: state.ivs || [ivMed, ivMed, ivMed, ivMed, ivMed, ivMed], q: Number.isFinite(f.q) ? f.q : 1, pot: f.pot || 1, shiny: f.shiny, golpes: meu.golpes };
+    ivs: state.ivs || [ivMed, ivMed, ivMed, ivMed, ivMed, ivMed], q: Number.isFinite(f.q) ? f.q : 1, pot: f.pot || 1, shiny: f.shiny, golpes: meu.golpes,
+    // os stats atuais da ficha já contam refino, lendário ×4, mega, shiny e tudo o mais: valem mais que a conta
+    atuais: state.atuais && Math.abs(state.atuais.lvl - L) < 0.5 ? state.atuais.v : null };
   // preço dos shiny de cada espécie no período
   const shinyPor = new Map();
   for (const s of state.kept.filter((x) => x.shiny)) { const k = norm(s.species); if (!shinyPor.has(k)) shinyPor.set(k, []); shinyPor.get(k).push(s.gem); }
@@ -1650,7 +1658,7 @@ async function renderFarm() {
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
   const fm = $("farm-mortes"); if (fm) fm.onchange = () => { state.farmMortes = fm.checked; renderFarm(); };
   out.querySelectorAll("tr[data-farm]").forEach((tr) => {
-    const go = () => { $("ficha").value = ""; state.ivs = null; fichaToFields({ species: tr.dataset.farm, pot: comum ? 4 : 1, shiny: !comum }); abrirAba("avaliar"); render(); };
+    const go = () => { $("ficha").value = ""; state.ivs = null; state.atuais = null; fichaToFields({ species: tr.dataset.farm, pot: comum ? 4 : 1, shiny: !comum }); abrirAba("avaliar"); render(); };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
 }
@@ -1718,7 +1726,7 @@ async function renderSniper() {
   out.querySelectorAll("tr[data-sn]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.sn);
     const go = () => {
-      $("ficha").value = ""; state.ivs = null;
+      $("ficha").value = ""; state.ivs = null; state.atuais = null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -2026,7 +2034,7 @@ async function renderTrocar() {
   out.querySelectorAll("tr[data-tr]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.tr);
     const go = () => {
-      $("ficha").value = ""; state.ivs = a.ivs || null;
+      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -2226,7 +2234,7 @@ async function renderTime() {
   out.querySelectorAll("tr[data-tm]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.tm);
     const go = () => {
-      $("ficha").value = ""; state.ivs = a.ivs || null;
+      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -2327,11 +2335,11 @@ async function renderSniperItens() {
 }
 
 // ---------- eventos ----------
-$("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
+$("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; state.atuais = f.statsAtuais ? { v: f.statsAtuais, lvl: f.lvl } : null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
 $("ex1").onclick = () => { $("ficha").value = EX1; $("ficha").oninput(); };
 $("ex2").onclick = () => { $("ficha").value = EX2; $("ficha").oninput(); };
-$("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
+$("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; state.atuais = null; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
 document.querySelectorAll("[data-aba]").forEach((b) => { b.onclick = () => abrirAba(b.dataset.aba); });
 window.addEventListener("hashchange", () => abrirAba(location.hash.slice(1)));
 $("c-liq").addEventListener("input", atualizarCalcs);
