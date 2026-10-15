@@ -3,24 +3,24 @@
     "2026-09",
     "2026-10"
   ],
-  "total": 10083,
-  "atualizadoEm": "2026-10-15T12:47:46.996Z",
-  "ultimaFonte": "recuperação (elemento=GRASS)",
-  "ultimasNovas": 383,
+  "total": 10190,
+  "atualizadoEm": "2026-10-15T13:49:37.932Z",
+  "ultimaFonte": "coletor",
+  "ultimasNovas": 107,
   "cotacao": {
-    "coinsPorGema": 3234689.659680563,
-    "gemasPorDiamante": 6.324677419354838,
-    "coinsPorDiamante": 20458368.649202242,
+    "coinsPorGema": 3204075.1982826362,
+    "gemasPorDiamante": 6.34254327563249,
+    "coinsPorDiamante": 20321985.60348837,
     "janela": "últimas 24 h",
     "vendas": {
-      "orb": 209,
-      "gold": 583
+      "orb": 196,
+      "gold": 579
     },
     "diamantes": {
-      "orb": 3875,
-      "gold": 2319
+      "orb": 3755,
+      "gold": 2150
     },
-    "em": "2026-10-15T12:47:44.165Z",
-    "media7Jogo": 3103677.5714285714
+    "em": "2026-10-15T13:49:35.398Z",
+    "media7Jogo": 3104186.285714286
   }
 }
