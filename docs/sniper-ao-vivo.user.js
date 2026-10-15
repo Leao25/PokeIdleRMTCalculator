@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.4
+// @version      1.0.5
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -60,23 +60,36 @@
       onload: (r) => { try { ref = JSON.parse(r.responseText); refEm = Date.now(); pintar(); } catch (e) { /* tenta na próxima */ } },
     });
   }
-  /** Preço de referência de um anúncio, na moeda do anúncio. */
+  /**
+   * Preço de referência de um anúncio, na moeda do anúncio, com a mesma ideia do preço justo do site:
+   * a mediana da espécie (mesmo shiny e potência) levada ao nível do anúncio e, quando a espécie
+   * quase não tem vendas perto desse nível, misturada com o que pokémon de QUALQUER espécie, do
+   * mesmo shiny e potência, venderam naquela faixa de nível. Sem isso, um Glaceon Nv 453 era avaliado
+   * pelos de Nv 100 vezes 4,5.
+   */
+  const faixaDoNivel = (n) => Math.round(2 * Math.log2(Math.max(1, n)));
   function referenciaDe(a) {
     const f = a.ficha;
     if (!ref || !f) return null;
-    const g = ref.pk[`${f.nome}|${f.shiny ? 1 : 0}|${f.potencia || 1}`];
+    const sh = f.shiny ? 1 : 0, pot = f.potencia || 1, L = f.level || 1;
+    const g = ref.pk[`${f.nome}|${sh}|${pot}`];
     if (!g) return null;
     const moeda = a.moeda === 'gold' ? 'gold' : 'orb', outra = moeda === 'gold' ? 'orb' : 'gold';
     const taxa = (f.shiny ? ref.taxa?.shiny : ref.taxa?.comum) || ref.taxa?.diamante;
+    const converter = (v) => (moeda === 'gold' ? v * taxa : v / taxa);
     // no comum o preço acompanha o nível; no shiny quase não
     const beta = f.shiny ? 0.1 : 1;
-    const noNivel = (lado) => lado.med * Math.min(8, Math.max(1 / 8, ((f.level || lado.lvl) / Math.max(1, lado.lvl)) ** beta));
-    if (g[moeda]?.n >= 3) return { valor: noNivel(g[moeda]), n: g[moeda].n, convertido: false };
-    if (g[outra]?.n >= 3 && taxa) {
-      const v = noNivel(g[outra]);
-      return { valor: moeda === 'gold' ? v * taxa : v / taxa, n: g[outra].n, convertido: true };
-    }
-    return null;
+    const noNivel = (lado) => lado.med * Math.min(8, Math.max(1 / 8, (L / Math.max(1, lado.lvl)) ** beta));
+    let esp = null, niveis = [], convertido = false, n = 0;
+    if (g[moeda]?.n >= 3) { esp = noNivel(g[moeda]); niveis = g[moeda].niveis || []; n = g[moeda].n; }
+    else if (g[outra]?.n >= 3 && taxa) { esp = converter(noNivel(g[outra])); niveis = g[outra].niveis || []; n = g[outra].n; convertido = true; }
+    if (esp == null) return null;
+    const fx = ref.faixa?.[`${sh}|${pot}|${faixaDoNivel(L)}`];
+    const porFaixa = fx?.[moeda]?.med ?? (fx?.[outra]?.med && taxa ? converter(fx[outra].med) : null);
+    const nPerto = niveis.filter((x) => x >= L / 1.4 && x <= L * 1.4).length;
+    const pesoEspecie = nPerto / (nPerto + 3);
+    if (porFaixa == null || pesoEspecie >= 0.75) return { valor: esp, n, convertido, misturado: false };
+    return { valor: Math.exp(pesoEspecie * Math.log(esp) + (1 - pesoEspecie) * Math.log(porFaixa)), n, convertido, misturado: true, nPerto };
   }
 
   // ---------- o que o jogo responde ----------
@@ -121,7 +134,7 @@
       const f = a.ficha;
       novoAchado(`pk:${a.id}`, {
         tipo: 'pokemon', id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
-        extra: `P${f.potencia || 1} · Nv ${fmt(f.level)} · nota ${f.nota != null ? String(f.nota).replace('.', ',') : '—'}${r.convertido ? ' · ref. da outra moeda' : ''}${desc >= 0.9 ? ' · ⚠ bom demais' : ''}`,
+        extra: `P${f.potencia || 1} · Nv ${fmt(f.level)} · nota ${f.nota != null ? String(f.nota).replace('.', ',') : '—'}${r.convertido ? ' · ref. da outra moeda' : ''}${r.misturado ? ` · ${r.nPerto ? 'poucas' : 'nenhuma'} venda${r.nPerto === 1 ? '' : 's'} da espécie nesse nível` : ''}${desc >= 0.9 ? ' · ⚠ bom demais' : ''}`,
       });
     }
   }
