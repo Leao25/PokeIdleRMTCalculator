@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "PSYCHIC"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "FLYING"
     },
     {
@@ -90,10 +86,18 @@
       "novas": 205,
       "cortado": false,
       "em": "2026-10-15T01:28:21.700Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "PSYCHIC",
+      "linhas": 728,
+      "novas": 404,
+      "cortado": false,
+      "em": "2026-10-15T08:41:32.881Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 75,
+  "livroRodizio": 35,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T06:38:30.517Z"
