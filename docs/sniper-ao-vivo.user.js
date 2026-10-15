@@ -1,0 +1,240 @@
+// ==UserScript==
+// @name         RMT Calculator: Sniper ao vivo
+// @namespace    pokeidle-rmt-calculator
+// @version      1.0.0
+// @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
+// @match        https://pokeidle.io/app*
+// @run-at       document-start
+// @sandbox      JavaScript
+// @grant        unsafeWindow
+// @grant        GM_xmlhttpRequest
+// @connect      pokeidle-rmt-calculator.vercel.app
+// @downloadURL  https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
+// @updateURL    https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
+// ==/UserScript==
+
+// Como funciona
+// · Usa a SUA sessão do jogo (a aba aberta): não entra com outra conta e não pausa nada.
+// · A cada intervalo (padrão 60 s) pede ao jogo as mesmas telas que você abriria no Mercado:
+//   a vitrine de itens (menor preço e média de 7 dias de cada item) e os 24 anúncios de pokémon
+//   mais recentes. Com o Mercado aberto na sua tela, pula os anúncios de pokémon para não mexer
+//   no que você está vendo.
+// · Compara com a referência do RMT Calculator (mediana dos últimos 30 dias por espécie, shiny e
+//   potência, ajustada ao nível), baixada uma vez por hora.
+// · Mostra as pechinchas num painel no canto da tela. "Ver anúncio" abre o anúncio no jogo, como
+//   o link do chat. Comprar é com você.
+(function () {
+  'use strict';
+  const W = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
+  const SITE = 'https://pokeidle-rmt-calculator.vercel.app';
+  const CHAVE = 'rmtSniperAoVivo';
+
+  // ---------- o socket do jogo: guardado quando o jogo o cria ----------
+  let socket = null;
+  const WSOriginal = W.WebSocket;
+  function WSComGancho(...args) {
+    const ws = new WSOriginal(...args);
+    if (String(args[0] || '').includes(W.location.host)) {
+      socket = ws;
+      ws.addEventListener('message', (ev) => { try { aoReceber(JSON.parse(ev.data)); } catch (e) { /* não é JSON */ } });
+    }
+    return ws;
+  }
+  WSComGancho.prototype = WSOriginal.prototype;
+  for (const k of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']) WSComGancho[k] = WSOriginal[k];
+  W.WebSocket = WSComGancho;
+  const enviar = (msg) => { if (socket && socket.readyState === 1) { socket.send(JSON.stringify(msg)); return true; } return false; };
+
+  // ---------- configuração ----------
+  const cfg = Object.assign({ ligado: true, intervalo: 60, desconto: 0.3, som: true, itens: true, pokemon: true, minimizado: false },
+    (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } })());
+  const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(cfg)); } catch (e) { /* sem armazenamento */ } };
+
+  // ---------- referência de preços (do site, de hora em hora) ----------
+  let ref = null, refEm = 0;
+  function baixarReferencia() {
+    GM_xmlhttpRequest({
+      method: 'GET', url: `${SITE}/dados/referencia.json?t=${Date.now()}`,
+      onload: (r) => { try { ref = JSON.parse(r.responseText); refEm = Date.now(); pintar(); } catch (e) { /* tenta na próxima */ } },
+    });
+  }
+  /** Preço de referência de um anúncio, na moeda do anúncio. */
+  function referenciaDe(a) {
+    const f = a.ficha;
+    if (!ref || !f) return null;
+    const g = ref.pk[`${f.nome}|${f.shiny ? 1 : 0}|${f.potencia || 1}`];
+    if (!g) return null;
+    const moeda = a.moeda === 'gold' ? 'gold' : 'orb', outra = moeda === 'gold' ? 'orb' : 'gold';
+    const taxa = (f.shiny ? ref.taxa?.shiny : ref.taxa?.comum) || ref.taxa?.diamante;
+    // no comum o preço acompanha o nível; no shiny quase não
+    const beta = f.shiny ? 0.1 : 1;
+    const noNivel = (lado) => lado.med * Math.min(8, Math.max(1 / 8, ((f.level || lado.lvl) / Math.max(1, lado.lvl)) ** beta));
+    if (g[moeda]?.n >= 3) return { valor: noNivel(g[moeda]), n: g[moeda].n, convertido: false };
+    if (g[outra]?.n >= 3 && taxa) {
+      const v = noNivel(g[outra]);
+      return { valor: moeda === 'gold' ? v * taxa : v / taxa, n: g[outra].n, convertido: true };
+    }
+    return null;
+  }
+
+  // ---------- o que o jogo responde ----------
+  const achados = new Map(); // chave -> achado
+  let ultimaLeitura = 0, pediuAnuncios = false;
+  function aoReceber(m) {
+    if (m.t !== 'market') return;
+    if (m.aba === 'itens' && m.resumo) { avaliarItens(m.resumo, m.medias || {}); ultimaLeitura = Date.now(); pintar(); }
+    if (m.aba === 'vitrine' && pediuAnuncios && (m.pagina ?? 0) === 0) { pediuAnuncios = false; avaliarAnuncios(m.linhas || []); ultimaLeitura = Date.now(); pintar(); }
+  }
+  function novoAchado(chave, dados) {
+    const ja = achados.get(chave);
+    if (ja) { Object.assign(ja, dados, { visto: Date.now() }); return; }
+    achados.set(chave, { ...dados, primeiro: Date.now(), visto: Date.now(), novo: true });
+    if (cfg.som) apitar();
+  }
+  function avaliarItens(resumo, medias) {
+    if (!cfg.itens) return;
+    for (const [id, r] of Object.entries(resumo)) {
+      const md = medias[id] || {};
+      for (const [moeda, min, media, vendidos] of [['gold', r.minGold, md.gold?.media, md.gold?.unidades], ['orb', r.minOrb, md.orb?.media, md.orb?.unidades]]) {
+        if (!(min > 0) || !(media > 0) || !(vendidos >= 20)) continue; // só item que vende de verdade nessa moeda
+        if (moeda === 'orb' && media < 5) continue; // em Gemas, item de 2–3 Gemas não tem desconto possível
+        const desc = 1 - min / media;
+        const chave = `item:${id}:${moeda}`;
+        if (desc >= cfg.desconto) novoAchado(chave, { tipo: 'item', id: +id, nome: nomeItem(id), moeda, preco: min, ref: media, desc, extra: `${fmt(vendidos)} vendidos em 7 dias` });
+        else achados.delete(chave); // o preço voltou ao normal: some da lista
+      }
+    }
+  }
+  function avaliarAnuncios(linhas) {
+    if (!cfg.pokemon) return;
+    for (const a of linhas) {
+      if (a.tipo !== 'pokemon' || !a.ficha || a.estado !== 'aberto') continue;
+      const r = referenciaDe(a);
+      if (!r || !(a.preco > 0)) continue;
+      const desc = 1 - a.preco / r.valor;
+      if (desc < cfg.desconto) continue;
+      const f = a.ficha;
+      novoAchado(`pk:${a.id}`, {
+        tipo: 'pokemon', id: a.id, nome: `${f.shiny ? '✨ ' : ''}${f.nome}`, moeda: a.moeda === 'gold' ? 'gold' : 'orb', preco: a.preco, ref: r.valor, desc,
+        extra: `P${f.potencia || 1} · Nv ${fmt(f.level)} · nota ${f.nota != null ? String(f.nota).replace('.', ',') : '—'}${r.convertido ? ' · ref. da outra moeda' : ''}${desc >= 0.9 ? ' · ⚠ bom demais' : ''}`,
+      });
+    }
+  }
+  // nomes de item: o próprio jogo mostra no Mercado; aqui, os mais comuns pelo id da vitrine
+  let nomesItem = {};
+  GM_xmlhttpRequest({ method: 'GET', url: `${SITE}/dados/itens.json`, onload: (r) => { try { const d = JSON.parse(r.responseText); for (const [id, x] of Object.entries(d.itens || {})) nomesItem[id] = x.nome; } catch (e) { /* sem nomes */ } } });
+  const nomeItem = (id) => nomesItem[id] || `Item ${id}`;
+
+  // ---------- o ciclo ----------
+  const mercadoAbertoNaTela = () => { const l = document.querySelector('#cm-lista'); return !!(l && l.offsetParent !== null); };
+  function ciclo() {
+    if (cfg.ligado && socket && socket.readyState === 1) {
+      if (Date.now() - refEm > 3600e3) baixarReferencia();
+      if (cfg.itens) enviar({ t: 'market.itens' });
+      if (cfg.pokemon && !mercadoAbertoNaTela()) {
+        setTimeout(() => {
+          pediuAnuncios = enviar({ t: 'market.listar', tipo: 'pokemon', moeda: '', busca: '', criterios: [], elemento: '', categoria: '',
+            soShiny: false, soP5: false, soTmElemental: false, soTmAoe: false, semOutland: false, pagina: 0, especieId: 0 });
+        }, 1500);
+      }
+      // achado que não aparece há 10 min sai da lista (foi vendido ou mudou de preço)
+      for (const [k, x] of achados) if (Date.now() - x.visto > 600e3) achados.delete(k);
+    }
+    setTimeout(ciclo, Math.max(30, cfg.intervalo) * 1000);
+    pintar();
+  }
+
+  // ---------- painel ----------
+  const fmt = (n) => n == null ? '—' : Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const curto = (v) => v >= 1e9 ? (v / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + 'B' : v >= 1e6 ? (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M' : v >= 1e4 ? (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'K' : fmt(v);
+  const precoTxt = (v, m) => m === 'gold' ? `${curto(v)} Coins` : `${fmt(v)} Gemas`;
+  const ha = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? `${s}s` : s < 3600 ? `${Math.round(s / 60)} min` : `${Math.round(s / 3600)} h`; };
+  let caixa = null;
+  function montar() {
+    if (caixa || !document.body) return;
+    const css = document.createElement('style');
+    css.textContent = `
+      #rmt-sniper { position: fixed; right: 12px; bottom: 12px; z-index: 99999; width: 330px; max-height: 60vh; display: flex; flex-direction: column;
+        background: #1d1826; color: #eee9f5; border: 1px solid #f36cb8; border-radius: 10px; font: 13px/1.4 system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+      #rmt-sniper.min { width: auto; max-height: none; }
+      #rmt-sniper header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #342c42; cursor: default; }
+      #rmt-sniper header b { flex: 1; font-size: 13px; }
+      #rmt-sniper button { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 6px; padding: 2px 8px; cursor: pointer; font: inherit; }
+      #rmt-sniper .cfg { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 6px 10px; border-bottom: 1px solid #342c42; font-size: 12px; color: #a59cb4; }
+      #rmt-sniper .cfg select { background: #2a2236; color: inherit; border: 1px solid #4a3f5c; border-radius: 4px; }
+      #rmt-sniper .lista { overflow-y: auto; padding: 4px 0; }
+      #rmt-sniper .ach { padding: 6px 10px; border-bottom: 1px solid #2a2236; display: grid; gap: 2px; }
+      #rmt-sniper .ach.novo { background: rgba(92,199,125,.12); }
+      #rmt-sniper .top { display: flex; justify-content: space-between; gap: 8px; }
+      #rmt-sniper .desc { color: #5cc77d; font-weight: 700; }
+      #rmt-sniper .sub { color: #a59cb4; font-size: 11.5px; }
+      #rmt-sniper .vazio { padding: 10px; color: #a59cb4; }
+      #rmt-sniper .rod { padding: 6px 10px; font-size: 11px; color: #a59cb4; border-top: 1px solid #342c42; }`;
+    document.head.appendChild(css);
+    caixa = document.createElement('div');
+    caixa.id = 'rmt-sniper';
+    document.body.appendChild(caixa);
+    caixa.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-acao]');
+      if (!b) return;
+      const ac = b.dataset.acao;
+      if (ac === 'ligar') cfg.ligado = !cfg.ligado;
+      if (ac === 'min') cfg.minimizado = !cfg.minimizado;
+      if (ac === 'som') cfg.som = !cfg.som;
+      if (ac === 'limpar') achados.clear();
+      if (ac === 'ver') enviar({ t: 'market.anuncio', id: Number(b.dataset.id) });
+      if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
+      salvar(); pintar();
+    });
+    caixa.addEventListener('change', (e) => {
+      const s = e.target;
+      if (s.dataset.cfg === 'desconto') cfg.desconto = +s.value;
+      if (s.dataset.cfg === 'intervalo') cfg.intervalo = +s.value;
+      if (s.dataset.cfg === 'itens') cfg.itens = s.checked;
+      if (s.dataset.cfg === 'pokemon') cfg.pokemon = s.checked;
+      salvar(); pintar();
+    });
+  }
+  function pintar() {
+    montar();
+    if (!caixa) return;
+    caixa.classList.toggle('min', cfg.minimizado);
+    const lista = [...achados.entries()].sort((a, b) => b[1].desc - a[1].desc);
+    const novos = lista.filter(([, x]) => x.novo).length;
+    if (cfg.minimizado) {
+      caixa.innerHTML = `<header><b>🎯 Sniper ${cfg.ligado ? '' : '(desligado)'}</b>${novos ? `<span class="desc">${novos} nova${novos > 1 ? 's' : ''}</span>` : ''}<button data-acao="min" title="Abrir">▴</button></header>`;
+      return;
+    }
+    const sel = (nome, valores, atual) => `<select data-cfg="${nome}">${valores.map(([v, t]) => `<option value="${v}"${+v === +atual ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+    caixa.innerHTML = `<header><b>🎯 Sniper ao vivo</b>
+        <button data-acao="ligar" title="Ligar ou desligar as consultas">${cfg.ligado ? 'Pausar' : 'Ligar'}</button>
+        <button data-acao="som" title="Aviso sonoro">${cfg.som ? '🔔' : '🔕'}</button>
+        <button data-acao="min" title="Minimizar">▾</button></header>
+      <div class="cfg">
+        <label>Desconto ${sel('desconto', [[0.2, '20%'], [0.3, '30%'], [0.4, '40%'], [0.5, '50%']], cfg.desconto)}</label>
+        <label>A cada ${sel('intervalo', [[30, '30 s'], [60, '60 s'], [120, '2 min'], [300, '5 min']], cfg.intervalo)}</label>
+        <label><input type="checkbox" data-cfg="itens"${cfg.itens ? ' checked' : ''}> Itens</label>
+        <label><input type="checkbox" data-cfg="pokemon"${cfg.pokemon ? ' checked' : ''}> Pokémon</label>
+      </div>
+      <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">
+          <div class="top"><span>${x.nome}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
+          <div class="sub">${precoTxt(x.preco, x.moeda)} · ref. ${precoTxt(Math.round(x.ref), x.moeda)} · ${x.extra}</div>
+          <div class="sub">visto há ${ha(x.primeiro)}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${x.id}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${k}">ok</button>` : ''}</div></div>`).join('')
+        : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
+      <div class="rod">${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · referência ${ref ? `de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'carregando'} · <button data-acao="limpar">limpar</button><br>Referência simples (espécie, shiny, potência e nível). Confira o laudo no RMT Calculator antes de comprar caro.</div>`;
+  }
+  // apito curto (só toca depois de você clicar em algo na página — regra do navegador)
+  let audio = null;
+  function apitar() {
+    try {
+      audio = audio || new (W.AudioContext || W.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = 880; g.gain.value = 0.06;
+      o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + 0.15);
+    } catch (e) { /* sem som */ }
+  }
+
+  baixarReferencia();
+  document.addEventListener('DOMContentLoaded', () => { pintar(); setTimeout(ciclo, 15000); });
+  setInterval(pintar, 15000); // atualiza o "há X s"
+})();

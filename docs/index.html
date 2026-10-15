@@ -254,6 +254,15 @@ th.ordena[aria-sort="descending"]::after { content: " ▼"; color: var(--acc); }
 .t-rock { background: #9a8636; } .t-ghost { background: #5f4f8f; } .t-dragon { background: #5d3fd6; } .t-dark { background: #5b4a40; }
 .t-steel { background: #7e8aa0; } .t-fairy { background: #c86fa4; }
 td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
+.plugin { border: 1px solid var(--acc); border-radius: 8px; background: var(--acc-soft); padding: 10px 12px; }
+.plugin summary { cursor: pointer; }
+.plugin-tag { font: 700 .7rem var(--f-body); text-transform: uppercase; letter-spacing: .06em; color: var(--acc); border: 1px solid var(--acc); border-radius: 4px; padding: 1px 6px; }
+.plugin-corpo { display: grid; gap: 10px; margin-top: 10px; }
+.plugin-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 700px) { .plugin-col { grid-template-columns: minmax(0, 1fr); } }
+.plugin ul, .plugin ol { margin: 4px 0 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.plugin code { font: .8rem var(--f-mono); background: var(--surface); padding: 0 4px; border-radius: 3px; }
+.plugin .btn { display: inline-block; text-decoration: none; padding: 2px 10px; }
 .pill-desc { font: 700 .78rem var(--f-mono); color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
 .aviso { color: var(--warn); cursor: help; }
 .spark { width: 80px; height: 20px; display: block; }
@@ -432,6 +441,37 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
               <label class="mini">Buscar <input id="sn-busca" placeholder="espécie" autocomplete="off"></label>
             </div>
           </div>
+          <details class="plugin" id="plugin-pk">
+            <summary><span class="plugin-tag">Plugin opcional</span> <b>Sniper ao vivo</b>: avisos dentro do jogo, em tempo real <span class="muted small">(clique para ver como funciona e instalar)</span></summary>
+            <div class="plugin-corpo">
+              <p class="small">Esta aba é um <b>radar</b>: os dados vêm da última coleta (de hora em hora), e pechinchas costumam sumir em minutos. Para pegar a pechincha na hora, existe o <b>Sniper ao vivo</b>: um script que roda <b>dentro da aba do jogo</b>, no seu navegador, e mostra um painel no canto da tela.</p>
+              <div class="plugin-col">
+                <div><span class="lbl">O que ele faz</span>
+                  <ul class="small">
+                    <li>A cada 30 s a 5 min (você escolhe), pede ao jogo as mesmas telas que você abriria no Mercado: a vitrine de itens e os 24 anúncios de pokémon mais novos.</li>
+                    <li>Compara com a referência do site (mediana de 30 dias por espécie, shiny e potência, ajustada ao nível) e, nos itens, com a média de 7 dias do próprio jogo.</li>
+                    <li>Lista as pechinchas acima do desconto escolhido, com aviso sonoro opcional, e um botão <b>Ver anúncio</b> que abre o anúncio no jogo.</li>
+                    <li><b>Não compra nada sozinho.</b> Comprar é sempre com você.</li>
+                  </ul></div>
+                <div><span class="lbl">Antes de decidir</span>
+                  <ul class="small">
+                    <li>Ele usa a <b>sua sessão</b> do jogo: só funciona com o jogo aberto no navegador e não pausa nenhuma conta.</li>
+                    <li>Os Termos do PokeIdle permitem automações no Mercado (wiki, "Automação de fora do jogo"), e o jogo limita mensagens por segundo; o script consulta devagar, como uma pessoa navegando.</li>
+                    <li>É um script de terceiros, feito para o RMT Calculator, sem ligação com o PokeIdle. O código é aberto: dá para ler antes de instalar.</li>
+                    <li>A referência é simples (não olha nota nem IV): antes de comprar caro, confira o laudo no site.</li>
+                  </ul></div>
+              </div>
+              <span class="lbl">Como instalar (Chrome ou Edge)</span>
+              <ol class="small">
+                <li>Instale a extensão <b>Tampermonkey</b> na loja do Chrome ou do Edge.</li>
+                <li>Libere scripts de usuário: abra <code>chrome://extensions</code> (no Edge, <code>edge://extensions</code>), ligue o <b>Modo de desenvolvedor</b> e, nos <b>Detalhes</b> do Tampermonkey, ligue <b>Permitir scripts de usuário</b> se aparecer.</li>
+                <li>Clique em <a class="btn" href="sniper-ao-vivo.user.js" target="_blank" rel="noopener">Instalar o Sniper ao vivo</a>. O Tampermonkey abre uma página com o código: clique em <b>Instalar</b>.</li>
+                <li>Recarregue a aba do jogo (pokeidle.io). O painel "🎯 Sniper ao vivo" aparece no canto de baixo, à direita. Na primeira vez, o Tampermonkey pode pedir permissão para o script acessar o RMT Calculator: escolha <b>Sempre permitir este domínio</b>.</li>
+                <li>Escolha o desconto mínimo e o intervalo no painel. Para desligar, use <b>Pausar</b> no painel ou desative o script no Tampermonkey.</li>
+              </ol>
+              <p class="small muted">Atualizações chegam sozinhas pelo Tampermonkey. Se você joga com duas contas em navegadores diferentes, instale só no navegador da conta que vai comprar.</p>
+            </div>
+          </details>
           <div id="sniper-out"></div>
         </section>
       </div>
@@ -454,6 +494,37 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             </div>
           </div>
           <p class="muted small">Oportunidades de compra e revenda de itens, como numa bolsa: o anúncio mais barato agora contra o preço médio dos <b>últimos 7 dias</b> (a média que o próprio jogo calcula), na mesma moeda ou trocando Coins por Gemas.</p>
+          <details class="plugin" id="plugin-it">
+            <summary><span class="plugin-tag">Plugin opcional</span> <b>Sniper ao vivo</b>: avisos dentro do jogo, em tempo real <span class="muted small">(clique para ver como funciona e instalar)</span></summary>
+            <div class="plugin-corpo">
+              <p class="small">Esta aba é um <b>radar</b>: os dados vêm da última coleta (de hora em hora), e pechinchas costumam sumir em minutos. Para pegar a pechincha na hora, existe o <b>Sniper ao vivo</b>: um script que roda <b>dentro da aba do jogo</b>, no seu navegador, e mostra um painel no canto da tela.</p>
+              <div class="plugin-col">
+                <div><span class="lbl">O que ele faz</span>
+                  <ul class="small">
+                    <li>A cada 30 s a 5 min (você escolhe), pede ao jogo as mesmas telas que você abriria no Mercado: a vitrine de itens e os 24 anúncios de pokémon mais novos.</li>
+                    <li>Compara com a referência do site (mediana de 30 dias por espécie, shiny e potência, ajustada ao nível) e, nos itens, com a média de 7 dias do próprio jogo.</li>
+                    <li>Lista as pechinchas acima do desconto escolhido, com aviso sonoro opcional, e um botão <b>Ver anúncio</b> que abre o anúncio no jogo.</li>
+                    <li><b>Não compra nada sozinho.</b> Comprar é sempre com você.</li>
+                  </ul></div>
+                <div><span class="lbl">Antes de decidir</span>
+                  <ul class="small">
+                    <li>Ele usa a <b>sua sessão</b> do jogo: só funciona com o jogo aberto no navegador e não pausa nenhuma conta.</li>
+                    <li>Os Termos do PokeIdle permitem automações no Mercado (wiki, "Automação de fora do jogo"), e o jogo limita mensagens por segundo; o script consulta devagar, como uma pessoa navegando.</li>
+                    <li>É um script de terceiros, feito para o RMT Calculator, sem ligação com o PokeIdle. O código é aberto: dá para ler antes de instalar.</li>
+                    <li>A referência é simples (não olha nota nem IV): antes de comprar caro, confira o laudo no site.</li>
+                  </ul></div>
+              </div>
+              <span class="lbl">Como instalar (Chrome ou Edge)</span>
+              <ol class="small">
+                <li>Instale a extensão <b>Tampermonkey</b> na loja do Chrome ou do Edge.</li>
+                <li>Libere scripts de usuário: abra <code>chrome://extensions</code> (no Edge, <code>edge://extensions</code>), ligue o <b>Modo de desenvolvedor</b> e, nos <b>Detalhes</b> do Tampermonkey, ligue <b>Permitir scripts de usuário</b> se aparecer.</li>
+                <li>Clique em <a class="btn" href="sniper-ao-vivo.user.js" target="_blank" rel="noopener">Instalar o Sniper ao vivo</a>. O Tampermonkey abre uma página com o código: clique em <b>Instalar</b>.</li>
+                <li>Recarregue a aba do jogo (pokeidle.io). O painel "🎯 Sniper ao vivo" aparece no canto de baixo, à direita. Na primeira vez, o Tampermonkey pode pedir permissão para o script acessar o RMT Calculator: escolha <b>Sempre permitir este domínio</b>.</li>
+                <li>Escolha o desconto mínimo e o intervalo no painel. Para desligar, use <b>Pausar</b> no painel ou desative o script no Tampermonkey.</li>
+              </ol>
+              <p class="small muted">Atualizações chegam sozinhas pelo Tampermonkey. Se você joga com duas contas em navegadores diferentes, instale só no navegador da conta que vai comprar.</p>
+            </div>
+          </details>
           <div id="si-out"></div>
         </section>
       </div>
@@ -1517,7 +1588,7 @@ async function renderSniper() {
   const total = lista.length;
   lista = lista.slice(0, state.snTodos ? 150 : 40);
   const valor = (gem) => state.moeda === "gemas" ? nf(0).format(gem) : short(gem * state.rate);
-  out.innerHTML = `<p class="muted small">${nf(0).format(A.lista.length)} anúncios abertos, lidos ${fmtIdade(Date.parse(A.em))} atrás. Cada um é avaliado como no Avaliar (espécie, nível, potência, nota, qualidade, IV) e comparado com o preço pedido. <b>${nf(0).format(total)}</b> estão ${nf(0).format(minDesc * 100)}% ou mais abaixo do preço justo.</p>
+  out.innerHTML = `<p class="small"><b>Radar:</b> ${nf(0).format(A.lista.length)} anúncios abertos, lidos <b>${fmtIdade(Date.parse(A.em))} atrás</b>; pechinchas costumam sumir antes da próxima leitura (para avisos na hora, veja o plugin acima).</p><p class="muted small"> Cada um é avaliado como no Avaliar (espécie, nível, potência, nota, qualidade, IV) e comparado com o preço pedido. <b>${nf(0).format(total)}</b> estão ${nf(0).format(minDesc * 100)}% ou mais abaixo do preço justo.</p>
     ${lista.length ? `<div class="tbl"><table><thead><tr><th>Desconto</th><th>Pokémon</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r">Preço (${unit()})</th><th class="r">Justo</th><th class="r" title="O que sobra revendendo pelo preço justo, já com a comissão">Lucro</th><th class="r">Anunciado</th></tr></thead>
     <tbody>${lista.map((x) => { const a = x.a, foto = urlFoto(a.species, a.shiny);
       const suspeito = x.desc >= 0.9;

@@ -25,6 +25,7 @@ import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs
 import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
 import { gravarMercado, lerAnuncios, lerItens, lerLivros } from './mercado.mjs';
 import { explorarPvp } from './explorar-pvp.mjs';
+import { gerarReferencia } from './referencia.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -227,6 +228,7 @@ async function main() {
 
   const vendas = converter(resp.mercado.linhas, sal);
   const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})`, cotacao });
+  await gerarReferencia().then((n) => console.log(`Referência do Sniper ao vivo: ${n} grupos.`)).catch((e) => console.log(`Referência: ${e.message}`));
   console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
 
   if (devePrincipal) estado.ultimaPrincipal = new Date().toISOString();
