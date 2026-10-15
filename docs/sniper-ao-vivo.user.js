@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.1
+// @version      1.0.2
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -142,6 +142,19 @@
     link.remove();
   }
 
+  /**
+   * O que sobra revendendo pela referência, depois da comissão (sai do vendedor; wiki, A comissão):
+   * pokémon em Gema paga por faixa (13% até 500, 10% até 5.000, 7,5% acima); em Coins e item em
+   * Gema, 15%.
+   */
+  function liquidoRevenda(valor, moeda, tipo) {
+    if (moeda === 'orb' && tipo === 'pokemon') {
+      const t1 = Math.min(valor, 500), t2 = Math.min(Math.max(valor - 500, 0), 4500), t3 = Math.max(valor - 5000, 0);
+      return t1 * 0.87 + t2 * 0.90 + t3 * 0.925;
+    }
+    return valor * 0.85;
+  }
+
   // ---------- o ciclo ----------
   const mercadoAbertoNaTela = () => { const l = document.querySelector('#cm-lista'); return !!(l && l.offsetParent !== null); };
   function ciclo() {
@@ -236,9 +249,10 @@
       <div class="lista">${lista.length ? lista.map(([k, x]) => `<div class="ach${x.novo ? ' novo' : ''}">
           <div class="top"><span>${x.nome}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
           <div class="sub">${precoTxt(x.preco, x.moeda)} · ref. ${precoTxt(Math.round(x.ref), x.moeda)} · ${x.extra}</div>
+          <div class="sub">${(() => { const l = liquidoRevenda(x.ref, x.moeda, x.tipo) - x.preco; return l > 0 ? `<span class="desc">+${precoTxt(Math.round(l), x.moeda)}</span> revendendo pela ref., já sem a comissão` : 'sem lucro revendendo pela ref., depois da comissão'; })()}</div>
           <div class="sub">visto há ${ha(x.primeiro)}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${x.id}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${k}">ok</button>` : ''}</div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
-      <div class="rod">${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · referência ${ref ? `de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'carregando'} · <button data-acao="limpar">limpar</button><br>Referência simples (espécie, shiny, potência e nível). Confira o laudo no RMT Calculator antes de comprar caro.</div>`;
+      <div class="rod">${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · referência ${ref ? `de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'carregando'} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. Referência simples (espécie, shiny, potência e nível): confira o laudo no RMT Calculator antes de comprar caro.</div>`;
   }
   // apito curto (só toca depois de você clicar em algo na página — regra do navegador)
   let audio = null;
