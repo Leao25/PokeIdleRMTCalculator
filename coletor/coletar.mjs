@@ -65,6 +65,15 @@ function abrirSessao({ nick, token }) {
         });
       },
       fechar() { try { ws.close(); } catch {} },
+      /** Pede e, se o jogo pedir calma, espera e tenta de novo (até 3 vezes). */
+      async pedirComCalma(msg, aceita, ms = 15000) {
+        for (let tentativa = 0; ; tentativa++) {
+          try { return await sessao.pedir(msg, aceita, ms); } catch (e) {
+            if (e.message !== 'devagar' || tentativa >= 3) throw e;
+            await new Promise((r) => setTimeout(r, 4000 * (tentativa + 1)));
+          }
+        }
+      },
     };
     const derrubar = (erro) => {
       erroFatal = erro;
@@ -77,7 +86,17 @@ function abrirSessao({ nick, token }) {
     ws.on('message', (bruto) => {
       let m;
       try { m = JSON.parse(bruto.toString()); } catch { return; }
-      if (m.t === 'erro') return derrubar(new Error(`O jogo recusou: ${m.chave ?? m.msg ?? JSON.stringify(m).slice(0, 200)}`));
+      if (m.t === 'erro') {
+        const texto = String(m.chave ?? m.msg ?? JSON.stringify(m).slice(0, 200));
+        // "Devagar aí — muitas mensagens": o jogo pede calma. Não é fatal: os pedidos à espera falham
+        // com 'devagar' e quem pediu espera e tenta de novo (ver `pedirComCalma`).
+        if (/devagar|muitas mensagens|rate|lento/i.test(texto)) {
+          for (const e of esperas) { clearTimeout(e.t); e.falha(new Error('devagar')); }
+          esperas.clear();
+          return;
+        }
+        return derrubar(new Error(`O jogo recusou: ${texto}`));
+      }
       if (m.t === 'sessao.renovada') console.log('Aviso: o jogo renovou a sessão desta conta. Se o coletor começar a falhar, gere um token novo (README).');
       if (m.t === 'welcome' && !entrou) { entrou = true; sessao.welcome = m; clearTimeout(relogio); resolve(sessao); }
       for (const e of esperas) if (e.aceita(m)) { clearTimeout(e.t); esperas.delete(e); e.ok(m); }
@@ -118,7 +137,7 @@ async function lerVendasDeDiamante(sessao) {
   for (const moeda of ['orb', 'gold']) {
     for (let pagina = 0; pagina < 20; pagina++) {
       const s = ++seq;
-      const m = await sessao.pedir({ t: 'market.historicoGlobal', pagina, seq: s, tipo: 'diamante', moeda },
+      const m = await sessao.pedirComCalma({ t: 'market.historicoGlobal', pagina, seq: s, tipo: 'diamante', moeda },
         (x) => x.t === 'market' && x.aba === 'historicoGlobal' && x.seq === s, 10000);
       const linhas = Array.isArray(m.linhas) ? m.linhas : [];
       for (const l of linhas) {
@@ -175,9 +194,16 @@ async function main() {
     aberto = await lerAnuncios(sessao, sal).catch((e) => { console.log(`Anúncios: ${e.message}`); return {}; });
     itens = await lerItens(sessao).catch((e) => { console.log(`Itens: ${e.message}`); return null; });
     // livro de ofertas só dos itens com anúncio aberto (pedras, fragmentos, tokens…)
-    livros = itens ? await lerLivros(sessao, Object.entries(itens.resumo).filter(([, r]) => (r.anuncios || 0) > 0).map(([id]) => id)).catch(() => null) : null;
+    // 25 itens por coleta, em rodízio (o jogo limita mensagens por segundo e a sessão não pode passar de ~1,5 min)
+    if (itens) {
+      const ids = Object.entries(itens.resumo).filter(([, r]) => (r.anuncios || 0) > 0).map(([id]) => id).sort((a, b) => a - b);
+      const ini = (estado.livroRodizio || 0) % Math.max(1, ids.length);
+      const lote = [...ids, ...ids].slice(ini, ini + Math.min(25, ids.length));
+      estado.livroRodizio = ini + lote.length;
+      livros = await lerLivros(sessao, lote).catch(() => null);
+    }
     // reconhecimento do PvP (ranking e perfil do 1º): uma vez só
-    if (!estado.exploradoPvp) { await explorarPvp(sessao).catch((e) => console.log(`Reconhecimento PvP: ${e.message}`)); estado.exploradoPvp = new Date().toISOString(); }
+    if (!estado.exploradoPvp || estado.exploradoPvpFalhou) { const ok = await explorarPvp(sessao).catch((e) => { console.log(`Reconhecimento PvP: ${e.message}`); return false; }); estado.exploradoPvp = new Date().toISOString(); estado.exploradoPvpFalhou = !ok; }
     console.log(`Mercado aberto: ${aberto.anuncios?.length ?? 0} anúncios de pokémon e ${Object.keys(itens?.resumo ?? {}).length} itens, em ${Math.round((Date.now() - t0) / 1000)} s.`);
   } finally {
     sessao.fechar();

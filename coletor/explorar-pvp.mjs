@@ -26,14 +26,15 @@ export async function explorarPvp(sessao) {
   const r = { em: new Date().toISOString() };
   let primeiro = null;
   try {
-    const m = await sessao.pedir({ t: 'ranking.pedir', aba: 'elo' }, (x) => x.t === 'ranking' && x.aba === 'elo', 10000);
+    const m = await sessao.pedirComCalma({ t: 'ranking.pedir', aba: 'elo' }, (x) => x.t === 'ranking' && x.aba === 'elo', 10000);
     r.rankingElo = forma(m);
     primeiro = (m.linhas ?? [])[0]?.nick ?? null;
   } catch (e) { r.rankingElo = `falhou: ${e.message}`; }
-  try { r.pvpInfo = forma(await sessao.pedir({ t: 'pvp.info' }, (x) => x.t === 'pvp', 10000)); } catch (e) { r.pvpInfo = `falhou: ${e.message}`; }
+  try { r.pvpInfo = forma(await sessao.pedirComCalma({ t: 'pvp.info' }, (x) => x.t === 'pvp', 10000)); } catch (e) { r.pvpInfo = `falhou: ${e.message}`; }
   if (primeiro) {
-    try { r.perfilDoPrimeiro = forma(await sessao.pedir({ t: 'ranking.perfil', nick: primeiro }, (x) => x.t === 'perfil', 10000)); } catch (e) { r.perfilDoPrimeiro = `falhou: ${e.message}`; }
+    try { r.perfilDoPrimeiro = forma(await sessao.pedirComCalma({ t: 'ranking.perfil', nick: primeiro }, (x) => x.t === 'perfil', 10000)); } catch (e) { r.perfilDoPrimeiro = `falhou: ${e.message}`; }
   }
   await writeFile(path.join(PASTA_DADOS, '_formato-pvp.json'), JSON.stringify(r, null, 1));
   console.log('Reconhecimento do PvP gravado em docs/dados/_formato-pvp.json.');
+  return typeof r.rankingElo === 'object';
 }

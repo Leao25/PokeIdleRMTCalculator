@@ -25,7 +25,7 @@ export async function lerAnuncios(sessao, sal) {
   const out = [];
   let total = Infinity;
   for (let pagina = 0; pagina * 24 < total && pagina < 400; pagina++) {
-    const m = await sessao.pedir({ t: 'market.listar', ...pedidoPokemon, pagina, especieId: 0 },
+    const m = await sessao.pedirComCalma({ t: 'market.listar', ...pedidoPokemon, pagina, especieId: 0 },
       (x) => x.t === 'market' && x.aba === 'vitrine' && (x.pagina ?? 0) === pagina, 10000);
     total = Number(m.total) || 0;
     for (const a of m.linhas ?? []) {
@@ -40,7 +40,7 @@ export async function lerAnuncios(sessao, sal) {
       ]);
     }
     if (!m.linhas?.length) break;
-    await espera(120);
+    await espera(200);
   }
   return { anuncios: out, total };
 }
@@ -61,12 +61,12 @@ export async function lerLivros(sessao, itemIds) {
   for (const id of itemIds) {
     for (const moeda of ['gold', 'orb']) {
       try {
-        const m = await sessao.pedir({ t: 'market.item', itemId: Number(id), moeda },
+        const m = await sessao.pedirComCalma({ t: 'market.item', itemId: Number(id), moeda },
           (x) => x.t === 'market' && x.aba === 'item' && String(x.itemId) === String(id) && x.moeda === moeda, 8000);
         const linhas = (m.linhas ?? []).map((l) => [Number(l.preco), Number(l.qtd) || 1]).filter((l) => l[0] > 0).sort((a, b) => a[0] - b[0]);
         (livros[id] ||= {})[moeda] = { anuncios: linhas.length, unidades: linhas.reduce((a, l) => a + l[1], 0), top: linhas.slice(0, 8) };
       } catch { /* sem resposta para este item nesta moeda: segue */ }
-      await espera(60);
+      await espera(350); // o jogo limita mensagens por segundo: devagar e sempre
     }
   }
   return livros;
@@ -102,6 +102,9 @@ export async function gravarMercado({ anuncios, total }, itens, welcome, livros 
     }, null, 1));
   }
   if (!itens) return;
+  // livros que não foram lidos nesta coleta (rodízio) ficam como estavam, com a hora em que foram lidos
+  const anteriores = (await lerJson(path.join(PASTA_DADOS, 'itens.json'), { itens: {} })).itens || {};
+  const livroDe = (id) => (livros?.[id] ? { ...livros[id], em: agora } : anteriores[id]?.livro ?? null);
   const nomeDe = new Map(catalogo.map((i) => [String(i.id), i]));
   const lista = {};
   for (const [id, r] of Object.entries(itens.resumo)) {
@@ -112,7 +115,7 @@ export async function gravarMercado({ anuncios, total }, itens, welcome, livros 
       anuncios: r.anuncios ?? 0, unidades: r.unidades ?? 0, minGold: r.minGold ?? null, minOrb: r.minOrb ?? null,
       mediaGold: md.gold?.media ?? null, vendidosGold: md.gold?.unidades ?? null,
       mediaOrb: md.orb?.media ?? null, vendidosOrb: md.orb?.unidades ?? null,
-      livro: livros?.[id] ?? null,
+      livro: livroDe(id),
     };
   }
   // itens com média de venda mas sem anúncio aberto agora também entram
