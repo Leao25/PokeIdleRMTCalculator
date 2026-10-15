@@ -1399,9 +1399,6 @@ const SIM_S = 900;
 // HP do selvagem = HP de combate (stat × 12) × o multiplicador do jogo (×5 hoje) = ×60 — regra da
 // wiki, sem calibrar. Conferido 15/10: Alakazam no Gulpin Nv 500 −7% e na Toxic Toxicroak −4%.
 const hpMult = () => 12 * REGRAS.multHpSelvagem;
-// O dano que se TOMA sai ~2,7× o de um selvagem só batendo durante a luta: vários batem juntos e
-// continuam batendo no caminho. Medido 15/10 no Gulpin Nv 500 (749 Hyper Potions em 25 min).
-const ATACANTES = 2.7;
 function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   const me = stats(voce.base, voce.L, voce.ivs, voce.q, (1 + BONUS_POT[voce.pot - 1]) * (voce.shiny ? 3 : 1));
   const tw = [tipos[alvo.t1], alvo.t2 >= 0 ? tipos[alvo.t2] : null];
@@ -1446,7 +1443,9 @@ function abatesPorHora(voce, alvo, tipos, tAndar = T_ANDAR) {
   let tbe = tw[0]; if (efet(tbe, mt[0], mt[1]) === 0 && tw[1]) tbe = tw[1];
   dpsEle += dano(alvo.L, 30, ele.atk, me.def, 1.5, efet(tbe, mt[0], mt[1])) * REGRAS.multDanoSelvagem / 2;
   const tLuta = abates ? Math.max(0.5, (SIM_S - abates * tAndar) / abates) : SIM_S;
-  const danoPorAbate = dpsEle * tLuta * ATACANTES;
+  // Só um selvagem bate por vez. ATENÇÃO: medido 15/10 no Gulpin Nv 500, o dano real (749 Hyper
+  // Potions em 25 min ≈ 640 HP/s na luta) saiu ~2,5× esta conta, e a causa ainda não é conhecida.
+  const danoPorAbate = dpsEle * tLuta;
   const lutas = !abates ? 0 : danoPorAbate > 0 ? hpVoce / danoPorAbate : Infinity;
   const risco = lutas < 1.5 ? "morre" : lutas < 8 ? "pocao" : "seguro";
   const porHora = abates * 3600 / SIM_S;
@@ -1575,7 +1574,7 @@ async function renderFarm() {
     <tbody>${lista.map((x) => { const foto = urlFoto(x.e.nome, !comum && !modoXp); // shiny só no modo Shiny
       return `<tr class="click" data-farm="${esc(x.e.nome)}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(x.e.nome)} <span class="muted small">Nv ${nf(0).format(x.e.L)}${x.outland ? " · Outland" : ""}</span></td>
         <td><span class="ef${x.ef >= 2.5 ? " forte" : x.ef < 1 ? " fraco" : ""}">${efTxt(x.ef)}</span></td>
-        <td data-v="${Math.min(x.lutas, 999).toFixed(1)}"><span class="risco ${x.risco}" title="${x.lutas === Infinity ? "o selvagem não consegue ferir" : `aguenta ~${nf(x.lutas < 10 ? 1 : 0).format(x.lutas)} lutas sem poção; perde ~${short(x.hpPerdidoH)} HP/h ≈ ${nf(0).format(x.hpPerdidoH / 1000)} Hyper Potions/h (${short(x.hpPerdidoH * 0.8)} Coins/h)`}">${x.risco === "seguro" ? "Seguro" : x.risco === "pocao" ? `Poção · ~${short(x.hpPerdidoH / 1000)} Hyper/h` : "Morre"}</span></td>
+        <td data-v="${Math.min(x.lutas, 999).toFixed(1)}"><span class="risco ${x.risco}" title="${x.lutas === Infinity ? "o selvagem não consegue ferir" : `aguenta ~${nf(x.lutas < 10 ? 1 : 0).format(x.lutas)} lutas sem poção`}">${x.risco === "seguro" ? "Seguro" : x.risco === "pocao" ? "Precisa de poção" : "Morre"}</span></td>
         <td class="r n">${nf(0).format(x.abates)}</td>
         ${!modoXp && comum ? `<td class="r n">${nf(x.capturasH < 10 ? 1 : 0).format(x.capturasH)}</td><td class="r n">${short(x.npcH)}</td>
           <td class="r n">${x.p4H > 0 ? fmtTempo(1 / x.p4H) : "—"}</td>
@@ -1585,7 +1584,7 @@ async function renderFarm() {
         <td class="r n">${x.gemasH != null ? gemasHTxt(x.gemasH) : "—"}</td></tr>`}`; }).join("")}</tbody></table></div>
     ${nMorre ? `<label class="check-mini small"><input type="checkbox" id="farm-mortes"${mostrarMortes ? " checked" : ""}> Mostrar as ${nMorre} hunts em que seu pokémon morre</label>` : ""}
     ${lista.length >= 12 ? `<button class="btn" id="farm-todos">${state.farmTodos ? "Mostrar menos" : "Mostrar mais"}</button>` : ""}
-    <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e 3,18 s por abate de caminhada, conferida com medições reais do painel Sessão (erro de 0% a −7%). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Poção" é menos de 8 lutas, com o gasto em Hyper Potions (+1.000 HP, 800 Coins) por hora, e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
+    <p class="muted small">Estimativa: simula a hunt golpe a golpe com as regras da wiki (dano, recargas, STAB, tabela de tipos da hunt, HP do selvagem ×60) e 3,18 s por abate de caminhada, conferida com medições reais do painel Sessão (erro de 0% a −7%). O Hunt Analyser do jogo supõe que tudo morre com 1 golpe e erra muito nas hunts difíceis. Risco: quantas lutas seu pokémon aguenta sem poção com o dano do selvagem (×${nf(1).format(REGRAS.multDanoSelvagem)}, vantagem de tipo da hunt); "Precisa de poção" é menos de 8 lutas (o dano recebido ainda sai abaixo do real nas hunts altas), e as hunts em que ele morre na primeira ficam de fora. Não conta os outros da equipe nem a cura ao subir de nível. ${comum && !modoXp ? "Valor/h = Coins do NPC convertidos em Gemas + a chance de um P4+ vezes o preço de um P4+ comum daquela espécie no nível da hunt (as vendas são levadas a esse nível, e com poucas vendas puxa para a mediana geral), já sem a comissão. \"P4+ vale\" já está no nível da hunt. A qualidade de quem nasce entra como 1. " : ""}${modoXp ? "XP e Coins por abate seguem as fórmulas do jogo (só o nível da hunt importa); na Outland o ritmo é um pouco menor porque se anda mais. " : comum ? "" : "A Outland fica de fora porque lá o shiny não rola. "} ${comum ? "Clique numa linha para ver o preço de um P4 daquela espécie." : `"Shiny vale" é a mediana das vendas shiny no período, com quantas foram entre parênteses; em ${unit()}/h, espécies com poucas vendas puxam para a mediana geral dos shiny, e a comissão já sai. Clique numa linha para ver o preço daquele shiny.`}</p>`;
   out.querySelectorAll("[data-fo]").forEach((b) => { b.onclick = () => { state.farmOrdem = b.dataset.fo; renderFarm(); }; });
   out.querySelectorAll("[data-fg]").forEach((b) => { b.onclick = () => { state.farmGrupo = b.dataset.fg; state.farmOrdem = null; state.farmTodos = false; renderFarm(); }; });
   const mt = $("farm-todos"); if (mt) mt.onclick = () => { state.farmTodos = !state.farmTodos; renderFarm(); };
