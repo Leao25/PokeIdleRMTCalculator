@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.0
+// @version      1.0.1
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -125,6 +125,23 @@
   GM_xmlhttpRequest({ method: 'GET', url: `${SITE}/dados/itens.json`, onload: (r) => { try { const d = JSON.parse(r.responseText); for (const [id, x] of Object.entries(d.itens || {})) nomesItem[id] = x.nome; } catch (e) { /* sem nomes */ } } });
   const nomeItem = (id) => nomesItem[id] || `Item ${id}`;
 
+  /**
+   * Abre o anúncio no jogo pelo mesmo caminho do link do alto-falante no chat: o jogo só mostra
+   * um anúncio que ele mesmo pediu, então o script cria um link de anúncio invisível dentro do
+   * chat e clica nele.
+   */
+  function abrirAnuncio(id) {
+    const chat = document.querySelector('#chat-msgs');
+    if (!chat || !(id > 0)) return;
+    const link = document.createElement('span');
+    link.className = 'm-anuncio-link';
+    link.dataset.anuncio = String(id);
+    link.style.display = 'none';
+    chat.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   // ---------- o ciclo ----------
   const mercadoAbertoNaTela = () => { const l = document.querySelector('#cm-lista'); return !!(l && l.offsetParent !== null); };
   function ciclo() {
@@ -182,7 +199,7 @@
       if (ac === 'min') cfg.minimizado = !cfg.minimizado;
       if (ac === 'som') cfg.som = !cfg.som;
       if (ac === 'limpar') achados.clear();
-      if (ac === 'ver') enviar({ t: 'market.anuncio', id: Number(b.dataset.id) });
+      if (ac === 'ver') abrirAnuncio(Number(b.dataset.id));
       if (ac === 'visto') { const x = achados.get(b.dataset.k); if (x) x.novo = false; }
       salvar(); pintar();
     });
