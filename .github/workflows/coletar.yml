@@ -27,7 +27,7 @@ jobs:
           POKEIDLE_NICK: ${{ secrets.POKEIDLE_NICK }}
           POKEIDLE_TOKEN: ${{ secrets.POKEIDLE_TOKEN }}
           NOMES_SAL: ${{ secrets.NOMES_SAL }}
-        run: npm run coletar
+        run: timeout 15m npm run coletar
       - name: Salvar no repositório
         run: |
           git config user.name "coletor"
