@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.0.5
+// @version      1.0.6
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -99,6 +99,12 @@
   function aoReceber(m) {
     if (m.t === 'erro' && /devagar|muitas mensagens/i.test(String(m.chave ?? m.msg ?? ''))) { calmaAte = Date.now() + 120e3; pintar(); return; }
     if (m.t !== 'market') return;
+    if (m.aba === 'anuncio' && m.id != null) {
+      const a = m.anuncio;
+      if (!a || a.estado !== 'aberto') { achados.delete(`pk:${m.id}`); pintar(); }
+      else { const x = achados.get(`pk:${m.id}`); if (x) { x.conferido = Date.now(); if (a.preco > 0 && a.preco !== x.preco) { x.preco = a.preco; x.desc = 1 - a.preco / x.ref; if (x.desc < cfg.desconto) achados.delete(`pk:${m.id}`); } pintar(); } }
+      return;
+    }
     if (m.aba === 'itens' && m.resumo) { avaliarItens(m.resumo, m.medias || {}); ultimaLeitura = Date.now(); pintar(); }
     if (m.aba === 'vitrine' && pediuAnuncios && (m.pagina ?? 0) === 0) { pediuAnuncios = false; avaliarAnuncios(m.linhas || []); ultimaLeitura = Date.now(); pintar(); }
   }
@@ -185,8 +191,11 @@
             soShiny: false, soP5: false, soTmElemental: false, soTmAoe: false, semOutland: false, pagina: 0, especieId: 0 });
         }, 1500);
       }
+      // confere em silêncio se o anúncio mais antigo da lista ainda está à venda
+      const conferir = [...achados.values()].filter((x) => x.tipo === 'pokemon').sort((a, b) => (a.conferido || a.primeiro) - (b.conferido || b.primeiro))[0];
+      if (conferir) setTimeout(() => { conferir.conferido = Date.now(); enviar({ t: 'market.anuncio', id: conferir.id }); }, 3000);
       // achado que não aparece há 10 min sai da lista (foi vendido ou mudou de preço)
-      for (const [k, x] of achados) if (Date.now() - x.visto > 600e3) achados.delete(k);
+      for (const [k, x] of achados) if (Date.now() - Math.max(x.visto, x.conferido || 0) > 600e3) achados.delete(k);
     }
     const intervalo = Date.now() < calmaAte ? Math.max(60, cfg.intervalo) : Math.max(10, cfg.intervalo);
     setTimeout(ciclo, intervalo * 1000);
@@ -272,7 +281,7 @@
           <div class="top"><span>${x.nome}</span><span class="desc">−${Math.round(x.desc * 100)}%</span></div>
           <div class="sub">${precoTxt(x.preco, x.moeda)} · ref. ${precoTxt(Math.round(x.ref), x.moeda)} · ${x.extra}</div>
           <div class="sub">${(() => { const l = liquidoRevenda(x.ref, x.moeda, x.tipo) - x.preco; return l > 0 ? `<span class="desc">+${precoTxt(Math.round(l), x.moeda)}</span> revendendo pela ref., já sem a comissão` : 'sem lucro revendendo pela ref., depois da comissão'; })()}</div>
-          <div class="sub">visto há ${ha(x.primeiro)}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${x.id}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${k}">ok</button>` : ''}</div></div>`).join('')
+          <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${x.id}">Ver anúncio</button>` : ' · busque o item no Market'}${x.novo ? ` · <button data-acao="visto" data-k="${k}">ok</button>` : ''}</div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
       <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · referência ${ref ? `de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'carregando'} · <button data-acao="limpar">limpar</button><br>% = preço contra a referência (quem compra não paga taxa). O lucro de revenda já desconta a comissão. Referência simples (espécie, shiny, potência e nível): confira o laudo no RMT Calculator antes de comprar caro.</div>`;
   }
