@@ -3,24 +3,24 @@
     "2026-09",
     "2026-10"
   ],
-  "total": 9173,
-  "atualizadoEm": "2026-10-15T08:41:32.845Z",
-  "ultimaFonte": "recuperação (elemento=PSYCHIC)",
-  "ultimasNovas": 404,
+  "total": 9209,
+  "atualizadoEm": "2026-10-15T09:43:05.301Z",
+  "ultimaFonte": "coletor",
+  "ultimasNovas": 36,
   "cotacao": {
-    "coinsPorGema": 3220495.710224394,
-    "gemasPorDiamante": 6.424717305801377,
-    "coinsPorDiamante": 20690774.522737764,
+    "coinsPorGema": 3220788.0505343257,
+    "gemasPorDiamante": 6.416071860633923,
+    "coinsPorDiamante": 20664807.580099277,
     "janela": "últimas 24 h",
     "vendas": {
-      "orb": 215,
-      "gold": 571
+      "orb": 217,
+      "gold": 572
     },
     "diamantes": {
-      "orb": 4068,
-      "gold": 2166
+      "orb": 4133,
+      "gold": 2216
     },
-    "em": "2026-10-15T08:41:30.352Z",
-    "media7Jogo": 3108933
+    "em": "2026-10-15T09:43:02.782Z",
+    "media7Jogo": 3107930.285714286
   }
 }
