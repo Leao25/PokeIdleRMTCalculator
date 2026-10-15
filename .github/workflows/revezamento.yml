@@ -50,15 +50,15 @@ jobs:
             [ "$espera" -gt 0 ] && { echo "Próxima coleta em $(( espera / 60 )) min."; sleep "$espera"; }
             volta=$(( volta + 1 ))
             echo "::group::Volta $volta — $(date -u +'%H:%M') UTC"
-            git pull -q --rebase || true
+            git rebase --abort 2>/dev/null || true; git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; } || true
             npm run coletar || echo "Esta coleta falhou; a próxima volta tenta de novo."
             git add docs/dados coletor/estado.json
             if ! git diff --cached --quiet; then
               git commit -q -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento)"
-              git pull -q --rebase && git push -q || echo "Não consegui enviar agora; vai junto na próxima volta."
+              { git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; }; } && git push -q || echo "Não consegui enviar agora; vai junto na próxima volta."
             else
               # sem dados novos (ex.: hora sem nada a fazer): marca a hora para a espera seguinte
-              git commit -q --allow-empty -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento, sem novidade)" && git pull -q --rebase && git push -q || true
+              git commit -q --allow-empty -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento, sem novidade)" && { git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; }; } && git push -q || true
             fi
             echo "::endgroup::"
             if [ "$(fila)" = "0" ]; then echo "Fila de recuperação vazia: o revezamento termina aqui."; exit 0; fi
