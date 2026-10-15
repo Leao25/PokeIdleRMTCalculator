@@ -27,6 +27,7 @@ import { gravarMercado, lerAnuncios, lerItens, lerLivros } from './mercado.mjs';
 import { explorarPvp } from './explorar-pvp.mjs';
 import { gerarReferencia } from './referencia.mjs';
 import { gravarRegras, verificarVersao } from './regras.mjs';
+import { gravarCatalogo } from './catalogo.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -219,18 +220,28 @@ async function main() {
   console.log(`${diamantes.length} vendas de diamante lidas (${novasDiamante} novas).`);
   if (cotacao) console.log(`Cotação (${cotacao.janela}): 1 Gema = ${Math.round(cotacao.coinsPorGema).toLocaleString('pt-BR')} Coins.`);
 
+  // regras do jogo, detector de atualização e catálogo: em toda coleta, mesmo sem a planilha
+  await gravarRegras(sessao.welcome).catch((e) => console.log(`Regras: ${e.message}`));
+  const versao = await verificarVersao().catch((e) => console.log(`Versão do jogo: ${e.message}`));
+  // o catálogo de espécies (stats, golpes, evoluções): uma vez por dia, ou logo que o jogo mudar
+  if (Date.now() - Date.parse(estado.catalogoEm ?? 0) > 20 * 3600e3 || (versao?.mudouEm && versao.mudouEm > (estado.catalogoEm ?? ''))) {
+    try {
+      const r = await gravarCatalogo(sessao?.welcome);
+      estado.catalogoEm = new Date().toISOString();
+      console.log(`Catálogo: ${r.especies} espécies, ${r.evolucoes} com evolução ou Mega (hunts do welcome: ${sessao?.welcome?.hunts?.length ?? 0}).`);
+    } catch (e) { console.log(`Catálogo: ${e.message}`); }
+  }
   if (resp.recusa) {
     // A espera de uma hora: não é erro do coletor, a próxima rodada tenta de novo.
     console.log(`O jogo pediu para esperar (${resp.recusa.chave}). Nenhuma venda de pokémon desta vez.`);
     await juntarAoHistorico([], { fonte: 'só cotação', cotacao });
+    await salvarEstado(estado);
     return;
   }
   if (!resp.ok || !Array.isArray(resp.mercado?.linhas)) throw new Error('A resposta da planilha veio num formato que o coletor não conhece.');
 
   const vendas = converter(resp.mercado.linhas, sal);
   const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})`, cotacao });
-  await gravarRegras(sessao.welcome).catch((e) => console.log(`Regras: ${e.message}`));
-  await verificarVersao().catch((e) => console.log(`Versão do jogo: ${e.message}`));
   await gerarReferencia().then((n) => console.log(`Referência do Sniper ao vivo: ${n} grupos.`)).catch((e) => console.log(`Referência: ${e.message}`));
   console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
 
