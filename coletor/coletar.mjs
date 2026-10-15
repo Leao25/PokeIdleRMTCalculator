@@ -24,6 +24,7 @@ import WebSocket from 'ws';
 import { codigoDoJogador, juntarAoHistorico, salDosNomes } from './historico.mjs';
 import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
 import { gravarMercado, lerAnuncios, lerItens } from './mercado.mjs';
+import { explorarPvp } from './explorar-pvp.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
 const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
@@ -173,6 +174,8 @@ async function main() {
     const t0 = Date.now();
     aberto = await lerAnuncios(sessao, sal).catch((e) => { console.log(`Anúncios: ${e.message}`); return {}; });
     itens = await lerItens(sessao).catch((e) => { console.log(`Itens: ${e.message}`); return null; });
+    // reconhecimento do PvP (ranking e perfil do 1º): uma vez só
+    if (!estado.exploradoPvp) { await explorarPvp(sessao).catch((e) => console.log(`Reconhecimento PvP: ${e.message}`)); estado.exploradoPvp = new Date().toISOString(); }
     console.log(`Mercado aberto: ${aberto.anuncios?.length ?? 0} anúncios de pokémon e ${Object.keys(itens?.resumo ?? {}).length} itens, em ${Math.round((Date.now() - t0) / 1000)} s.`);
   } finally {
     sessao.fechar();
