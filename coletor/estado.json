@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "GHOST"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "ROCK"
     },
     {
@@ -106,10 +102,18 @@
       "novas": 563,
       "cortado": false,
       "em": "2026-10-15T14:51:25.107Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "GHOST",
+      "linhas": 637,
+      "novas": 339,
+      "cortado": false,
+      "em": "2026-10-15T16:54:50.149Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 80,
+  "livroRodizio": 40,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z"
