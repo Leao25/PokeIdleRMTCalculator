@@ -1470,7 +1470,7 @@ async function renderFarm() {
   const todosShiny = [...shinyPor.values()].flat().sort((a, b) => a - b);
   const medGeral = todosShiny.length ? quant(todosShiny, 0.5) : 0;
   const PESO_GERAL = 3;
-  const grupoF = state.farmGrupo || "shiny";
+  const grupoF = state.farmGrupo || "comum"; // abre no Comum
   const comum = grupoF === "comum";
   let ordem = state.farmOrdem || (comum ? "cvalor" : "valor");
   // cada grupo tem suas ordens; "Mais XP" e "Mais abates" valem para os dois
@@ -1529,8 +1529,8 @@ async function renderFarm() {
         ${tranquila && tranquila !== quase ? `<div class="small muted">Mais tranquila: ${linha(tranquila)} (~${fmtNiveis(niveisPorHora(L, tranquila.xpH))}/h, ${pocao(tranquila)}).</div>` : ""}</div>`; })() : ""}
     <div class="farm-modos">
     <div class="seg" role="group" aria-label="O que caçar">
-      <button data-fg="shiny" aria-pressed="${!comum}">✨ Shiny</button>
       <button data-fg="comum" aria-pressed="${comum}">Comum</button>
+      <button data-fg="shiny" aria-pressed="${!comum}">✨ Shiny</button>
     </div>
     <div class="seg" role="group" aria-label="Ordenar">
       ${comum ? `<button data-fo="cvalor" aria-pressed="${ordem === "cvalor"}" title="Venda das capturas ao NPC + a chance de um P4/P5 que vale no Mercado">Mais valor por hora</button>
