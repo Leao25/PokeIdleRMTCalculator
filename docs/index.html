@@ -271,7 +271,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
       <p>Quanto vale o seu pokémon: cole a ficha e veja o preço pelas vendas reais do Mercado, já com a comissão descontada.</p>
     </div>
     <div class="controls">
-      <div class="seg" role="group" aria-label="Período">
+      <div class="seg" role="group" aria-label="Período" id="seg-periodo">
         <button data-dias="7" aria-pressed="false">7 dias</button>
         <button data-dias="30" aria-pressed="true">30</button>
         <button data-dias="60" aria-pressed="false">60</button>
@@ -445,7 +445,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
               </label>
             </div>
           </div>
-          <p class="muted small">Oportunidades de compra e revenda de itens, como numa bolsa: o anúncio mais barato agora contra o preço médio de 7 dias, na mesma moeda ou trocando Coins por Gemas.</p>
+          <p class="muted small">Oportunidades de compra e revenda de itens, como numa bolsa: o anúncio mais barato agora contra o preço médio dos <b>últimos 7 dias</b> (a média que o próprio jogo calcula), na mesma moeda ou trocando Coins por Gemas.</p>
           <div id="si-out"></div>
         </section>
       </div>
@@ -1013,6 +1013,8 @@ function abrirAba(aba) {
   state.aba = aba;
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-selected", b.dataset.aba === aba));
   document.querySelectorAll("[data-vista]").forEach((v) => { v.hidden = v.dataset.vista !== aba; });
+  // itens usam sempre a média de 7 dias do jogo: o seletor de período (vendas de pokémon) some lá
+  $("seg-periodo").hidden = aba === "sniperitens";
   // a ficha só serve onde se avalia um pokémon
   document.querySelector(".grid").classList.toggle("sem-ficha", ["sniper", "sniperitens", "mercado", "time"].includes(aba));
   if (location.hash.slice(1) !== aba) history.replaceState(null, "", aba === "avaliar" ? location.pathname : "#" + aba);
