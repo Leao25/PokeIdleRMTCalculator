@@ -7,7 +7,12 @@
 // · docs/dados/anuncios-hist/fechados-AAAA-MM.jsonl — um anúncio por linha quando ele SOME da vitrine
 //   (vendido, cancelado ou vencido; o cruzamento com as vendas diz qual):
 //     [id, speciesId, nome, nivel, shiny, potencia, qualidade, ivTotal, nota, moeda, precoInicial,
-//      precoFinal, criadoEm, primeiroVisto, ultimoVisto, sumiuAte, vendedor, mudancasDePreco]
+//      precoFinal, criadoEm, primeiroVisto, ultimoVisto, sumiuAte, vendedor, mudancasDePreco,
+//      ivs, zMove, tmAoe, refino, poder]
+//   Os 5 últimos entram a partir de 16/10/2026 (linhas antigas param em mudancasDePreco): ivs = os 6
+//   IVs {hp, atk, def, spAtk, spDef, speed} — a venda (CSV) só traz o total, e o IV do stat que o
+//   pokémon usa (Ataque num atacante físico) pode mexer no preço; zMove = o tipo do Z-Move (o antigo
+//   TM Elemental; o jogo ainda chama o campo de tmElemental) ou 0.
 // Horários em minutos desde 1970 (como o histórico de vendas); criadoEm como o jogo manda (ms).
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -51,7 +56,8 @@ export async function registrarAnuncios(anuncios, total) {
       const r = fichasAntes[id];
       if (!r) continue;
       linhas.push(JSON.stringify([Number(id), r[C.speciesId], r[C.nome], r[C.nivel], r[C.shiny], r[C.potencia], r[C.qualidade], r[C.ivTotal], r[C.nota],
-        r[C.moeda], x[2], x[3], r[C.criadoEm], x[0], x[1], agora, r[C.vendedor], x[4]]));
+        r[C.moeda], x[2], x[3], r[C.criadoEm], x[0], x[1], agora, r[C.vendedor], x[4],
+        r[C.ivs] ?? null, r[C.tmElemental] ?? 0, r[C.tmAoe] ?? 0, r[C.refino] ?? 0, r[C.poder] ?? null]));
     }
     if (linhas.length) {
       const mes = new Date().toISOString().slice(0, 7);

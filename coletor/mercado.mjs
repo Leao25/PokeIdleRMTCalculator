@@ -35,7 +35,7 @@ export async function lerAnuncios(sessao, sal) {
       out.push([
         a.id, f.speciesId, f.nome, f.level, f.shiny ? 1 : 0, f.potencia || 1, f.quality ?? null, f.ivTotal ?? null,
         f.nota ?? null, [iv.hp, iv.atk, iv.def, iv.spAtk, iv.spDef, iv.speed], a.preco, a.moeda === 'gold' ? 'gold' : 'orb',
-        a.criadoEm ?? null, a.compravelEm ?? null, f.tmElemental ? 1 : 0, f.tmAoe ? 1 : 0, f.refinoTotal || 0,
+        a.criadoEm ?? null, a.compravelEm ?? null, f.tmElemental ? (typeof f.tmElemental === 'string' ? f.tmElemental : 1) : 0, f.tmAoe ? 1 : 0, f.refinoTotal || 0,
         f.poder ?? null, codigoDoJogador(String(a.vendedorId ?? a.vendedor ?? ''), sal), a.favoritos || 0,
       ]);
     }
