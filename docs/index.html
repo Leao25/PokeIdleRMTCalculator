@@ -2270,24 +2270,16 @@ async function renderTime() {
     <h3 style="margin-top:6px">Quem completa o time${orc > 0 ? ` por até ${fmtVal(orc)} ${unit()}` : ""}</h3>
     ${top.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th>Tipos</th><th class="r">Nv</th><th class="r">P</th><th class="r">Nota</th><th class="r" title="Poder no PvE (⚔) que o jogo mostra na ficha">Poder</th><th class="r">Preço</th><th class="r">Justo</th><th>Resiste a</th><th>Passa a acertar</th><th class="r">Encaixe</th></tr></thead><tbody>
       ${top.map((c) => { const a = c.a, foto = urlFoto(a.species, a.shiny); const est = estimate({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny }, state.kept, state.fim);
-        return `<tr class="click" data-tm="${a.id}" tabindex="0"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${(() => { if (!pvpMeta) return ""; const u = [...usoNoMeta(pvpMeta, 100).m.values()].filter((x) => familiaPk(x.nome) === familiaPk(a.species)); const n = u.reduce((t, x) => t + x.times, 0); return n ? ` <span class="tag" title="Aparece em ${n} time${n > 1 ? "s" : ""} do top 100 do PvP (${u.map((x) => x.nome).join(", ")})">meta · ${n}</span>` : ""; })()}</td>
+        return `<tr data-tm="${a.id}"><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${(() => { if (!pvpMeta) return ""; const u = [...usoNoMeta(pvpMeta, 100).m.values()].filter((x) => familiaPk(x.nome) === familiaPk(a.species)); const n = u.reduce((t, x) => t + x.times, 0); return n ? ` <span class="tag" title="Aparece em ${n} time${n > 1 ? "s" : ""} do top 100 do PvP (${u.map((x) => x.nome).join(", ")})">meta · ${n}</span>` : ""; })()}</td>
           <td>${c.tipos.map(chipTipo).join("")}</td><td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
           <td class="r n">${c.poder ? short(c.poder) : "—"}</td><td class="r n"><b>${fmtShow(c.precoGem)}</b></td><td class="r n muted">${est.items.length ? fmtShow(est.p50) : "—"}</td>
           <td>${c.corrige.map(chipTipo).join("") || '<span class="muted">—</span>'}${c.piora.length ? ` <span class="ruim small" title="Também apanha deste tipo">fraco a ${c.piora.map((t) => TIPOS_PT[t]).join(", ")}</span>` : ""}</td>
           <td>${c.cobre.map(chipTipo).join("") || '<span class="muted">—</span>'}</td>
           <td class="r" data-v="${c.score.toFixed(3)}"><span class="simbar"><i style="width:${Math.round(c.score / maxScore * 100)}%"></i></span></td></tr>`; }).join("")}
     </tbody></table></div>` : '<p class="muted">Nenhum anúncio dentro do orçamento corrige as fraquezas do time. Aumente o orçamento.</p>'}
-    <p class="muted small">Fraqueza do time = tipo de ataque contra o qual mais membros apanham (×2 ou ×4) do que resistem. O encaixe soma quanto o candidato resiste a essas fraquezas (imunidade vale mais), desconta as que ele também tem e dá um bônus por acertar tipos que o time não acerta; depois pesa pelo poder dele${poderRef ? ` comparado com o do seu time (⚔ ${short(poderRef)})` : ""}. Tabela de tipos fora da hunt (sem a ampliação ×${nf(1).format(REGRAS.ampliacaoHunt)} da hunt). Um por espécie; clique para abrir na aba Comprar.</p>`;
-  out.querySelectorAll("tr[data-tm]").forEach((tr) => {
-    const a = A.lista.find((x) => String(x.id) === tr.dataset.tm);
-    const go = () => {
-      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null; state.refino = 0;
-      fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
-      $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
-      abrirAba("comprar"); render();
-    };
-    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
-  });
+    <p class="muted small">Fraqueza do time = tipo de ataque contra o qual mais membros apanham (×2 ou ×4) do que resistem. O encaixe soma quanto o candidato resiste a essas fraquezas (imunidade vale mais), desconta as que ele também tem e dá um bônus por acertar tipos que o time não acerta; depois pesa pelo poder dele${poderRef ? ` comparado com o do seu time (⚔ ${short(poderRef)})` : ""}. Tabela de tipos fora da hunt (sem a ampliação ×${nf(1).format(REGRAS.ampliacaoHunt)} da hunt). Um por espécie.</p>`;
+  // as linhas não levam a outra aba: clicar apagava as fichas do time (pedido 15/10)
+
 }
 
 // ---------- sniper de itens ----------
