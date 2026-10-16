@@ -176,8 +176,10 @@ async function main() {
   estado.fila ??= [];
   estado.feitos ??= [];
   const forcar = process.env.COLETA_FORCAR === 'principal';
+  // Com fila de recuperação, alterna: principal a cada ~2 h e a fila nas horas do meio.
+  const intervalo = estado.fila.length ? 110 * 60 * 1000 : INTERVALO_PRINCIPAL_MS;
   const devePrincipal = forcar || !estado.ultimaPrincipal
-    || Date.now() - Date.parse(estado.ultimaPrincipal) >= INTERVALO_PRINCIPAL_MS;
+    || Date.now() - Date.parse(estado.ultimaPrincipal) >= intervalo;
 
   let filtros;
   if (devePrincipal) filtros = { tipo: 'pokemon' };
