@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.3.3
+// @version      1.3.4
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -17,8 +17,8 @@
 // Como funciona
 // · Usa a SUA sessão do jogo (a aba aberta): não entra com outra conta e não pausa nada.
 // · A cada intervalo (padrão 60 s) pede ao jogo as mesmas telas que você abriria no Mercado:
-//   a vitrine de itens (menor preço e média de 7 dias de cada item) e os 24 anúncios de pokémon
-//   mais recentes. Com o Mercado aberto na sua tela, pula os anúncios de pokémon para não mexer
+//   a vitrine de itens (menor preço e média de 7 dias de cada item) e os 48 anúncios de pokémon
+//   mais recentes (2 páginas). Com o Mercado aberto na sua tela, pula os anúncios de pokémon para não mexer
 //   no que você está vendo.
 // · Compara com o PREÇO JUSTO do RMT Calculator, com a mesma conta do site (preco.js, via @require):
 //   baixa as vendas dos últimos 30 dias uma vez por hora e avalia cada anúncio como o Avaliar faria.
@@ -159,7 +159,11 @@
 
   // ---------- o que o jogo responde ----------
   const achados = new Map(); // chave -> achado
-  let ultimaLeitura = 0, pediuAnuncios = false;
+  // as 2 primeiras páginas da vitrine, em "mais recentes" (48 anúncios): a 1ª, e a 2ª logo depois dela
+  const PAGINAS = 2;
+  let ultimaLeitura = 0, pediuAnuncios = false, paginaPedida = 0;
+  const pedirPagina = (pagina) => { paginaPedida = pagina; return enviar({ t: 'market.listar', tipo: 'pokemon', moeda: cfg.moeda, busca: '', ordem: 'recentes', criterios: [], elemento: '', categoria: '',
+    soShiny: false, soP5: false, soTmElemental: false, soTmAoe: false, semOutland: false, pagina, especieId: 0 }); };
   let calmaAte = 0; // o jogo pediu calma: até essa hora, uma leitura por minuto
   function aoReceber(m) {
     if (m.t === 'welcome') {
@@ -178,7 +182,12 @@
       return;
     }
     if (m.aba === 'itens' && m.resumo) { avaliarItens(m.resumo, m.medias || {}); ultimaLeitura = Date.now(); pintar(); }
-    if (m.aba === 'vitrine' && pediuAnuncios && (m.pagina ?? 0) === 0) { pediuAnuncios = false; avaliarAnuncios(m.linhas || []); ultimaLeitura = Date.now(); pintar(); }
+    if (m.aba === 'vitrine' && pediuAnuncios && (m.pagina ?? 0) === paginaPedida) {
+      avaliarAnuncios(m.linhas || []); ultimaLeitura = Date.now(); pintar();
+      // tem mais página e ainda não chegou na última que lemos? pede a próxima (com folga, pelo limite do jogo)
+      if (paginaPedida + 1 < PAGINAS && (m.linhas?.length ?? 0) >= 24) setTimeout(() => { if (!pedirPagina(paginaPedida + 1)) pediuAnuncios = false; }, 1200);
+      else pediuAnuncios = false;
+    }
   }
   function novoAchado(chave, dados) {
     const ja = achados.get(chave);
@@ -281,8 +290,7 @@
       if (cfg.alvo === 'itens') enviar({ t: 'market.itens' });
       if (cfg.alvo === 'pokemon' && !mercadoAbertoNaTela()) {
         setTimeout(() => {
-          pediuAnuncios = enviar({ t: 'market.listar', tipo: 'pokemon', moeda: cfg.moeda, busca: '', criterios: [], elemento: '', categoria: '',
-            soShiny: false, soP5: false, soTmElemental: false, soTmAoe: false, semOutland: false, pagina: 0, especieId: 0 });
+          pediuAnuncios = pedirPagina(0);
         }, 1500);
       }
       // confere em silêncio se o anúncio mais antigo da lista ainda está à venda
