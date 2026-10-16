@@ -137,13 +137,22 @@ function criarPreco(state) {
     // Cada venda é levada ao nível da ficha antes de entrar na conta (fator entre 1/8 e 8).
     const beta = elasticidadeNivel(kept)[f.shiny ? "shiny" : "comum"];
     const ajuste = (s) => Number.isFinite(f.lvl) && f.lvl > 0 && s.lvl > 0 ? Math.min(8, Math.max(1 / 8, (f.lvl / s.lvl) ** beta)) : 1;
+    // A espécie quase não vende perto do nível NA MOEDA escolhida, mas vende na outra? Então as vendas
+    // dela na outra moeda (convertidas) pesam como se fossem desta, em vez de deixar o preço com outras
+    // espécies. Caso que motivou: Honchkrow P4 Nv 167 em Gemas saía 124 (genérico) com 3 vendas dele em
+    // Coins perto do nível; com isto, 81. No teste, nada piora e "0–2 vendas perto do nível" vai de ±96% a ±94%.
+    const pertoNv = (s) => !(f.lvl > 0) || (s.lvl >= f.lvl / 1.4 && s.lvl <= f.lvl * 1.4);
+    const doGrupo = (s) => norm(s.species) === norm(f.species) && s.shiny === f.shiny;
+    const nMesma = pool.filter((s) => doGrupo(s) && pertoNv(s) && s.moeda === state.moeda).length;
+    const nOutra = pool.filter((s) => doGrupo(s) && pertoNv(s) && s.moeda !== state.moeda).length;
+    const socorro = nMesma < 2 && nOutra >= 2;
     const items = pool.map((s) => {
       const d = dist(f, s), age = (fimMin - s.min) / 1440;
       // a moeda escolhida manda: Gemas e Coins são dois mercados com preços diferentes, e a outra moeda só
       // completa (×300; medido no teste contra vendas reais: o comum em Gemas errava ±150% com ×4, ±133% com
       // ×30 e ±130% com ×300; a taxa Gema/Coins por espécie foi testada e não ajudou).
       // Venda recente pesa mais: meia-vida de 7 dias (o mercado muda rápido).
-      const peso = s.moeda === state.moeda ? 30 : 0.1;
+      const peso = s.moeda === state.moeda ? 30 : socorro && doGrupo(s) && pertoNv(s) ? 30 : 0.1;
       return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * Math.pow(0.5, Math.max(age, 0) / 7) };
     }).filter((x) => x.w > 0).sort((a, b) => a.v - b.v);
     const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);

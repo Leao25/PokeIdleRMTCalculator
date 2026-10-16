@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.3.2
+// @version      1.3.3
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -9,7 +9,7 @@
 // @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @connect      pokeidle-rmt-calculator.vercel.app
-// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=3
+// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=4
 // @downloadURL  https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // @updateURL    https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // ==/UserScript==
