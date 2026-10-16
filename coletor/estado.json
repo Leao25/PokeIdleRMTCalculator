@@ -1,11 +1,6 @@
 {
   "ultimaPrincipal": "2026-10-16T14:33:53.683Z",
-  "fila": [
-    {
-      "tipo": "pokemon",
-      "soShiny": 1
-    }
-  ],
+  "fila": [],
   "feitos": [
     {
       "tipo": "pokemon",
@@ -150,12 +145,20 @@
       "novas": 13,
       "cortado": false,
       "em": "2026-10-16T13:31:35.950Z"
+    },
+    {
+      "tipo": "pokemon",
+      "soShiny": 1,
+      "linhas": 555,
+      "novas": 1,
+      "cortado": false,
+      "em": "2026-10-16T15:36:08.127Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 38,
+  "livroRodizio": 63,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-16T12:29:35.476Z",
-  "pvpMetaEm": "2026-10-16T14:33:38.158Z"
+  "pvpMetaEm": "2026-10-16T15:35:48.612Z"
 }

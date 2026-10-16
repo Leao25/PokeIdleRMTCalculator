@@ -62,6 +62,9 @@ import {
 // E a NOTA da calculadora: os degraus de cor saem de `FAIXAS_NOTA`, a mesma tabela que pinta a
 // caixa grande da calculadora (`faixaDaNota`). Um degrau novo aparece na tabela do capítulo sozinho.
 import { FAIXAS_NOTA, AUTO_LOCK_NOTA_MIN, GANHO_MIN_EVOLUCAO, MULT_LENDARIO_STATS } from '../shared/nota-pokemon.mjs';
+// O OURO DO ABATE e as PEDRAS POR ESTÁGIO (o fim do loot, 15/10/2026): as mesmas contas do servidor.
+import { ouroDoAbate } from '../shared/recompensa-hunt.mjs';
+import { CHANCE_PEDRA_POR_ESTAGIO } from '../shared/loot-pedras.mjs';
 // A OFERENDA, o CAMPEONATO e o nível do EEVEE também moram em `shared/`, lidos pelas duas pontas:
 // as casas da roleta, as datas, o requisito e o prêmio do campeonato, e o degrau fixo dos oito
 // destinos do Eevee saem daqui, e não de um número copiado no texto.
@@ -141,7 +144,7 @@ import { AJUSTE_REVIVE_PCT, REVIVE_ID } from '../shared/ajuste-item-espelho.mjs'
 /** Teto de tempo simulado da Guerra de Guilds, em minutos: `LIMITE_MS_GUERRA`, em `server/game/guild-pvp-sim.mjs`. */
 const MIN_GUERRA = 10;
 /** Espera entre duas mensagens no chat público, em segundos: `CHAT_COOLDOWN_MS`, em `server/limites-ws.mjs`. */
-const SEG_CHAT = 5;
+const SEG_CHAT = 30;
 /** A janela do sorteio na liberação do Mercado, em segundos: `JANELA_SORTEIO_MS`, em `server/sorteio-mercado.mjs`. */
 const SEG_SORTEIO = 3;
 /** Quantos anúncios uma compra em quantidade atravessa: `MAX_ANUNCIOS_LOTE`, em `server/market-db.mjs`. */
@@ -303,6 +306,49 @@ const P = (v, lang) => {
 };
 
 const umEm = (c) => (c > 0 ? `1 / ${Math.round(1 / c).toLocaleString('en-US').replace(/,/g, '.')}` : '—');
+
+/**
+ * O OURO DE CADA ABATE, nível a nível (o fim do loot, 15/10/2026): a curva, o bônus de loot (o que o
+ * loot vendido ao NPC pagava) e o total com o Loot Boost — tudo de `ouroDoAbate`
+ * (`shared/recompensa-hunt.mjs`), a conta do servidor. O +% do Loot Boost vem do `welcome`
+ * (`tiposBoost`, o `mult` de `server/game/loja.mjs`); 40 é a reserva de antes do login.
+ */
+const NIVEIS_OURO_WIKI = [1, 100, 1_000, 5_000, 25_000, 160_300];
+const pctLootBoost = (c) => Math.round((((c.d.tiposBoost ?? []).find((b) => b.chave === 'loot')?.mult ?? 1.4) - 1) * 100);
+const tabelaOuroDoAbate = (c, lang) => {
+  const boost = pctLootBoost(c);
+  const cab = {
+    pt: ['Nível do selvagem', 'Ouro (curva)', 'Bônus de loot', 'Total', `Com Loot Boost (+${boost}%)`],
+    en: ['Wild level', 'Gold (curve)', 'Loot bonus', 'Total', `With Loot Boost (+${boost}%)`],
+    es: ['Nivel del salvaje', 'Oro (curva)', 'Bono de loot', 'Total', `Con Loot Boost (+${boost}%)`],
+  }[lang];
+  return tabela(cab, NIVEIS_OURO_WIKI.map((n) => {
+    const a = ouroDoAbate(n);
+    const b = ouroDoAbate(n, boost);
+    return `<tr><td class="wk-num">${N(n, lang)}</td><td class="wk-num">${N(a.base, lang)}</td>`
+      + `<td class="wk-num">+${N(a.loot, lang)}</td><td class="wk-num destaque">${N(a.total, lang)}</td>`
+      + `<td class="wk-num">${N(b.total, lang)}</td></tr>`;
+  }).join(''));
+};
+
+/** A chance de cada pedra por estágio da cadeia (`CHANCE_PEDRA_POR_ESTAGIO`, `shared/loot-pedras.mjs`). */
+const pctPedra = (v, lang) => `${lang === 'en' ? v : String(v).replace('.', ',')}%`;
+const tabelaPedraPorEstagio = (c, lang) => {
+  const [e1, e2, e3] = CHANCE_PEDRA_POR_ESTAGIO;
+  const cab = {
+    pt: ['Estágio', 'Exemplo', 'Chance de cada pedra'],
+    en: ['Stage', 'Example', 'Chance of each stone'],
+    es: ['Etapa', 'Ejemplo', 'Probabilidad de cada piedra'],
+  }[lang];
+  const nomes = {
+    pt: ['1ª evolução', '2ª evolução', '3ª evolução ou quem não evolui'],
+    en: ['1st evolution', '2nd evolution', "3rd evolution, or one that doesn't evolve"],
+    es: ['1.ª evolución', '2.ª evolución', '3.ª evolución o quien no evoluciona'],
+  }[lang];
+  const ex = ['Charmander', 'Charmeleon', 'Charizard · Tauros'];
+  return tabela(cab, [e1, e2, e3].map((v, i) =>
+    `<tr><td>${nomes[i]}</td><td>${ex[i]}</td><td class="wk-num destaque">${pctPedra(v, lang)}</td></tr>`).join(''));
+};
 
 /** Chance do Bronze Boss Token por kill na Outland — vem do `welcome`, não hardcoded. */
 const chanceBossToken = (c) => c.d.chanceBossToken ?? 0.0005;
@@ -1655,8 +1701,9 @@ export const CAPITULOS = [
           <li><b>Derrubado, o selvagem vira corpo</b> e fica <b>30 segundos</b> no chão. É nesse
           intervalo que se joga a pokébola — e é assim que se captura de verdade
           (ver <a data-cap="captura">Captura</a>).</li>
-          <li><b>O que cai</b> vai para a Bolsa; o ouro entra direto. Venda o que não usar no
-          <a data-cap="market">Market</a>.</li>
+          <li><b>O ouro</b> de cada abate entra direto — e já vem com o <b>bônus de loot</b> (ver
+          <a data-cap="combate">Combate</a>). O que cai — a pedra de evolução dos tipos do pokémon e
+          os drops raros — vai para a <b>Mochila</b>.</li>
         </ol>
 
         <h4>A sua equipe</h4>
@@ -1691,9 +1738,10 @@ export const CAPITULOS = [
            <tr><td><b>Shop</b></td><td>a Loja de diamantes — <a data-cap="loja">Loja de Diamantes</a></td></tr>
            <tr><td><b>Wiki</b></td><td>este manual</td></tr>`,
         )}
-        <p>A <b>Bolsa</b> (o inventário) abre pelo ícone dela, e tem as abas <b>Treinador</b> (bolas,
-        poções e revives), <b>Itens Raros</b> (tickets, etiquetas, bicicletas, ovos), <b>Pedras</b>,
-        <b>Loots</b>, <b>Oferenda</b>, <b>Coleção</b>, <b>Skins</b> e <b>Chocadeira</b>.</p>
+        <p>A <b>Mochila</b> (o inventário) abre pelo botão dela e mostra os <b>bolsos</b>:
+        <b>Treinador</b> (bolas, poções e revives), <b>Itens Raros</b> (tickets, etiquetas, bicicletas,
+        ovos, Z-Moves), <b>Pedras</b>, <b>Skins</b>, <b>Oferenda</b>, <b>Chocadeira</b> e <b>Coleção</b>.
+        Um toque abre o bolso; o <b>‹</b> do topo volta para a Mochila.</p>
 
         <h4>Conversar</h4>
         <p>Os quatro canais do chat, a Lista de Amigos, as mensagens privadas e o chat de
@@ -1729,8 +1777,9 @@ export const CAPITULOS = [
           <li><b>Once knocked down, the wild becomes a body</b> and stays on the ground for
           <b>30 seconds</b>. That is the window to throw a ball — and that is how you actually
           catch things (see <a data-cap="captura">Catching</a>).</li>
-          <li><b>Loot</b> goes to the Bag; gold goes straight in. Sell what you don't need at the
-          <a data-cap="market">Market</a>.</li>
+          <li><b>Gold</b> from each defeat goes straight in — already with the <b>loot bonus</b> (see
+          <a data-cap="combate">Combat</a>). What drops — the evolution stone of the pokémon's types
+          and the rare drops — goes to the <b>Backpack</b>.</li>
         </ol>
 
         <h4>Your team</h4>
@@ -1765,9 +1814,10 @@ export const CAPITULOS = [
            <tr><td><b>Shop</b></td><td>the diamond Shop — <a data-cap="loja">Diamond Shop</a></td></tr>
            <tr><td><b>Wiki</b></td><td>this manual</td></tr>`,
         )}
-        <p>The <b>Bag</b> (your inventory) opens from its icon, with the tabs <b>Trainer</b> (balls,
-        potions and revives), <b>Rare Items</b> (tickets, tags, bicycles, eggs), <b>Stones</b>,
-        <b>Loot</b>, <b>Offering</b>, <b>Collection</b>, <b>Skins</b> and <b>Incubator</b>.</p>
+        <p>The <b>Backpack</b> (your inventory) opens from its button and shows the <b>pockets</b>:
+        <b>Trainer</b> (balls, potions and revives), <b>Rare Items</b> (tickets, tags, bicycles, eggs,
+        Z-Moves), <b>Stones</b>, <b>Skins</b>, <b>Offering</b>, <b>Incubator</b> and <b>Collection</b>.
+        A tap opens the pocket; the <b>‹</b> at the top goes back to the Backpack.</p>
 
         <h4>Talking</h4>
         <p>The four chat channels, the Friends List, private messages and the negotiation chat with
@@ -1804,8 +1854,9 @@ export const CAPITULOS = [
           <li><b>Al caer, el salvaje queda como cuerpo</b> durante <b>30 segundos</b>. Ese es el
           momento de lanzar la poké ball — y así es como se captura de verdad
           (ver <a data-cap="captura">Captura</a>).</li>
-          <li><b>Lo que cae</b> va a la Bolsa; el oro entra directo. Vende lo que no uses en el
-          <a data-cap="market">Market</a>.</li>
+          <li><b>El oro</b> de cada derrota entra directo — ya con el <b>bono de loot</b> (ver
+          <a data-cap="combate">Combate</a>). Lo que cae — la piedra evolutiva de los tipos del
+          pokémon y los drops raros — va a la <b>Mochila</b>.</li>
         </ol>
 
         <h4>Tu equipo</h4>
@@ -1840,10 +1891,10 @@ export const CAPITULOS = [
            <tr><td><b>Tienda</b></td><td>la Tienda de diamantes — <a data-cap="loja">Tienda de Diamantes</a></td></tr>
            <tr><td><b>Wiki</b></td><td>este manual</td></tr>`,
         )}
-        <p>La <b>Bolsa</b> (el inventario) se abre por su ícono, con las pestañas <b>Entrenador</b>
-        (balls, pociones y revives), <b>Objetos Raros</b> (tickets, etiquetas, bicicletas, huevos),
-        <b>Piedras</b>, <b>Loot</b>, <b>Ofrenda</b>, <b>Colección</b>, <b>Skins</b> e
-        <b>Incubadora</b>.</p>
+        <p>La <b>Mochila</b> (el inventario) se abre por su botón y muestra los <b>bolsillos</b>:
+        <b>Entrenador</b> (balls, pociones y revivires), <b>Objetos Raros</b> (tickets, etiquetas,
+        bicicletas, huevos, Z-Moves), <b>Piedras</b>, <b>Skins</b>, <b>Ofrenda</b>, <b>Incubadora</b> y
+        <b>Colección</b>. Un toque abre el bolsillo; la <b>‹</b> de arriba vuelve a la Mochila.</p>
 
         <h4>Conversar</h4>
         <p>Los cuatro canales del chat, la Lista de Amigos, los mensajes privados y el chat de
@@ -2627,7 +2678,7 @@ custo do degrau N = ${N(c.d.refino?.custoBase ?? 500, c.lang)} × (3N² − 3N +
         ali em cima, e o refino não mexe em nenhum dos dois. Vender “+1 SPD” seria vender um número
         que não faz nada.</p>
         <p>A <b>nota N=</b> e o <b>⚔</b> sobem com o refino — usam a base atual (espécie + +N).
-        TM elemental e held items não entram na nota. O selo <b>+N</b> ao lado do nome mostra
+        Z-Move e held items não entram na nota. O selo <b>+N</b> ao lado do nome mostra
         quanto já foi investido; os stats de verdade sobem na ficha.</p>
         <p>O “+” fica em dois lugares: no cabeçalho do painel <b>Em campo</b> e em cada linha de
         <b>Stats-base</b> na ficha de um pokémon seu. Refinar manda o pokémon para a sua
@@ -2803,7 +2854,7 @@ costo del escalón N = ${N(c.d.refino?.custoBase ?? 500, c.lang)} × (3N² − 3
         de Speed, arriba, y el refinado no toca ninguno de los dos. Vender “+1 SPD” sería vender un
         número que no hace nada.</p>
         <p>La <b>nota N=</b> y el <b>⚔</b> suben con el refinado — usan la base actual (especie + +N).
-        TM elemental y held items no entran en la nota. El sello <b>+N</b> al lado del nombre muestra
+        Z-Move y held items no entran en la nota. El sello <b>+N</b> al lado del nombre muestra
         cuánto ya se invirtió; los stats reales suben en la ficha.</p>
         <p>El “+” está en dos lugares: en la cabecera del panel <b>En campo</b> y en cada línea de
         <b>Stats base</b> de la ficha de un pokémon tuyo. Refinar envía el pokémon a tu
@@ -2851,7 +2902,7 @@ nota   = 10 × (score − pior possível) ÷ (melhor − pior)   ← só dentro 
         um pokémon (aí ela já vem com os números dele). São duas abas.</p>
         <p><b>Calcular Pokémon.</b> Escolha a <b>espécie primeiro</b> — 0 e 10 são o pior e o melhor
         nascimento <i>daquela</i> espécie — e preencha o nascimento: o <b>IV de cada stat</b> (seis
-        campos, de 1 a 32), a qualidade, a potência, o shiny e, se quiser, o TM elemental. Sai:</p>
+        campos, de 1 a 32), a qualidade, a potência, o shiny e, se quiser, o Z-Move. Sai:</p>
         <ul>
           <li>a <b>nota</b> grande, no pedestal com o holofote na <b>cor da faixa</b> (tabela abaixo),
           e quanto falta para a faixa seguinte;</li>
@@ -2951,7 +3002,7 @@ N=     = 10 × (score − worst) ÷ (best − worst)   ← within species only</
         sheet (then it comes with that pokémon's numbers). It has two tabs.</p>
         <p><b>Calculate Pokémon.</b> Pick the <b>species first</b> — 0 and 10 are the worst and best
         birth of <i>that</i> species — and fill in the birth: the <b>IV of each stat</b> (six fields,
-        1 to 32), quality, potency, shiny and, if you want, the elemental TM. You get:</p>
+        1 to 32), quality, potency, shiny and, if you want, the Z-Move. You get:</p>
         <ul>
           <li>the big <b>score</b>, on the pedestal with the spotlight in the <b>tier colour</b> (table
           below), and how far it is from the next tier;</li>
@@ -3050,7 +3101,7 @@ nota  = 10 × (score − peor posible) ÷ (mejor − peor)   ← solo dentro de 
         ficha de un pokémon (entonces ya viene con sus números). Tiene dos pestañas.</p>
         <p><b>Calcular Pokémon.</b> Elige la <b>especie primero</b> — 0 y 10 son el peor y el mejor
         nacimiento <i>de esa</i> especie — y rellena el nacimiento: el <b>IV de cada stat</b> (seis
-        campos, de 1 a 32), la calidad, la potencia, el shiny y, si quieres, el TM elemental. Sale:</p>
+        campos, de 1 a 32), la calidad, la potencia, el shiny y, si quieres, el Z-Move. Sale:</p>
         <ul>
           <li>la <b>nota</b> grande, en el pedestal con el foco en el <b>color del rango</b> (tabla
           abajo), y cuánto falta para el rango siguiente;</li>
@@ -3477,8 +3528,9 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>Ou seja: o lendário da arena sai com <b>pelo menos ×${piso}</b> em todos os stats. O
         <b>shiny</b> rola com a chance cheia do jogo (${shiny}, dobrada pelo Shiny Secret Lure) — desde que
         a espécie tenha forma shiny.</p>
-        ${nota(`<b>Guarde o seu lendário na Coleção.</b> O <b>Auto Coleção</b> só pega shiny, P5 e quem passa
-        da nota que você escolheu — e a nota do lendário fica escondida atrás do GLITCH. Fora da Coleção,
+        ${nota(`<b>Guarde o seu lendário na Coleção.</b> O <b>Auto Coleção</b> já faz isso por padrão: a regra
+        <b>Lendário/Mítico</b> vem ligada para todo jogador. Se você a desligar, lembre que a nota do
+        lendário fica escondida atrás do GLITCH — a regra da nota nunca o pega. Fora da Coleção,
         o lendário entra no <b>Vender todo o Depot</b> do <a data-cap="market">Market</a> e pode ser
         escolhido pela <a data-cap="oferenda">Oferenda</a> automática. A setinha dourada do card manda
         ele para a Coleção num toque.`, 'atencao')}`,
@@ -3548,8 +3600,9 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>In short: an arena legendary comes out with <b>at least ×${piso}</b> on every stat. <b>Shiny</b>
         rolls at the game's full chance (${shiny}, doubled by the Shiny Secret Lure) — as long as the
         species has a shiny form.</p>
-        ${nota(`<b>Keep your legendary in the Collection.</b> <b>Auto Collection</b> only takes shinies, P5s
-        and anything above the score you picked — and a legendary's score is hidden behind the GLITCH.
+        ${nota(`<b>Keep your legendary in the Collection.</b> <b>Auto Collection</b> already does it by default:
+        the <b>Legendary/Mythical</b> rule comes on for every player. If you turn it off, remember that a
+        legendary's score is hidden behind the GLITCH — the score rule never catches it.
         Outside the Collection, the legendary goes into the <a data-cap="market">Market</a>'s <b>Sell entire
         Depot</b> and can be picked by the automatic <a data-cap="oferenda">Offering</a>. The golden
         arrow on the card sends it to the Collection in one tap.`, 'atencao')}`,
@@ -3619,8 +3672,9 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>O sea: el legendario de la arena sale con <b>al menos ×${piso}</b> en todos los stats. El
         <b>shiny</b> sale con la chance completa del juego (${shiny}, doblada por el Shiny Secret Lure) —
         siempre que la especie tenga forma shiny.</p>
-        ${nota(`<b>Guarda tu legendario en la Colección.</b> La <b>Auto Colección</b> solo toma shinys, P5 y los
-        que pasan de la nota que elegiste — y la nota del legendario queda escondida detrás del GLITCH.
+        ${nota(`<b>Guarda tu legendario en la Colección.</b> La <b>Auto Colección</b> ya lo hace por defecto: la
+        regla <b>Legendario/Mítico</b> viene encendida para todo jugador. Si la apagas, recuerda que la nota
+        del legendario queda escondida detrás del GLITCH — la regla de la nota nunca lo toma.
         Fuera de la Colección, el legendario entra en el <b>Vender todo el Depósito</b> del
         <a data-cap="market">Market</a> y puede ser elegido por la <a data-cap="oferenda">Ofrenda</a>
         automática. La flechita dorada de la carta lo manda a la Colección con un toque.`, 'atencao')}`,
@@ -3664,7 +3718,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
           <li><b>Golpes</b> — a tabela com poder, tipo, categoria, recarga e o nível em que cada um
           libera (não aparece nos cartões da grade). Nas espécies refeitas pelas planilhas de
           balanceamento, todos os golpes liberam no nível 1.</li>
-          <li>Loot, chance de captura por pokébola e chance de shiny (se a espécie tiver forma shiny —
+          <li>Drops (as pedras dos tipos, e a chance de cada uma), chance de captura por pokébola e chance de shiny (se a espécie tiver forma shiny —
           hoje são <b>${Object.keys(c.d.shinyLooks ?? {}).length}</b> no catálogo)</li>
           <li><b>Nível ao capturar</b> — em que nível ela entra na sua equipe (ver
           <a data-cap="captura">Captura</a>)</li>
@@ -3723,7 +3777,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
           <li><b>Moves</b> — the table with power, type, category, cooldown and the level each one
           unlocks at (not shown on grid cards). On species reworked by the balance sheets, every move
           unlocks at level 1.</li>
-          <li>Loot, catch rates per ball and shiny chance (when the species has a shiny form —
+          <li>Drops (the stones of its types, and each one's chance), catch rates per ball and shiny chance (when the species has a shiny form —
           <b>${Object.keys(c.d.shinyLooks ?? {}).length}</b> in the catalogue today)</li>
           <li><b>Level when caught</b> — the level it joins your team at (see
           <a data-cap="captura">Catching</a>)</li>
@@ -3781,7 +3835,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
           <li><b>Movimientos</b> — la tabla con poder, tipo, categoría, recarga y el nivel en que cada
           uno se desbloquea (no aparece en las cartas de la cuadrícula). En las especies rehechas por
           las planillas de balance, todos los golpes se desbloquean en el nivel 1.</li>
-          <li>Loot, probabilidad de captura por poké ball y chance shiny (si la especie tiene forma
+          <li>Drops (las piedras de sus tipos, y la probabilidad de cada una), probabilidad de captura por poké ball y chance shiny (si la especie tiene forma
           shiny — hoy <b>${Object.keys(c.d.shinyLooks ?? {}).length}</b> en el catálogo)</li>
           <li><b>Nivel al capturar</b> — en qué nivel entra a tu equipo (ver
           <a data-cap="captura">Captura</a>)</li>
@@ -3891,7 +3945,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <a data-cap="oferenda">Oferenda</a>: cada um pinta a fatia do tipo dele numa roleta.</p>`,
       en: `
         <p>Evolving needs <b>two things at once</b>: the pokémon at the <b>level</b> the evolution
-        demands, and <b>1 stone</b> of the right type in your bag. Missing either, the button
+        demands, and <b>1 stone</b> of the right type in your backpack. Missing either, the button
         refuses and spends nothing.</p>
 
         <h4>The level follows the capture-cap ladder</h4>
@@ -4047,8 +4101,8 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
       const autoLock = String(AUTO_LOCK_NOTA_MIN).replace('.', c.lang === 'en' ? '.' : ',');
       return {
         pt: `
-        <p>A Oferenda troca pokémon do depot por <b>pedra de evolução</b>. Fica na bolsa:
-        <b>Abrir Inventário → Oferenda</b>. Você carrega uma roleta com até <b>${casas}
+        <p>A Oferenda troca pokémon do depot por <b>pedra de evolução</b>. Fica na mochila:
+        <b>Mochila → Oferenda</b>. Você carrega uma roleta com até <b>${casas}
         pokémon</b>, gira, e sai <b>uma pedra</b>, sorteada entre os tipos que você pôs. Os
         pokémon oferecidos <b>somem para sempre</b>.</p>
 
@@ -4118,7 +4172,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>O botão ao lado de <b>Esvaziar</b> enche as casas vazias com os pokémon do depot de
         <b>menor nota</b> (a N= da <a data-cap="nota">calculadora</a>).</p>
         <ul>
-          <li>Só pega nota <b>abaixo da do seu Auto Coleção N</b> (no Market; o padrão é
+          <li>Só pega nota <b>abaixo da Nota mínima do seu Auto Coleção</b> (Market → Vender; o padrão é
           ${autoLock}). Com três ruins e um ótimo no depot, a quarta casa fica vazia.</li>
           <li><b>Nunca pega:</b> shiny, P5, pokémon da Coleção, da vitrine do perfil, com
           item segurado, refino ou TM, o starter, nem as suas equipes do
@@ -4135,7 +4189,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <h4>Oferendar tudo do Depot</h4>
         <p>Para limpar o Depot de uma vez, o botão <b>Oferendar tudo do Depot</b> gira <b>de
         ${OFERENDA_CASAS} em ${OFERENDA_CASAS}</b> com a mesma peneira do Auto Selecionar: só o que
-        está abaixo da nota do seu Auto Coleção N, do pior para o melhor, e nunca shiny, P5, a
+        está abaixo da Nota mínima do seu Auto Coleção, do pior para o melhor, e nunca shiny, P5, a
         Coleção, a vitrine, as equipes, quem segura item, tem refino ou TM, nem o starter.</p>
         <ul>
           <li>A confirmação diz quantos pokémon vão, em quantos giros, e <b>quem ficou de fora e
@@ -4150,8 +4204,8 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         ${nota(`O sorteio é feito no <b>servidor</b>. A roleta que gira na tela só mostra o
         resultado que já saiu.`)}`,
         en: `
-        <p>The Offering trades depot pokémon for an <b>evolution stone</b>. It lives in the bag:
-        <b>Open Inventory → Offering</b>. You load a wheel with up to <b>${casas} pokémon</b>,
+        <p>The Offering trades depot pokémon for an <b>evolution stone</b>. It lives in the backpack:
+        <b>Backpack → Offering</b>. You load a wheel with up to <b>${casas} pokémon</b>,
         spin, and get <b>one stone</b>, drawn among the types you put in. The offered pokémon are
         <b>gone for good</b>.</p>
 
@@ -4224,7 +4278,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>The button next to <b>Empty it</b> fills the empty slots with the <b>lowest-rated</b>
         depot pokémon (the N= from the <a data-cap="nota">calculator</a>).</p>
         <ul>
-          <li>It only takes ratings <b>below your Auto Collection N</b> (in the Market; the default
+          <li>It only takes ratings <b>below the Minimum score of your Auto Collection</b> (Market → Sell; the default
           is ${autoLock}). With three bad ones and one great one in the depot, the fourth slot
           stays empty.</li>
           <li><b>It never takes:</b> shiny, P5, Collection, profile showcase, or pokémon with a
@@ -4256,7 +4310,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         result that already came out.`)}`,
         es: `
         <p>La Ofrenda cambia pokémon del depot por una <b>piedra de evolución</b>. Está en la
-        bolsa: <b>Abrir inventario → Ofrenda</b>. Cargas una ruleta con hasta <b>${casas}
+        mochila: <b>Mochila → Ofrenda</b>. Cargas una ruleta con hasta <b>${casas}
         pokémon</b>, giras y sale <b>una piedra</b>, sorteada entre los tipos que pusiste. Los
         pokémon ofrecidos <b>desaparecen para siempre</b>.</p>
 
@@ -4331,7 +4385,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>El botón junto a <b>Vaciar</b> llena las casillas vacías con los pokémon del depot de
         <b>menor nota</b> (la N= de la <a data-cap="nota">calculadora</a>).</p>
         <ul>
-          <li>Solo elige notas <b>por debajo de tu Auto Colección N</b> (en el Market; por
+          <li>Solo elige notas <b>por debajo de la Nota mínima de tu Auto Colección</b> (Market → Vender; por
           defecto ${autoLock}). Con tres malos y uno muy bueno en el depot, la cuarta casilla queda
           vacía.</li>
           <li><b>Nunca elige:</b> shiny, P5, los de la Colección, la vitrina del perfil, con
@@ -4349,7 +4403,7 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <h4>Ofrendar todo el Depósito</h4>
         <p>Para vaciar el Depósito de una vez, el botón <b>Ofrendar todo el Depósito</b> gira <b>de
         ${OFERENDA_CASAS} en ${OFERENDA_CASAS}</b> con el mismo filtro de Autoseleccionar: solo lo
-        que está por debajo de la nota de tu Auto Colección N, del peor al mejor, y nunca shiny, P5,
+        que está por debajo de la Nota mínima de tu Auto Colección, del peor al mejor, y nunca shiny, P5,
         la Colección, la vitrina, los equipos, quien sostiene un objeto, tiene refinado o TM, ni el
         inicial.</p>
         <ul>
@@ -4419,7 +4473,8 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
           <li><b>Modo Imersivo</b> — esconde painéis e HUD: só a batalha em tela cheia, como um
           wallpaper animado. Para sair, o botão no <b>canto superior direito</b>. Com o Modo
           Economia ligado junto, o que aparece é o painel da economia, com o mesmo botão de
-          saída.</li>
+          saída. Na hunt e na arena do boss há um <b>atalho</b> ao lado da bateria, com o mesmo
+          desenho do botão de sair: um toque e a batalha vai para a tela cheia.</li>
           <li><b>Night Mode</b> — tema escuro no site inteiro.</li>
           <li><b>Painel de golpes</b> — mostra os golpes do pokémon ativo ao lado da batalha, com o
           cooldown de cada um. Só informação: não muda o combate automático.</li>
@@ -4503,7 +4558,9 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <ul>
           <li><b>Immersive mode</b> — hides panels and HUD: just the battle in full screen, like an
           animated wallpaper. To leave, use the button in the <b>top-right corner</b>. With Battery
-          Saver on as well, what shows is the Battery Saver panel, with the same exit button.</li>
+          Saver on as well, what shows is the Battery Saver panel, with the same exit button. In a
+          hunt and in the boss arena there is a <b>shortcut</b> next to the battery, with the same
+          art as the exit button: one tap and the battle goes full screen.</li>
           <li><b>Night mode</b> — dark theme across the whole site.</li>
           <li><b>Moves panel</b> — shows the active pokémon's moves next to the battle, with each
           one's cooldown. Information only: it does not change the automatic combat.</li>
@@ -4589,7 +4646,8 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
           <li><b>Modo inmersivo</b> — oculta paneles y HUD: solo la batalla a pantalla completa,
           como un fondo animado. Para salir, el botón de la <b>esquina superior derecha</b>. Con el
           Modo Ahorro encendido a la vez, lo que aparece es el panel del ahorro, con el mismo botón
-          de salida.</li>
+          de salida. En la hunt y en la arena del boss hay un <b>atajo</b> al lado de la batería, con
+          el mismo dibujo del botón de salida: un toque y la batalla pasa a pantalla completa.</li>
           <li><b>Modo nocturno</b> — tema oscuro en todo el sitio.</li>
           <li><b>Panel de golpes</b> — muestra los golpes del pokémon activo junto a la batalla, con
           el cooldown de cada uno. Solo información: no cambia el combate automático.</li>
@@ -5130,13 +5188,25 @@ recarga   = recarga × (1 − desconto ÷ 100)</pre>
         <b>bandos</b> espalhados pelo mapa, calibrados para o mesmo time limpar a onda no mesmo tempo em
         qualquer hunt dali — e para a bicicleta render o mesmo em todas.</p>
 
+        <h4>Ouro e drops de cada abate</h4>
+        <p>O <b>ouro</b> de um abate tem duas partes, as duas pelo nível do selvagem: a <b>curva</b>,
+        que para de crescer no nível 25.000, e o <b>bônus de loot</b> — o que o loot vendido ao NPC
+        pagava até 15/10/2026, quando ele saiu do jogo. Até o nível 25.000 o bônus é <b>+15%</b> da
+        curva; acima, é ele que cresce, até igualar a curva no topo. O <b>Loot Boost</b> (e o bônus
+        de guild e o farm de evento, que somam com ele) multiplica o bônus de loot. O log de batalha
+        mostra a parte do bônus em cada abate.</p>
+        ${tabelaOuroDoAbate(c, 'pt')}
+        <p>O que <b>cai</b> é só <b>pedra de evolução</b>: cada pokémon solta a pedra de <b>cada tipo</b>
+        dele (o Pidgey, NORMAL/FLYING, solta Sun Stone e Feather Stone), com a chance do
+        <b>estágio</b> na cadeia de evolução. Quem não evolui (Tauros, Lapras) e as variantes da
+        Outland contam como forma final. A tabela de cada espécie está na <b>Pokédex</b>.</p>
+        ${tabelaPedraPorEstagio(c, 'pt')}
+
         <h4>Drop na Outland</h4>
-        <p>Na <b>Outland</b>, o loot da espécie é <b>só pedra de evolução</b> (tabela na
-        <b>Pokédex</b>) — os itens comuns, que só serviam para vender ao NPC, não caem lá. Além das
-        pedras, selvagens derrotados na Outland podem soltar <b>1× Bronze Boss Token</b> — entrada de
+        <p>Na <b>Outland</b> o selvagem solta a pedra dos tipos dele como em todo lugar (com a chance
+        da forma final) e, além dela, pode soltar <b>1× Bronze Boss Token</b> — entrada de
         <a data-cap="bosses">boss</a> — e os fragmentos de Chave, Shiny Stone e Bicicleta. Kanto e Orre
-        não dropam o token. O ouro de cada abate é o mesmo; só a venda automática não tem mais o que
-        vender lá.</p>
+        não dropam o token.</p>
         ${tabela(
           [c.r.item, c.r.chance, c.r.quando],
           `<tr><td>Bronze Boss Token</td><td class="wk-num destaque">${pctBossToken(c)} · ${umEm(chanceBossToken(c))}</td><td>kill na Outland</td></tr>`,
@@ -5280,13 +5350,25 @@ cooldown  = cooldown × (1 − discount ÷ 100)</pre>
         <b>packs</b> spread across the map, tuned so the same team clears a wave in the same time on any of
         those hunts — and so the bicycle pays off the same on all of them.</p>
 
+        <h4>Gold and drops from each defeat</h4>
+        <p>The <b>gold</b> from a defeat has two parts, both by the wild's level: the <b>curve</b>,
+        which stops growing at level 25,000, and the <b>loot bonus</b> — what loot sold to the NPC used
+        to pay until 10/15/2026, when it left the game. Up to level 25,000 the bonus is <b>+15%</b> of
+        the curve; above that, the bonus is what keeps growing, until it matches the curve at the top.
+        <b>Loot Boost</b> (plus the guild bonus and event farm, which add up with it) multiplies the
+        loot bonus. The battle log shows the bonus part of every defeat.</p>
+        ${tabelaOuroDoAbate(c, 'en')}
+        <p>What <b>drops</b> is only <b>evolution stones</b>: every pokémon drops the stone of <b>each
+        of its types</b> (Pidgey, NORMAL/FLYING, drops Sun Stone and Feather Stone), with the chance of
+        its <b>stage</b> in the evolution chain. Pokémon that don't evolve (Tauros, Lapras) and the
+        Outland variants count as final forms. Each species' table is in the <b>Pokédex</b>.</p>
+        ${tabelaPedraPorEstagio(c, 'en')}
+
         <h4>Outland drop</h4>
-        <p>In <b>Outland</b>, species loot is <b>evolution stones only</b> (table in the
-        <b>Pokédex</b>) — the common items, which were only good for selling to the NPC, do not drop
-        there. Besides the stones, wilds defeated in Outland can drop <b>1× Bronze Boss Token</b> — a
+        <p>In <b>Outland</b> the wild drops the stones of its types like everywhere else (at the
+        final-form chance) and, besides them, can drop <b>1× Bronze Boss Token</b> — a
         <a data-cap="bosses">boss</a> entry ticket — and the Key, Shiny Stone and Bicycle fragments.
-        Kanto and Orre do not drop the token. The gold from each defeat is the same; only the auto-sell
-        has nothing left to sell there.</p>
+        Kanto and Orre do not drop the token.</p>
         ${tabela(
           [c.r.item, c.r.chance, c.r.quando],
           `<tr><td>Bronze Boss Token</td><td class="wk-num destaque">${pctBossToken(c)} · ${umEm(chanceBossToken(c))}</td><td>Outland kill</td></tr>`,
@@ -5430,13 +5512,26 @@ recarga   = recarga × (1 − descuento ÷ 100)</pre>
         nacen en <b>grupos</b> repartidos por el mapa, calibrados para que el mismo equipo limpie la oleada
         en el mismo tiempo en cualquiera de esas cazas — y para que la bici rinda lo mismo en todas.</p>
 
+        <h4>Oro y drops de cada derrota</h4>
+        <p>El <b>oro</b> de una derrota tiene dos partes, las dos por el nivel del salvaje: la
+        <b>curva</b>, que deja de crecer en el nivel 25.000, y el <b>bono de loot</b> — lo que el loot
+        vendido al NPC pagaba hasta el 15/10/2026, cuando salió del juego. Hasta el nivel 25.000 el
+        bono es <b>+15%</b> de la curva; por encima, es él el que crece, hasta igualar la curva en la
+        cima. El <b>Loot Boost</b> (y el bono de guild y el farm de evento, que se suman a él)
+        multiplica el bono de loot. El registro de batalla muestra la parte del bono en cada derrota.</p>
+        ${tabelaOuroDoAbate(c, 'es')}
+        <p>Lo que <b>cae</b> es solo <b>piedra evolutiva</b>: cada pokémon suelta la piedra de <b>cada
+        uno de sus tipos</b> (Pidgey, NORMAL/FLYING, suelta Sun Stone y Feather Stone), con la
+        probabilidad de su <b>etapa</b> en la cadena evolutiva. Quien no evoluciona (Tauros, Lapras) y
+        las variantes de Outland cuentan como forma final. La tabla de cada especie está en la
+        <b>Pokédex</b>.</p>
+        ${tabelaPedraPorEstagio(c, 'es')}
+
         <h4>Drop en Outland</h4>
-        <p>En <b>Outland</b>, el loot de la especie es <b>solo piedras de evolución</b> (tabla en
-        la <b>Pokédex</b>) — los objetos comunes, que solo servían para vender al NPC, no caen allí.
-        Además de las piedras, los salvajes derrotados en Outland pueden soltar <b>1× Bronze Boss
-        Token</b> — entrada de <a data-cap="bosses">boss</a> — y los fragmentos de Llave, Shiny Stone
-        y Bicicleta. Kanto y Orre no sueltan el token. El oro de cada derrota es el mismo; solo la venta
-        automática ya no tiene qué vender allí.</p>
+        <p>En <b>Outland</b> el salvaje suelta las piedras de sus tipos como en todas partes (con la
+        probabilidad de forma final) y, además, puede soltar <b>1× Bronze Boss Token</b> — entrada de
+        <a data-cap="bosses">boss</a> — y los fragmentos de Llave, Shiny Stone y Bicicleta. Kanto y
+        Orre no sueltan el token.</p>
         ${tabela(
           [c.r.item, c.r.chance, c.r.quando],
           `<tr><td>Bronze Boss Token</td><td class="wk-num destaque">${pctBossToken(c)} · ${umEm(chanceBossToken(c))}</td><td>kill en Outland</td></tr>`,
@@ -5973,7 +6068,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Se o time inteiro cair, a Enfermeira cura e a automação <b>devolve você à mesma hunt</b>
         alguns segundos depois — é o que deixa farmar de madrugada sem acordar para clicar.</p>
         <ul>
-          <li><b>Só dispara com poção ou revive na bolsa.</b> Sem itens ela <b>pausa</b> e avisa no
+          <li><b>Só dispara com poção ou revive na mochila.</b> Sem itens ela <b>pausa</b> e avisa no
           log e em toast, em vez de devolver você à hunt que acabou de matar seu time. Sem essa
           trava, ficar sem item de madrugada vira um laço de mortes — e cada volta cobra a
           <a data-cap="morte">perda de XP do nocaute</a>, até o seu nível cair <b>abaixo do
@@ -6041,7 +6136,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         in the same hunt</b> a few seconds later — that is what lets you farm overnight without
         waking up to click.</p>
         <ul>
-          <li><b>It only fires with a potion or a revive in the bag.</b> With no items it
+          <li><b>It only fires with a potion or a revive in the backpack.</b> With no items it
           <b>pauses</b> and warns you in the log and in a toast, instead of sending you back to
           the hunt that just wiped your team. Without that lock, running out of items overnight
           becomes a death loop — and every trip back charges the
@@ -6147,8 +6242,10 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         área; trancadas ficam cinza até o seu treinador alcançar o nível.</p>
 
         <h4>Regiões e nível do treinador</h4>
-        <p>Cada aba do Mapa pede um <b>nível mínimo do treinador</b> (não do pokémon). Kanto e
-        Johto dividem a mesma ilustração; Hoenn, Sinnoh, Unova e Kalos têm a sua; e a aba
+        <p>Cada região do Mapa (o seletor <b>Região</b>, no alto) pede um <b>nível mínimo do
+        treinador</b> (não do pokémon); a lista mostra o nível de cada uma, o cadeado nas que ainda
+        não abriram e quantas das áreas dela você já capturou. Kanto e Johto dividem a mesma
+        ilustração; Hoenn, Sinnoh, Unova e Kalos têm a sua; e a região
         <b>${ULTIMA_REGIAO.rotulo.pt}</b> reúne as gerações 7, 8 e 9 — os pokémon de Galar e Paldea
         moram lá. A <b>Outland</b> fica fora da ordem das gerações: é o mapa das variantes e dos
         drops raros (ver <a data-cap="combate">Combate</a>).</p>
@@ -6176,13 +6273,29 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         próxima hora ao minuto.`, 'dica')}
 
         <h4>Filtros</h4>
-        <p>As abas do topo trocam a região (de Kanto a ${ULTIMA_REGIAO.rotulo.pt}). Dá também para
-        buscar a área pelo nome, limitar o intervalo de nível da hunt, marcar <b>só liberadas</b>
-        — útil quando você sobe de nível e quer ver o que abriu — e filtrar por <b>tipo</b>. Com
-        um tipo marcado, <b>Fraco contra</b> mostra as hunts cujos selvagens levam ×2 ou mais de
-        um golpe desse tipo, e <b>Forte contra</b> as que resistem a ele (×0,5 ou menos). O filtro
-        <b>Pokédex</b> (Todos · Capturados · Não capturados) separa as hunts cuja espécie você já
-        tem — as do anel dourado, "já capturado" — das que faltam.</p>
+        <p>A barra do Mapa é uma fileira só: o seletor <b>Região</b> (de Kanto a
+        ${ULTIMA_REGIAO.rotulo.pt}), três filtros em menus e a busca pelo nome da área. No
+        celular, os três filtros moram atrás do botão <b>Filtros</b>.</p>
+        <ul>
+          <li><b>Tipo</b> — um ou mais tipos. Com um tipo marcado, o próprio menu oferece
+          <b>Fraco contra</b> (as hunts cujos selvagens levam ×2 ou mais de um golpe desse tipo)
+          e <b>Forte contra</b> (as que resistem a ele: ×0,5 ou menos).</li>
+          <li><b>Pokédex</b> — Todos · Capturados · Não capturados: separa as hunts cuja espécie
+          você já tem — as do anel dourado, "já capturado" — das que faltam.</li>
+          <li><b>Nível</b> — a faixa de nível da área e <b>só as áreas liberadas</b>, útil quando
+          você sobe de nível e quer ver o que abriu.</li>
+        </ul>
+
+        <h4>Modo Lista</h4>
+        <p>A chave <b>Mapa | Lista</b>, ao lado da busca, troca o mapa por uma <b>lista</b> com as
+        mesmas áreas — os mesmos filtros e a mesma contagem do rodapé —, em linhas largas, mais
+        fáceis de achar e de clicar (e sem esperar a imagem do mapa carregar). Cada linha mostra o
+        pokémon, o nível da área, os tipos e o ✓ dourado de "já capturado"; a área onde você caça
+        fica em roxo, e as que o seu nível ainda não alcança, em cinza com o cadeado. Os títulos
+        <b>Pokémon</b>, <b>Nível</b> e <b>Tipo</b> ordenam a lista (clique de novo para inverter).
+        No computador, passar o mouse mostra o Hunt Analyser numa coluna ao lado, e o clique troca
+        de área; no celular, o toque abre a ficha com <b>Caçar aqui</b>. O jogo lembra a sua escolha
+        neste aparelho.</p>
 
         <h4>Trocar de área: ${SEG_REENTRADA_HUNT} segundos</h4>
         <p>Entrar numa área pelo Mapa monta o campo com a onda cheia. Por isso existem duas esperas,
@@ -6221,9 +6334,11 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         locked ones stay grey until your trainer reaches it.</p>
 
         <h4>Regions and trainer level</h4>
-        <p>Each Map tab requires a minimum <b>trainer level</b> (not the pokémon's). Kanto and
-        Johto share one illustration; Hoenn, Sinnoh, Unova and Kalos have their own; and the
-        <b>${ULTIMA_REGIAO.rotulo.en}</b> tab gathers generations 7, 8 and 9 — Galar and Paldea
+        <p>Each Map region (the <b>Region</b> selector at the top) requires a minimum <b>trainer
+        level</b> (not the pokémon's); the list shows each one's level, a padlock on the ones not
+        open yet and how many of its areas you have already caught. Kanto and Johto share one
+        illustration; Hoenn, Sinnoh, Unova and Kalos have their own; and the
+        <b>${ULTIMA_REGIAO.rotulo.en}</b> region gathers generations 7, 8 and 9 — Galar and Paldea
         pokémon live there. <b>Outland</b> sits outside the generation order: it is the map of
         variants and rare drops (see <a data-cap="combate">Combat</a>).</p>
         ${tabelaDeRegioes(c)}
@@ -6249,13 +6364,29 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         'dica')}
 
         <h4>Filters</h4>
-        <p>The tabs at the top switch region (Kanto through ${ULTIMA_REGIAO.rotulo.en}). You can
-        also search an area by name, limit the hunt level range, toggle <b>unlocked only</b> —
-        handy after a level-up to see what opened — and filter by <b>type</b>. With a type
-        selected, <b>Weak against</b> shows the hunts whose wilds take ×2 or more from a move of
-        that type, and <b>Strong against</b> the ones that resist it (×0.5 or less). The <b>Pokédex</b>
-        filter (All · Caught · Not caught) splits the hunts whose species you already have — the ones
-        with the golden ring, "already caught" — from the ones you are missing.</p>
+        <p>The Map bar is a single row: the <b>Region</b> selector (Kanto through
+        ${ULTIMA_REGIAO.rotulo.en}), three filters in menus and the search by area name. On a phone,
+        the three filters live behind the <b>Filters</b> button.</p>
+        <ul>
+          <li><b>Type</b> — one or more types. With a type ticked, the menu itself offers
+          <b>Weak against</b> (the hunts whose wilds take ×2 or more from a move of that type) and
+          <b>Strong against</b> (the ones that resist it: ×0.5 or less).</li>
+          <li><b>Pokédex</b> — All · Caught · Not caught: splits the hunts whose species you already
+          have — the ones with the golden ring, "already caught" — from the ones you are missing.</li>
+          <li><b>Level</b> — the area level range and <b>unlocked areas only</b>, handy after a
+          level-up to see what opened.</li>
+        </ul>
+
+        <h4>List mode</h4>
+        <p>The <b>Map | List</b> switch next to the search box swaps the map for a <b>list</b> of the
+        same areas — the same filters and the same count in the footer — in wide rows that are
+        easier to find and click (with no wait for the map image to load). Each row shows the
+        pokémon, the area level, its types and the golden ✓ for "already caught"; the area you are
+        hunting in is purple, and the ones your level does not reach yet are grey with a padlock.
+        The <b>Pokémon</b>, <b>Level</b> and <b>Type</b> headers sort the list (click again to
+        reverse). On a computer, hovering shows the Hunt Analyser in a column beside it, and a click
+        switches area; on a phone, a tap opens the sheet with <b>Hunt here</b>. The game remembers
+        your choice on this device.</p>
 
         <h4>Switching areas: ${SEG_REENTRADA_HUNT} seconds</h4>
         <p>Entering an area from the Map builds the field with a full wave. That is why there are two
@@ -6294,9 +6425,11 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         las bloqueadas quedan grises hasta que tu entrenador alcance ese nivel.</p>
 
         <h4>Regiones y nivel del entrenador</h4>
-        <p>Cada pestaña del Mapa exige un <b>nivel mínimo del entrenador</b> (no del pokémon).
-        Kanto y Johto comparten la misma ilustración; Hoenn, Sinnoh, Unova y Kalos tienen la suya;
-        y la pestaña <b>${ULTIMA_REGIAO.rotulo.es}</b> reúne las generaciones 7, 8 y 9 — los pokémon
+        <p>Cada región del Mapa (el selector <b>Región</b>, arriba) exige un <b>nivel mínimo del
+        entrenador</b> (no del pokémon); la lista muestra el nivel de cada una, el candado en las que
+        aún no se abrieron y cuántas de sus zonas ya capturaste. Kanto y Johto comparten la misma
+        ilustración; Hoenn, Sinnoh, Unova y Kalos tienen la suya; y la región
+        <b>${ULTIMA_REGIAO.rotulo.es}</b> reúne las generaciones 7, 8 y 9 — los pokémon
         de Galar y Paldea viven allí. <b>Outland</b> queda fuera del orden de las generaciones: es
         el mapa de las variantes y de los drops raros (ver <a data-cap="combate">Combate</a>).</p>
         ${tabelaDeRegioes(c)}
@@ -6324,13 +6457,29 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         la próxima hora al minuto.`, 'dica')}
 
         <h4>Filtros</h4>
-        <p>Las pestañas de arriba cambian la región (de Kanto a ${ULTIMA_REGIAO.rotulo.es}). También
-        puedes buscar la zona por nombre, limitar el rango de nivel de la cacería, marcar
-        <b>solo liberadas</b> y filtrar por <b>tipo</b>. Con un tipo marcado, <b>Débil contra</b>
-        muestra las cacerías cuyos salvajes reciben ×2 o más de un golpe de ese tipo, y
-        <b>Fuerte contra</b> las que lo resisten (×0,5 o menos). El filtro <b>Pokédex</b> (Todos ·
-        Capturados · No capturados) separa las cacerías cuya especie ya tienes — las del anillo dorado,
-        "ya capturado" — de las que te faltan.</p>
+        <p>La barra del Mapa es una sola fila: el selector <b>Región</b> (de Kanto a
+        ${ULTIMA_REGIAO.rotulo.es}), tres filtros en menús y la búsqueda por el nombre de la zona. En
+        el móvil, los tres filtros viven detrás del botón <b>Filtros</b>.</p>
+        <ul>
+          <li><b>Tipo</b> — uno o más tipos. Con un tipo marcado, el propio menú ofrece
+          <b>Débil contra</b> (las cacerías cuyos salvajes reciben ×2 o más de un golpe de ese tipo)
+          y <b>Fuerte contra</b> (las que lo resisten: ×0,5 o menos).</li>
+          <li><b>Pokédex</b> — Todos · Capturados · No capturados: separa las cacerías cuya especie ya
+          tienes — las del anillo dorado, "ya capturado" — de las que te faltan.</li>
+          <li><b>Nivel</b> — el rango de nivel de la zona y <b>solo zonas liberadas</b>, útil cuando
+          subes de nivel y quieres ver qué se abrió.</li>
+        </ul>
+
+        <h4>Modo Lista</h4>
+        <p>El interruptor <b>Mapa | Lista</b>, junto a la búsqueda, cambia el mapa por una
+        <b>lista</b> con las mismas zonas — los mismos filtros y el mismo conteo del pie —, en filas
+        anchas, más fáciles de encontrar y de pulsar (y sin esperar a que cargue la imagen del mapa).
+        Cada fila muestra el pokémon, el nivel de la zona, sus tipos y el ✓ dorado de "ya
+        capturado"; la zona donde cazas queda en morado, y las que tu nivel aún no alcanza, en gris
+        con el candado. Los títulos <b>Pokémon</b>, <b>Nivel</b> y <b>Tipo</b> ordenan la lista
+        (pulsa de nuevo para invertir). En el ordenador, pasar el ratón muestra el Hunt Analyser en
+        una columna al lado, y el clic cambia de zona; en el móvil, el toque abre la ficha con
+        <b>Cazar aquí</b>. El juego recuerda tu elección en este dispositivo.</p>
 
         <h4>Cambiar de zona: ${SEG_REENTRADA_HUNT} segundos</h4>
         <p>Entrar en una zona por el Mapa arma el campo con la oleada llena. Por eso hay dos esperas,
@@ -6556,7 +6705,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           ${N(nivelNaGuerra(1000), c.lang)}, nv ${N(3000, c.lang)} conta ${N(nivelNaGuerra(3000), c.lang)}
           e nv ${N(10000, c.lang)} conta ${N(nivelNaGuerra(10000), c.lang)}. Dobrar o nível rende
           +${DOBRA_NA_GUERRA_PCT}%. Qualidade, potência e refino continuam valendo inteiros.</li>
-          <li>Vale o <b>TM Elemental</b> de cada pokémon; o <b>TM AoE não entra</b> — na guerra o
+          <li>Vale o <b>Z-Move</b> de cada pokémon; o <b>TM AoE não entra</b> — na guerra o
           dano é sempre num alvo só. O <b>+25% de líder de ginásio</b> vale só na hunt (ver
           <a data-cap="ginasios">Ginásios</a>).</li>
           <li><b>A guerra dura até ${MIN_GUERRA} minutos simulados.</b> Ela acaba quando sobra uma
@@ -6763,7 +6912,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           ${N(nivelNaGuerra(3000), c.lang)} and lv ${N(10000, c.lang)} as
           ${N(nivelNaGuerra(10000), c.lang)}. Doubling your level pays +${DOBRA_NA_GUERRA_PCT}%.
           Quality, potency and refinement still count in full.</li>
-          <li>Each pokémon's <b>Elemental TM</b> counts; the <b>AoE TM does not</b> — in the war
+          <li>Each pokémon's <b>Z-Move</b> counts; the <b>AoE TM does not</b> — in the war
           damage is always single-target. The <b>+25% gym leader</b> bonus applies only in the hunt
           (see <a data-cap="ginasios">Gyms</a>).</li>
           <li><b>The war lasts up to ${MIN_GUERRA} simulated minutes.</b> It ends when only one guild
@@ -6975,7 +7124,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           ${N(nivelNaGuerra(3000), c.lang)} y nv ${N(10000, c.lang)} cuenta
           ${N(nivelNaGuerra(10000), c.lang)}. Duplicar el nivel rinde +${DOBRA_NA_GUERRA_PCT}%.
           Calidad, potencia y refinado siguen valiendo enteros.</li>
-          <li>Vale el <b>TM Elemental</b> de cada pokémon; el <b>TM AoE no entra</b> — en la guerra
+          <li>Vale el <b>Z-Move</b> de cada pokémon; el <b>TM AoE no entra</b> — en la guerra
           el daño siempre es a un solo objetivo. El <b>+25% de líder de gimnasio</b> vale solo en la
           cacería (ver <a data-cap="ginasios">Gimnasios</a>).</li>
           <li><b>La guerra dura hasta ${MIN_GUERRA} minutos simulados.</b> Termina cuando queda una
@@ -7434,11 +7583,11 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         inteiro fica sabendo.</p>
 
         <h4>Equipar</h4>
-        <p>Clique na bicicleta em <b>Bolsa → Itens Raros</b>. Você pode ter <b>quantas quiser</b>, de
+        <p>Clique na bicicleta em <b>Mochila → Itens Raros</b>. Você pode ter <b>quantas quiser</b>, de
         qualquer raridade, mas só <b>uma fica equipada</b> — e só a equipada vale.</p>
 
         ${nota(`<b>As porcentagens não somam.</b> Uma ${NOME_RARIDADE.comum.pt}, uma
-        ${NOME_RARIDADE.incomum.pt} e uma ${NOME_RARIDADE.lendaria.pt} na bolsa, com a
+        ${NOME_RARIDADE.incomum.pt} e uma ${NOME_RARIDADE.lendaria.pt} na mochila, com a
         ${NOME_RARIDADE.comum.pt} equipada, é andar a <b>+${pctBike(c, 0)}%</b> — não a
         +${pctBike(c, 0) + pctBike(c, 1) + pctBike(c, 4)}%. Equipe sempre a melhor que você tem.`, 'atencao')}
 
@@ -7447,7 +7596,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           guardar a equipada trava a troca seguinte por esse tempo, e sair do jogo não zera a
           espera.</li>
           <li><b>Anunciar a equipada no Mercado</b> tira ela do seu pé na hora: você volta a andar a pé
-          até equipar outra — mesmo tendo outra da mesma raridade na bolsa. Cancelar o anúncio a devolve
+          até equipar outra — mesmo tendo outra da mesma raridade na mochila. Cancelar o anúncio a devolve
           já equipada.</li>
         </ul>
 
@@ -7495,11 +7644,11 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         finds out.</p>
 
         <h4>Equipping</h4>
-        <p>Click the bicycle in <b>Bag → Rare Items</b>. You can own <b>as many as you like</b>, of any
+        <p>Click the bicycle in <b>Backpack → Rare Items</b>. You can own <b>as many as you like</b>, of any
         rarity, but only <b>one is equipped</b> — and only the equipped one counts.</p>
 
         ${nota(`<b>The percentages do not stack.</b> A ${NOME_RARIDADE.comum.en}, an
-        ${NOME_RARIDADE.incomum.en} and a ${NOME_RARIDADE.lendaria.en} in the bag, with the
+        ${NOME_RARIDADE.incomum.en} and a ${NOME_RARIDADE.lendaria.en} in the backpack, with the
         ${NOME_RARIDADE.comum.en} equipped, is riding at <b>+${pctBike(c, 0)}%</b> — not
         +${pctBike(c, 0) + pctBike(c, 1) + pctBike(c, 4)}%. Always equip the best one you have.`, 'atencao')}
 
@@ -7508,7 +7657,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           storing the equipped one locks the next switch for that long, and logging out does not reset
           the wait.</li>
           <li><b>Listing the equipped one on the Market</b> takes it off you right away: you are back on
-          foot until you equip another — even with another of the same rarity in your bag. Cancelling
+          foot until you equip another — even with another of the same rarity in your backpack. Cancelling
           the listing gives it back already equipped.</li>
         </ul>
 
@@ -7601,8 +7750,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>Os três ovos</h4>
         ${tabelaDeOvos(c)}
-        <p>Ficam no <b>Market → Ovos</b>. Comprado, o ovo vai para <b>Bolsa → Itens Raros</b>; de lá, um
-        clique o leva a uma chocadeira livre (<b>Bolsa → Chocadeira</b>). O ovo é da sua conta: <b>não
+        <p>Ficam no <b>Market → Ovos</b>. Comprado, o ovo vai para <b>Mochila → Itens Raros</b>; de lá, um
+        clique o leva a uma chocadeira livre (<b>Mochila → Chocadeira</b>). O ovo é da sua conta: <b>não
         vai ao Mercado da Comunidade</b>.</p>
         <p>Há um quarto ovo que o Market não vende: o <a data-cap="ovoShiny">Ovo Shiny</a>, fabricado no
         Professor Carvalho com fragmentos que caem nas hunts de Unova para frente (e negociável no
@@ -7627,7 +7776,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>As chocadeiras</h4>
         <p>Toda conta tem <b>${CHOCADEIRAS_GRATIS}</b>, e dá para ter até <b>${CHOCADEIRAS_MAX}</b>: cada uma a
         mais custa <b>${PRECO_CHOCADEIRA_DIAMANTES} 💎</b> na <a data-cap="loja">Loja</a> e fica na
-        conta <b>para sempre</b> — não é item, não vai à bolsa e não se vende. Cada chocadeira choca um
+        conta <b>para sempre</b> — não é item, não vai à mochila e não se vende. Cada chocadeira choca um
         ovo por vez.</p>
 
         <h4>Absorb Bulb — aquecer um ovo</h4>
@@ -7647,8 +7796,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>The three eggs</h4>
         ${tabelaDeOvos(c)}
-        <p>They are in <b>Market → Eggs</b>. Once bought, the egg goes to <b>Bag → Rare Items</b>; from
-        there, one click takes it to a free incubator (<b>Bag → Incubator</b>). The egg belongs to your
+        <p>They are in <b>Market → Eggs</b>. Once bought, the egg goes to <b>Backpack → Rare Items</b>; from
+        there, one click takes it to a free incubator (<b>Backpack → Incubator</b>). The egg belongs to your
         account: it <b>does not go to the Community Market</b>.</p>
         <p>There is a fourth egg the Market doesn't sell: the <a data-cap="ovoShiny">Shiny Egg</a>, crafted
         at Professor Oak from fragments that drop in hunts from Unova onward (and tradable on the
@@ -7673,7 +7822,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>The incubators</h4>
         <p>Every account has <b>${CHOCADEIRAS_GRATIS}</b>, and you can have up to <b>${CHOCADEIRAS_MAX}</b>:
         each extra one costs <b>${PRECO_CHOCADEIRA_DIAMANTES} 💎</b> in the <a data-cap="loja">Shop</a> and
-        stays on the account <b>forever</b> — it is not an item, does not go to the bag and cannot be
+        stays on the account <b>forever</b> — it is not an item, does not go to the backpack and cannot be
         sold. Each incubator hatches one egg at a time.</p>
 
         <h4>Absorb Bulb — warming an egg</h4>
@@ -7693,8 +7842,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>Los tres huevos</h4>
         ${tabelaDeOvos(c)}
-        <p>Están en <b>Market → Huevos</b>. Comprado, el huevo va a <b>Bolsa → Objetos Raros</b>; desde
-        ahí, un clic lo lleva a una incubadora libre (<b>Bolsa → Incubadora</b>). El huevo es de tu
+        <p>Están en <b>Market → Huevos</b>. Comprado, el huevo va a <b>Mochila → Objetos Raros</b>; desde
+        ahí, un clic lo lleva a una incubadora libre (<b>Mochila → Incubadora</b>). El huevo es de tu
         cuenta: <b>no va al Mercado de la Comunidad</b>.</p>
         <p>Hay un cuarto huevo que el Market no vende: el <a data-cap="ovoShiny">Huevo Shiny</a>,
         fabricado con el Profesor Oak con fragmentos que caen en las hunts de Unova en adelante (y
@@ -7720,7 +7869,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>Las incubadoras</h4>
         <p>Toda cuenta tiene <b>${CHOCADEIRAS_GRATIS}</b>, y puedes tener hasta <b>${CHOCADEIRAS_MAX}</b>:
         cada una más cuesta <b>${PRECO_CHOCADEIRA_DIAMANTES} 💎</b> en la <a data-cap="loja">Tienda</a> y
-        queda en la cuenta <b>para siempre</b> — no es un objeto, no va a la bolsa y no se vende. Cada
+        queda en la cuenta <b>para siempre</b> — no es un objeto, no va a la mochila y no se vende. Cada
         incubadora incuba un huevo a la vez.</p>
 
         <h4>Absorb Bulb — calentar un huevo</h4>
@@ -7777,7 +7926,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>Fabricar e chocar</h4>
         <p>No <a data-cap="tm">Professor Carvalho</a> (Centro Pokémon), a bancada <b>Fabricar Ovo
         Shiny</b> mostra quantos fragmentos você tem; com <b>${custo}</b>, o botão <b>Fabricar</b> troca os
-        fragmentos por <b>um Ovo Shiny</b> na bolsa. Ele vai para uma chocadeira livre como os
+        fragmentos por <b>um Ovo Shiny</b> na mochila. Ele vai para uma chocadeira livre como os
         <a data-cap="chocadeira">Mystery Eggs</a> e abre em <b>${dias} dias</b> — o <b>Absorb Bulb</b>
         vale para ele também (${aquecido} h aquecido).</p>
         <ul>
@@ -7816,7 +7965,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>Crafting and hatching</h4>
         <p>At <a data-cap="tm">Professor Oak</a> (Pokémon Center), the <b>Craft Shiny Egg</b> bench shows
         how many fragments you have; with <b>${custo}</b>, the <b>Craft</b> button turns them into <b>one
-        Shiny Egg</b> in your bag. It goes into a free incubator like the
+        Shiny Egg</b> in your backpack. It goes into a free incubator like the
         <a data-cap="chocadeira">Mystery Eggs</a> and opens in <b>${dias} days</b> — the <b>Absorb
         Bulb</b> works on it too (${aquecido} h warmed).</p>
         <ul>
@@ -7856,7 +8005,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <h4>Fabricar e incubar</h4>
         <p>Con el <a data-cap="tm">Profesor Oak</a> (Centro Pokémon), la mesa <b>Fabricar Huevo
         Shiny</b> muestra cuántos fragmentos tienes; con <b>${custo}</b>, el botón <b>Fabricar</b> los
-        cambia por <b>un Huevo Shiny</b> en la bolsa. Va a una incubadora libre como los
+        cambia por <b>un Huevo Shiny</b> en la mochila. Va a una incubadora libre como los
         <a data-cap="chocadeira">Mystery Eggs</a> y se abre en <b>${dias} días</b> — el <b>Absorb
         Bulb</b> también sirve para él (${aquecido} h calentado).</p>
         <ul>
@@ -7882,15 +8031,15 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
   // ---------------------------------------------------- 14. Professor Carvalho
   {
     id: 'tm',
-    titulo: { pt: 'TM Disks', en: 'TM Disks', es: 'Discos TM' },
+    titulo: { pt: 'Z-Move e TM AoE', en: 'Z-Moves and AoE TM', es: 'Z-Move y TM AoE' },
     grupo: 'mundo',
     html: (c) => ({
       pt: `
-        <p>TMs são melhorias <b>permanentes</b> no pokémon — desbloqueiam conteúdo avançado e mudam
+        <p>O <b>Z-Move</b> (o antigo Z-Move) e o <b>TM AoE</b> são melhorias <b>permanentes</b> no pokémon — desbloqueiam conteúdo avançado e mudam
         como ele luta. No <b>Centro Pokémon</b>, fale com o <b>Professor Carvalho</b> (botão na
         praça). Lá tem um botão <b>[i]</b> com o guia completo.</p>
 
-        ${nota(`O balcão do Professor tem <b>sete bancadas</b>: as duas dos TMs (<b>Trocar peças</b> e
+        ${nota(`O balcão do Professor tem <b>sete bancadas</b>: as duas do Z-Move e do TM AoE (<b>Trocar peças</b> e
         <b>Aplicar disco</b>), <b>Fabricar Casa</b> — com o Craft de Casas dentro — (ver
         <a data-cap="casa">Casa e XP Share</a>), <b>Fabricar Bicicleta</b> — com o Craft de
         Bicicletas — (ver <a data-cap="bicicletas">Bicicletas</a>), <b>Fabricar Shiny Stone</b> (ver
@@ -7901,21 +8050,21 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>Quando aplicado</h4>
         <ul>
-          <li><b>Elemental</b> — o pokémon aprende um golpe especial novo (ex.: <b>TM Ghost</b>):
+          <li><b>Z-Move</b> — o pokémon aprende um golpe especial novo (ex.: <b>Z-Move GHOST</b>):
           power <b>${TM_ELEMENTAL_POWER}</b>, CD <b>${TM_ELEMENTAL_CD_MS / 1000} s</b>, área
           <b>${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL}</b> com o centro no <b>alvo</b>. O tipo do
-          disco tem que ser um dos tipos do pokémon <b>na hora de aplicar</b>. Depois, o TM fica no
+          Z-Move tem que ser um dos tipos do pokémon <b>na hora de aplicar</b>. Depois, ele fica no
           "DNA": evoluir ou megaevoluir não o tira, mesmo que o tipo dele suma do pokémon.</li>
           <li><b>AoE</b> — os golpes do pokémon passam a acertar em área
           <b>${LADO_TM_AOE}×${LADO_TM_AOE}</b> com o centro no <b>seu pokémon</b>. Vários selvagens
           grudados levam dano <b>simultaneamente</b>.</li>
         </ul>
-        <p>Elemental e AoE <b>coexistem</b> no mesmo bicho. Ex.: Gengar (Ghost/Poison) aceita disco
-        <b>Ghost</b> ou <b>Poison</b> — um elemental por pokémon, mais um AoE se quiser. O AoE
-        <b>não aumenta</b> o golpe do TM Elemental: ele continua no
+        <p>Z-Move e AoE <b>coexistem</b> no mesmo bicho. Ex.: Gengar (Ghost/Poison) aceita Z-Move
+        <b>Ghost</b> ou <b>Poison</b> — um Z-Move por pokémon, mais um AoE se quiser. O AoE
+        <b>não aumenta</b> o golpe do Z-Move: ele continua no
         ${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL} em volta do alvo.</p>
 
-        <h4>Onde o golpe do TM Elemental acerta</h4>
+        <h4>Onde o golpe do Z-Move acerta</h4>
         <p>O quadrado fica em volta do <b>alvo</b> (o selvagem com quem seu pokémon está brigando),
         e não em volta do seu pokémon: acerta o alvo e quem estiver encostado <b>nele</b>. Com vários
         selvagens cercando seu pokémon, quantos levam dano depende de onde o alvo está:</p>
@@ -7926,7 +8075,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           É o caso mais comum, porque seu pokémon para de andar assim que encosta no alvo, e
           encostar de quina já vale.</li>
         </ul>
-        <p>Só o golpe <b>TM</b> acerta em área. Os outros golpes acertam um selvagem por vez, a não
+        <p>Só o golpe do <b>Z-Move</b> acerta em área. Os outros golpes acertam um selvagem por vez, a não
         ser que o pokémon tenha o disco <b>AoE</b> — esse, sim, fica em volta do seu pokémon e pega
         todo mundo até ${(LADO_TM_AOE - 1) / 2} tiles de distância.</p>
 
@@ -7937,8 +8086,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           <li><b>Token</b> — drop raro na <b>Outland</b> (${pctBossToken(c)} por kill, média
           ~${mediaBossToken(c)} derrotas).${dicaOutlandTiers(c, 'bosses')} Kanto e Orre não dropam. O NPC não vende, mas ele sai
           como prêmio do <a data-cap="passe">Passe de Batalha</a> e se negocia no <a data-cap="comunidade">Mercado da Comunidade</a>.</li>
-          <li><b>Bosses</b> — cada boss solta <b>um</b> dos dois tipos de peça: <b>TM Disk
-          Piece</b> em ${origemDaPeca(c, idPecaElemental(c))} e <b>AoE TM Disk Piece</b> em
+          <li><b>Bosses</b> — cada boss solta <b>um</b> dos dois tipos de peça: o <b>Fragmento de
+          Z-Move</b> em ${origemDaPeca(c, idPecaElemental(c))} e <b>AoE TM Disk Piece</b> em
           ${origemDaPeca(c, idPecaAoe(c))}. Quanto mais alto o boss, maior a chance — a lista
           completa está em <a data-cap="bosses">Bosses</a>.</li>
         </ul>
@@ -7947,25 +8096,26 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Junte <b>${pecasPorDisco(c)}</b> peças iguais e troque no Professor (consumidas na hora):</p>
         ${tabela(
           ['Peça', 'Vem de', 'Vira'],
-          `<tr><td>TM Disk Piece</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Disco elemental (escolhe o tipo)</td></tr>
+          `<tr><td>Fragmento de Z-Move</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Z-Move (escolhe o tipo)</td></tr>
            <tr><td>AoE TM Disk Piece</td><td>${origemDaPeca(c, idPecaAoe(c))}</td><td>Disco AoE</td></tr>`,
         )}
-        <p>O disco vai para a bolsa; na aba <b>Aplicar</b> você escolhe um pokémon da equipe e
-        consome o disco — é permanente no bicho.</p>
+        <p>O Z-Move e o disco vão para a Mochila (Itens Raros); na aba <b>Aplicar</b> você escolhe um
+        pokémon da equipe e consome o item — é permanente no bicho. Na ficha do pokémon, o selo do
+        Z-Move leva o cristal do tipo ao lado, e o do AoE, o disco laranja.</p>
 
         <h4>Status aprimorados e Orre</h4>
         <p>Selvagens na <b>Outland</b> (treinador Nv 150+) e na <b>Orre</b> (as abas de Hoenn em diante, Nv 500+) têm stats
         mais altos que Kanto — mais HP e dano por golpe. Na <b>Orre</b>, o pokémon ativo precisa
-        dos <b>dois</b> TMs (elemental + AoE) para caçar com eficiência.</p>
+        do <b>Z-Move</b> e do <b>TM AoE</b> para caçar com eficiência.</p>
 
         ${nota(`Tokens e discos TM são escassos de propósito — a progressão passa por farm na
         Outland e vitórias em boss.`, 'dica')}`,
       en: `
-        <p>TMs are <b>permanent</b> upgrades on a pokémon — they unlock advanced content and change
+        <p>The <b>Z-Move</b> (formerly the Z-Move) and the <b>AoE TM</b> are <b>permanent</b> upgrades on a pokémon — they unlock advanced content and change
         how it fights. At the <b>Pokémon Center</b>, talk to <b>Professor Oak</b> (button in the
         square). There is an <b>[i]</b> button with the full guide.</p>
 
-        ${nota(`The Professor's counter has <b>seven benches</b>: the two TM ones (<b>Trade pieces</b>
+        ${nota(`The Professor's counter has <b>seven benches</b>: the two for the Z-Move and AoE TM (<b>Trade pieces</b>
         and <b>Apply disk</b>), <b>Craft House</b> — with the House Craft inside — (see
         <a data-cap="casa">House &amp; XP Share</a>), <b>Craft Bicycle</b> — with the Bicycle Craft —
         (see <a data-cap="bicicletas">Bicycles</a>), <b>Craft Shiny Stone</b> (see
@@ -7976,7 +8126,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>When applied</h4>
         <ul>
-          <li><b>Elemental</b> — the pokémon learns a new special move (e.g. <b>TM Ghost</b>): power
+          <li><b>Z-Move</b> — the pokémon learns a new special move (e.g. <b>Z-Move GHOST</b>): power
           <b>${TM_ELEMENTAL_POWER}</b>, <b>${TM_ELEMENTAL_CD_MS / 1000} s</b> CD,
           <b>${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL}</b> area centered on the <b>target</b>. The
           disk type must match one of the pokémon's types <b>when you apply it</b>. After that the TM
@@ -7986,12 +8136,12 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           centered on <b>your pokémon</b>. Several nearby wilds take damage <b>at the same
           time</b>.</li>
         </ul>
-        <p>Elemental and AoE <b>stack</b> on the same pokémon. E.g. Gengar (Ghost/Poison) accepts
-        <b>Ghost</b> or <b>Poison</b> — one elemental per pokémon, plus AoE if you want. AoE
-        <b>does not widen</b> the Elemental TM move: it stays a
+        <p>Z-Move and AoE <b>stack</b> on the same pokémon. E.g. Gengar (Ghost/Poison) accepts
+        <b>Ghost</b> or <b>Poison</b> — one Z-Move per pokémon, plus AoE if you want. AoE
+        <b>does not widen</b> the Z-Move: it stays a
         ${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL} around the target.</p>
 
-        <h4>Where the Elemental TM move hits</h4>
+        <h4>Where the Z-Move hits</h4>
         <p>The square is around the <b>target</b> (the wild your pokémon is fighting), not around
         your pokémon: it hits the target and whoever is touching <b>it</b>. With several wilds
         surrounding your pokémon, how many take damage depends on where the target stands:</p>
@@ -8002,7 +8152,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           neighbors. This is the most common case, because your pokémon stops walking as soon as it
           touches the target, and touching at a corner counts.</li>
         </ul>
-        <p>Only the <b>TM</b> move hits an area. The other moves hit one wild at a time, unless the
+        <p>Only the <b>Z-Move</b> hits an area. The other moves hit one wild at a time, unless the
         pokémon has the <b>AoE</b> disk — that one is centered on your pokémon and hits everyone up
         to ${(LADO_TM_AOE - 1) / 2} tiles away.</p>
 
@@ -8012,8 +8162,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           <li><b>Token</b> — rare <b>Outland</b> drop (${pctBossToken(c)} per kill, ~${mediaBossToken(c)}
           defeats on average).${dicaOutlandTiers(c, 'bosses')} Kanto and Orre do not drop it. The NPC does not sell it, but it
           comes out as a <a data-cap="passe">Battle Pass</a> prize and is traded on the <a data-cap="comunidade">Community Market</a>.</li>
-          <li><b>Bosses</b> — each boss drops <b>one</b> of the two piece types: <b>TM Disk
-          Piece</b> from ${origemDaPeca(c, idPecaElemental(c))} and <b>AoE TM Disk Piece</b> from
+          <li><b>Bosses</b> — each boss drops <b>one</b> of the two piece types: the <b>Z-Move
+          Fragment</b> from ${origemDaPeca(c, idPecaElemental(c))} and <b>AoE TM Disk Piece</b> from
           ${origemDaPeca(c, idPecaAoe(c))}. The higher the boss, the higher the chance — the full
           list is under <a data-cap="bosses">Bosses</a>.</li>
         </ul>
@@ -8022,22 +8172,23 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Collect <b>${pecasPorDisco(c)}</b> matching pieces and trade them at the Professor (consumed immediately):</p>
         ${tabela(
           ['Piece', 'From', 'Becomes'],
-          `<tr><td>TM Disk Piece</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Elemental disk (pick type)</td></tr>
+          `<tr><td>Z-Move Fragment</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Z-Move (pick type)</td></tr>
            <tr><td>AoE TM Disk Piece</td><td>${origemDaPeca(c, idPecaAoe(c))}</td><td>AoE disk</td></tr>`,
         )}
-        <p>The disk goes to your bag; on the <b>Apply</b> tab you pick a team pokémon and consume
-        the disk — it is permanent on that pokémon.</p>
+        <p>The Z-Move and the disk go to your Backpack (Rare Items); on the <b>Apply</b> tab you pick a
+        team pokémon and consume the item — it is permanent on that pokémon. On the pokémon's sheet the
+        Z-Move tag shows its type crystal next to it, and the AoE tag, the orange disk.</p>
 
         <h4>Enhanced stats and Orre</h4>
         <p>Wilds in <b>Outland</b> (trainer Lv 150+) and <b>Orre</b> (the Hoenn tab onward, Lv 500+) have higher stats
         than Kanto — more HP and damage per hit. In <b>Orre</b>, your active pokémon needs
-        <b>both</b> TMs (elemental + AoE) to hunt efficiently.</p>`,
+        <b>both</b> the Z-Move and the AoE TM to hunt efficiently.</p>`,
       es: `
-        <p>Los TMs son mejoras <b>permanentes</b> en el pokémon — desbloquean contenido avanzado y
+        <p>El <b>Z-Move</b> (el antiguo Z-Move) y el <b>TM AoE</b> son mejoras <b>permanentes</b> en el pokémon — desbloquean contenido avanzado y
         cambian cómo pelea. En el <b>Centro Pokémon</b>, habla con el <b>Profesor Oak</b>. Hay un
         botón <b>[i]</b> con la guía completa.</p>
 
-        ${nota(`El mostrador del Profesor tiene <b>siete bancos</b>: los dos de TM (<b>Cambiar
+        ${nota(`El mostrador del Profesor tiene <b>siete bancos</b>: los dos del Z-Move y del TM AoE (<b>Cambiar
         piezas</b> y <b>Aplicar disco</b>), <b>Fabricar Casa</b> — con el Craft de Casas dentro — (ver
         <a data-cap="casa">Casa y XP Share</a>), <b>Fabricar Bicicleta</b> — con el Craft de
         Bicicletas — (ver <a data-cap="bicicletas">Bicicletas</a>), <b>Fabricar Shiny Stone</b> (ver
@@ -8048,7 +8199,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
 
         <h4>Al aplicar</h4>
         <ul>
-          <li><b>Elemental</b> — el pokémon aprende un golpe especial nuevo (ej.: <b>TM Ghost</b>):
+          <li><b>Z-Move</b> — el pokémon aprende un golpe especial nuevo (ej.: <b>Z-Move GHOST</b>):
           power <b>${TM_ELEMENTAL_POWER}</b>, CD <b>${TM_ELEMENTAL_CD_MS / 1000} s</b>, área
           <b>${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL}</b> con el centro en el <b>objetivo</b>. El
           tipo del disco debe coincidir con uno de los tipos del pokémon <b>al aplicarlo</b>. Después, el
@@ -8058,12 +8209,12 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           con el centro en <b>tu pokémon</b>. Varios salvajes juntos reciben daño
           <b>a la vez</b>.</li>
         </ul>
-        <p>Elemental y AoE <b>conviven</b> en el mismo bicho. Ej.: Gengar (Ghost/Poison) acepta
-        disco <b>Ghost</b> o <b>Poison</b> — un elemental por pokémon, más AoE si quieres. El AoE
-        <b>no agranda</b> el golpe del TM Elemental: sigue en el
+        <p>Z-Move y AoE <b>conviven</b> en el mismo bicho. Ej.: Gengar (Ghost/Poison) acepta
+        Z-Move <b>Ghost</b> o <b>Poison</b> — un Z-Move por pokémon, más AoE si quieres. El AoE
+        <b>no agranda</b> el golpe del Z-Move: sigue en el
         ${LADO_TM_ELEMENTAL}×${LADO_TM_ELEMENTAL} alrededor del objetivo.</p>
 
-        <h4>Dónde acierta el golpe del TM Elemental</h4>
+        <h4>Dónde acierta el golpe del Z-Move</h4>
         <p>El cuadrado está alrededor del <b>objetivo</b> (el salvaje con el que pelea tu pokémon),
         no alrededor de tu pokémon: acierta al objetivo y a quien esté pegado <b>a él</b>. Con
         varios salvajes rodeando a tu pokémon, cuántos reciben daño depende de dónde está el
@@ -8075,7 +8226,7 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           vecinos. Es el caso más común, porque tu pokémon deja de caminar en cuanto toca al
           objetivo, y tocarlo en esquina ya cuenta.</li>
         </ul>
-        <p>Solo el golpe <b>TM</b> acierta en área. Los demás golpes aciertan a un salvaje por vez,
+        <p>Solo el golpe del <b>Z-Move</b> acierta en área. Los demás golpes aciertan a un salvaje por vez,
         salvo que el pokémon tenga el disco <b>AoE</b> — ese sí está centrado en tu pokémon y
         alcanza a todos hasta ${(LADO_TM_AOE - 1) / 2} tiles de distancia.</p>
 
@@ -8086,8 +8237,8 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
           <li><b>Token</b> — drop raro en <b>Outland</b> (${pctBossToken(c)} por kill, media
           ~${mediaBossToken(c)} derrotas).${dicaOutlandTiers(c, 'bosses')} Kanto y Orre no sueltan. El NPC no lo vende, pero sale
           como premio del <a data-cap="passe">Pase de Batalla</a> y se negocia en el <a data-cap="comunidade">Mercado de la Comunidad</a>.</li>
-          <li><b>Bosses</b> — cada boss suelta <b>uno</b> de los dos tipos de pieza: <b>TM Disk
-          Piece</b> en ${origemDaPeca(c, idPecaElemental(c))} y <b>AoE TM Disk Piece</b> en
+          <li><b>Bosses</b> — cada boss suelta <b>uno</b> de los dos tipos de pieza: el <b>Fragmento de
+          Z-Move</b> en ${origemDaPeca(c, idPecaElemental(c))} y <b>AoE TM Disk Piece</b> en
           ${origemDaPeca(c, idPecaAoe(c))}. Cuanto más alto el boss, mayor la chance — la lista
           completa está en <a data-cap="bosses">Bosses</a>.</li>
         </ul>
@@ -8096,11 +8247,12 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Junta <b>${pecasPorDisco(c)}</b> piezas iguales y cámbialas con el Profesor:</p>
         ${tabela(
           ['Pieza', 'De', 'Se convierte en'],
-          `<tr><td>TM Disk Piece</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Disco elemental</td></tr>
+          `<tr><td>Fragmento de Z-Move</td><td>${origemDaPeca(c, idPecaElemental(c))}</td><td>Z-Move</td></tr>
            <tr><td>AoE TM Disk Piece</td><td>${origemDaPeca(c, idPecaAoe(c))}</td><td>Disco AoE</td></tr>`,
         )}
-        <p>El disco va a la bolsa; en la pestaña <b>Aplicar</b> eliges un pokémon del equipo y
-        consumes el disco — es permanente en el bicho.</p>
+        <p>El Z-Move y el disco van a la Mochila (Objetos Raros); en la pestaña <b>Aplicar</b> eliges
+        un pokémon del equipo y consumes el objeto — es permanente en el bicho. En la ficha del pokémon,
+        el sello del Z-Move lleva el cristal del tipo al lado, y el del AoE, el disco naranja.</p>
 
         <h4>Stats mejorados y Orre</h4>
         <p>Salvajes en <b>Outland</b> (entrenador Nv 150+) y <b>Orre</b> (de la pestaña Hoenn en adelante, Nv 500+) tienen stats más
@@ -8386,9 +8538,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entrar na arena</h4>
         <ul>
-          <li>Use em <b>Bolsa → Itens Raros → Mystic Ticket</b>. Entra-se do <b>Centro Pokémon</b>, fora
+          <li>Use em <b>Mochila → Itens Raros → Mystic Ticket</b>. Entra-se do <b>Centro Pokémon</b>, fora
           de combate, fora da fila do PvP, com a equipe de pé e pelo menos <b>uma pokébola</b> na
-          bolsa.</li>
+          mochila.</li>
           <li>O ticket é <b>gasto na entrada</b>. Se a equipe cair ou você abandonar a arena, ela acaba e
           ele <b>não volta</b>. Uma atualização do jogo com você lá dentro também encerra a arena.</li>
           <li><b>Caiu a conexão?</b> A internet caiu, você recarregou a página (F5) ou abriu o jogo em outra
@@ -8452,9 +8604,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entering the arena</h4>
         <ul>
-          <li>Use it from <b>Bag → Rare Items → Mystic Ticket</b>. You enter from the <b>Pokémon
+          <li>Use it from <b>Backpack → Rare Items → Mystic Ticket</b>. You enter from the <b>Pokémon
           Center</b>, out of combat, out of the PvP queue, with your team standing and at least <b>one
-          poké ball</b> in the bag.</li>
+          poké ball</b> in the backpack.</li>
           <li>The ticket is <b>spent on entry</b>. If your team falls or you abandon the arena, it ends and the
           ticket <b>does not come back</b>. A game update while you are inside also ends the arena.</li>
           <li><b>Connection dropped?</b> Your internet dropped, you reloaded the page (F5) or opened the game in
@@ -8518,9 +8670,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entrar en la arena</h4>
         <ul>
-          <li>Úsalo desde <b>Bolsa → Objetos Raros → Mystic Ticket</b>. Se entra desde el <b>Centro
+          <li>Úsalo desde <b>Mochila → Objetos Raros → Mystic Ticket</b>. Se entra desde el <b>Centro
           Pokémon</b>, fuera de combate, fuera de la cola del PvP, con el equipo en pie y al menos
-          <b>una poké ball</b> en la bolsa.</li>
+          <b>una poké ball</b> en la mochila.</li>
           <li>El ticket se <b>gasta al entrar</b>. Si tu equipo cae o abandonas la arena, ella termina y el
           ticket <b>no vuelve</b>. Una actualización del juego contigo adentro también termina la arena.</li>
           <li><b>¿Se cayó la conexión?</b> Se cayó internet, recargaste la página (F5) o abriste el juego en
@@ -8606,9 +8758,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entrar</h4>
         <ul>
-          <li>Use em <b>Bolsa → Itens Raros → Safari Ticket</b>. Dá para entrar do Centro Pokémon, de casa ou de
+          <li>Use em <b>Mochila → Itens Raros → Safari Ticket</b>. Dá para entrar do Centro Pokémon, de casa ou de
           uma hunt, com as mesmas travas da troca de hunt (3 s sem combate), fora das arenas de
-          boss e da Arena Mística, com a equipe de pé e pelo menos <b>uma pokébola</b> na bolsa.</li>
+          boss e da Arena Mística, com a equipe de pé e pelo menos <b>uma pokébola</b> na mochila.</li>
           <li>O ticket é gasto na entrada, e os ${min} minutos começam a correr <b>no Entrar</b>.</li>
         </ul>
 
@@ -8660,10 +8812,10 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entering</h4>
         <ul>
-          <li>Use it from <b>Bag → Rare Items → Safari Ticket</b>. You can enter from the Pokémon Center, from your
+          <li>Use it from <b>Backpack → Rare Items → Safari Ticket</b>. You can enter from the Pokémon Center, from your
           house or from a hunt, with the same locks as switching hunts (3 s out of combat),
           outside the boss arenas and the Mystic Arena, with your team standing and at least <b>one poké ball</b>
-          in the bag.</li>
+          in the backpack.</li>
           <li>The ticket is spent on entry, and the ${min} minutes start running <b>on Enter</b>.</li>
         </ul>
 
@@ -8718,10 +8870,10 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
 
         <h4>Entrar</h4>
         <ul>
-          <li>Úsalo desde <b>Bolsa → Objetos Raros → Safari Ticket</b>. Se puede entrar desde el Centro Pokémon,
+          <li>Úsalo desde <b>Mochila → Objetos Raros → Safari Ticket</b>. Se puede entrar desde el Centro Pokémon,
           desde casa o desde una cacería, con los mismos bloqueos del cambio de cacería (3 s sin combate),
           fuera de las arenas de boss y de la Arena Mística, con el equipo en pie y al menos
-          <b>una poké ball</b> en la bolsa.</li>
+          <b>una poké ball</b> en la mochila.</li>
           <li>El ticket se gasta al entrar, y los ${min} minutos empiezan a correr <b>en Entrar</b>.</li>
         </ul>
 
@@ -8818,7 +8970,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <a data-cap="comunidade">Mercado da Comunidade</a>.</li>
           <li><b>Professor Carvalho, bancada Mega.</b> Os ${custo} fragmentos viram a
           <b>Mega Stone da espécie que VOCÊ escolher</b> — não há sorteio.</li>
-          <li><b>Mega Evoluir.</b> Com a pedra na bolsa, o botão dourado aparece no pokémon.</li>
+          <li><b>Mega Evoluir.</b> Com a pedra na mochila, o botão dourado aparece no pokémon.</li>
         </ol>
 
         <h4>A chance no boss sobe com o degrau</h4>
@@ -8906,7 +9058,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <a data-cap="comunidade">Community Market</a>.</li>
           <li><b>Professor Oak, Mega bench.</b> The ${custo} fragments become the
           <b>Mega Stone of the species YOU pick</b> — there is no lottery.</li>
-          <li><b>Mega Evolve.</b> With the stone in your bag, the golden button shows up on the
+          <li><b>Mega Evolve.</b> With the stone in your backpack, the golden button shows up on the
           pokémon.</li>
         </ol>
 
@@ -9001,7 +9153,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <a data-cap="comunidade">Mercado de la Comunidad</a>.</li>
           <li><b>Profesor Oak, banco Mega.</b> Los ${custo} fragmentos se convierten en la
           <b>Mega Stone de la especie que TÚ elijas</b> — no hay sorteo.</li>
-          <li><b>Mega Evoluciona.</b> Con la piedra en la bolsa, el botón dorado aparece en el
+          <li><b>Mega Evoluciona.</b> Con la piedra en la mochila, el botón dorado aparece en el
           pokémon.</li>
         </ol>
 
@@ -10143,7 +10295,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
            <tr><td>Nível de treinador</td><td class="wk-num">${nv}</td></tr>
            <tr><td>Pokémon na equipe</td><td class="wk-num">até ${max}</td></tr>
            <tr><td>Nível do pokémon na luta</td><td class="wk-num destaque">até ${cap}</td></tr>
-           <tr><td>Não entram</td><td>shiny, P5, lendário e mítico, variante de Outland, pokémon com TM Elemental ou TM AoE</td></tr>
+           <tr><td>Não entram</td><td>shiny, P5, lendário e mítico, variante de Outland, pokémon com Z-Move ou TM AoE</td></tr>
            <tr><td>Podem</td><td>mega (sem limite) e espécie repetida</td></tr>
            <tr><td>Prêmio</td><td class="wk-num">${p1} / ${p2} / ${p3} 💎</td></tr>`,
         )}
@@ -10164,7 +10316,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           conta como lendário.</li>
           <li><b>Variante de Outland</b> — o catálogo <b>#2001+</b>, exclusivo das Outlands (Ancient
           Pupitar, Furious Magikarp…), de quem já chegou lá.</li>
-          <li><b>Com TM Elemental</b> ou <b>com TM AoE</b> instalado — o investimento da caça avançada (ver
+          <li><b>Com Z-Move</b> ou <b>com TM AoE</b> instalado — o investimento da caça avançada (ver
           <a data-cap="tm">TM Disks</a>).</li>
         </ul>
         <p><b>Podem:</b> <b>mega</b>, sem limite, e <b>espécie repetida</b> — dois Garchomp no mesmo
@@ -10217,7 +10369,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <li>Até <b>${max} pokémon</b> seus, na ordem em que entram na luta. Depois de se inscrever,
           <b>Selecionar minha Equipe</b> abre a sua coleção — equipe e depot —, com busca e filtros; os
           proibidos ficam no fim, apagados e com o motivo escrito (Shiny, P5, Lendário, Mítico, Outland,
-          tem TM Elemental, tem TM AoE). <b>Salvar equipe</b> grava. Os botões de <b>Formações</b>
+          tem Z-Move, tem TM AoE). <b>Salvar equipe</b> grava. Os botões de <b>Formações</b>
           preenchem a seleção com uma formação salva do PvP, sem os proibidos dela.</li>
           <li>Sem escolher, vale a sua <b>equipe do PvP Ranqueado</b> — e os proibidos dela ficam de fora
           na hora da trava. <b>Usar a equipe do PvP</b> apaga a escolha e volta para ela.</li>
@@ -10290,7 +10442,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
            <tr><td>Trainer level</td><td class="wk-num">${nv}</td></tr>
            <tr><td>Pokémon per team</td><td class="wk-num">up to ${max}</td></tr>
            <tr><td>Pokémon level in battle</td><td class="wk-num destaque">up to ${cap}</td></tr>
-           <tr><td>Not allowed</td><td>shiny, P5, legendary and mythical, Outland variants, pokémon with an Elemental TM or AoE TM</td></tr>
+           <tr><td>Not allowed</td><td>shiny, P5, legendary and mythical, Outland variants, pokémon with an Z-Move or AoE TM</td></tr>
            <tr><td>Allowed</td><td>megas (no limit) and repeated species</td></tr>
            <tr><td>Prizes</td><td class="wk-num">${p1} / ${p2} / ${p3} 💎</td></tr>`,
         )}
@@ -10311,7 +10463,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           legendary counts as legendary too.</li>
           <li><b>Outland variants</b> — the <b>#2001+</b> catalog, exclusive to the Outlands (Ancient
           Pupitar, Furious Magikarp…), from players who already got there.</li>
-          <li><b>With an Elemental TM</b> or <b>with an AoE TM</b> installed — the advanced-hunt
+          <li><b>With an Z-Move</b> or <b>with an AoE TM</b> installed — the advanced-hunt
           investment (see <a data-cap="tm">TM Disks</a>).</li>
         </ul>
         <p><b>Allowed:</b> <b>megas</b>, with no limit, and <b>repeated species</b> — two Garchomp on the
@@ -10366,7 +10518,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <li>Up to <b>${max} of your pokémon</b>, in the order they enter the fight. Once signed up,
           <b>Select my Team</b> opens your collection — team and depot —, with search and filters;
           banned pokémon sit at the end, greyed out, with the reason written on them (Shiny, P5,
-          Legendary, Mythical, Outland, has Elemental TM, has AoE TM). <b>Save team</b> stores it. The
+          Legendary, Mythical, Outland, has Z-Move, has AoE TM). <b>Save team</b> stores it. The
           <b>Lineups</b> buttons fill the selection with a saved PvP lineup, minus its banned
           pokémon.</li>
           <li>With no pick, your <b>Ranked PvP team</b> counts — and its banned pokémon sit out when the
@@ -10443,7 +10595,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
            <tr><td>Nivel de entrenador</td><td class="wk-num">${nv}</td></tr>
            <tr><td>Pokémon en el equipo</td><td class="wk-num">hasta ${max}</td></tr>
            <tr><td>Nivel del pokémon en la pelea</td><td class="wk-num destaque">hasta ${cap}</td></tr>
-           <tr><td>No entran</td><td>shiny, P5, legendarios y míticos, variantes de Outland, pokémon con TM Elemental o TM AoE</td></tr>
+           <tr><td>No entran</td><td>shiny, P5, legendarios y míticos, variantes de Outland, pokémon con Z-Move o TM AoE</td></tr>
            <tr><td>Sí entran</td><td>megas (sin límite) y especies repetidas</td></tr>
            <tr><td>Premios</td><td class="wk-num">${p1} / ${p2} / ${p3} 💎</td></tr>`,
         )}
@@ -10464,7 +10616,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           legendario también cuenta como legendario.</li>
           <li><b>Variantes de Outland</b> — el catálogo <b>#2001+</b>, exclusivo de las Outlands (Ancient
           Pupitar, Furious Magikarp…), de quien ya llegó allí.</li>
-          <li><b>Con TM Elemental</b> o <b>con TM AoE</b> instalado — la inversión de la caza avanzada (ver
+          <li><b>Con Z-Move</b> o <b>con TM AoE</b> instalado — la inversión de la caza avanzada (ver
           <a data-cap="tm">Discos TM</a>).</li>
         </ul>
         <p><b>Sí entran:</b> las <b>megas</b>, sin límite, y las <b>especies repetidas</b> — dos Garchomp
@@ -10521,7 +10673,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <li>Hasta <b>${max} pokémon</b> tuyos, en el orden en que entran a la pelea. Después de
           inscribirte, <b>Seleccionar mi Equipo</b> abre tu colección — equipo y depot —, con búsqueda y
           filtros; los prohibidos quedan al final, apagados y con el motivo escrito (Shiny, P5,
-          Legendario, Mítico, Outland, tiene TM Elemental, tiene TM AoE). <b>Guardar equipo</b> lo graba.
+          Legendario, Mítico, Outland, tiene Z-Move, tiene TM AoE). <b>Guardar equipo</b> lo graba.
           Los botones de <b>Formaciones</b> llenan la selección con una formación guardada del PvP, sin
           sus prohibidos.</li>
           <li>Si no eliges, vale tu <b>equipo del PvP Clasificatorio</b> — y sus prohibidos quedan fuera al
@@ -10617,6 +10769,20 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
         pesando. (A <a data-cap="guild">Guerra de Guilds</a> comprime <b>mais</b> que o
         ginásio — são eventos diferentes.)`)}
 
+        <h4>Montar o time</h4>
+        <p>A página de um ginásio é um <b>duelo</b>: você à esquerda, o líder à direita. Embaixo do
+        seu lado ficam as <b>${N(GINASIO_TIME_MAX, c.lang)} vagas</b> e os seus pokémon do tipo — toque num
+        cartão para pô-lo no time, toque na vaga para tirá-lo.</p>
+        <ul>
+          <li><b>Melhor time</b> escolhe sozinho os mais fortes da lista, um por espécie. Com o filtro
+          <b>Local</b> ligado, vale o melhor do que está à vista.</li>
+          <li>Enquanto você mexe, a tela mostra a <b>força</b> do time escolhido, quanto ela ganha ou
+          perde contra o time salvo e <b>em que lugar do pódio</b> ele cairia.</li>
+          <li>Nada muda de verdade até <b>Salvar time</b>. Mexeu e quer lutar? <b>Salvar e desafiar</b>
+          grava o time e já chama o líder — o duelo é sempre com o time salvo.</li>
+          <li>Quem <b>lidera</b> e tira o time inteiro entrega o título: a tela pergunta antes.</li>
+        </ul>
+
         <h4>Como a força é medida</h4>
         <p>Não é o <b>⚔ do Ranking</b>. Aquele número mede o quanto um espécime é <b>raro e bem
         investido</b>; o pódio precisa responder outra pergunta: <b>quem ganharia a luta</b>. A
@@ -10670,6 +10836,20 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
         and refining decide the podium again, and grinding still weighs. (The
         <a data-cap="guild">Guild War</a> compresses <b>harder</b> than the gyms — they are
         different events.)`)}
+
+        <h4>Building the team</h4>
+        <p>A gym page is a <b>duel</b>: you on the left, the leader on the right. Under your side are
+        the <b>${N(GINASIO_TIME_MAX, c.lang)} slots</b> and your pokémon of the type — tap a card to put it on
+        the team, tap a slot to take it out.</p>
+        <ul>
+          <li><b>Best team</b> picks the strongest on the list for you, one per species. With the
+          <b>Location</b> filter on, it takes the best of what is on screen.</li>
+          <li>While you edit, the screen shows the picked team's <b>power</b>, how much it gains or
+          loses against the saved team and <b>where on the podium</b> it would land.</li>
+          <li>Nothing really changes until <b>Save team</b>. Changed it and want to fight? <b>Save and
+          challenge</b> saves the team and calls the leader — the duel always uses the saved team.</li>
+          <li>A <b>leader</b> who removes the whole team gives the title away: the screen asks first.</li>
+        </ul>
 
         <h4>How strength is measured</h4>
         <p>It is not the <b>⚔ from the Rankings</b>. That number measures how <b>rare and well
@@ -10728,6 +10908,21 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
         pesando. (La <a data-cap="guild">Guerra de Guilds</a> comprime <b>más</b> que el
         gimnasio — son eventos distintos.)`)}
 
+        <h4>Armar el equipo</h4>
+        <p>La página de un gimnasio es un <b>duelo</b>: tú a la izquierda, el líder a la derecha. Bajo
+        tu lado están los <b>${N(GINASIO_TIME_MAX, c.lang)} espacios</b> y tus pokémon del tipo — toca una
+        carta para ponerla en el equipo, toca el espacio para quitarla.</p>
+        <ul>
+          <li><b>Mejor equipo</b> elige solo los más fuertes de la lista, uno por especie. Con el filtro
+          <b>Ubicación</b> activo, vale lo mejor de lo que está a la vista.</li>
+          <li>Mientras editas, la pantalla muestra la <b>fuerza</b> del equipo elegido, cuánto gana o
+          pierde frente al equipo guardado y <b>en qué puesto del podio</b> quedaría.</li>
+          <li>Nada cambia de verdad hasta <b>Guardar equipo</b>. ¿Lo cambiaste y quieres pelear?
+          <b>Guardar y desafiar</b> guarda el equipo y ya llama al líder — el duelo siempre es con el
+          equipo guardado.</li>
+          <li>Quien <b>lidera</b> y quita todo el equipo entrega el título: la pantalla pregunta antes.</li>
+        </ul>
+
         <h4>Cómo se mide la fuerza</h4>
         <p>No es el <b>⚔ de la Clasificación</b>. Ese número mide cuán <b>raro y bien invertido</b>
         es un ejemplar; el podio responde otra pregunta: <b>quién ganaría la pelea</b>. La fuerza
@@ -10767,13 +10962,13 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
     grupo: 'mundo',
     html: (c) => ({
       pt: `
-        <p>O placar do mundo inteiro, não do seu servidor. Oito abas:</p>
+        <p>O placar do mundo inteiro, não do seu servidor. São oito placares, escolhidos no menu do alto da janela:</p>
         ${tabela(
-          ['Aba', 'O que ordena'],
-          `<tr><td>Treinadores</td><td>nível do treinador (desempate por XP)</td></tr>
+          ['Placar', 'O que ordena'],
+          `<tr><td>Top Treinadores</td><td>nível do treinador (desempate por XP); o card mostra o nível, e o XP exato aparece ao passar o mouse (no celular, tocando no número)</td></tr>
            <tr><td>Pokémon Forte</td><td>o <b>poder</b> de um pokémon, de qualquer treinador</td></tr>
            <tr><td>Top Catch</td><td><b>espécies diferentes</b> capturadas <b>com bola nesta semana</b>, não capturas totais; zera toda semana e paga diamante (ver abaixo)</td></tr>
-           <tr><td>Top Coins</td><td>ouro acumulado na conta</td></tr>
+           <tr><td>Top Coins</td><td>ouro acumulado na conta; o número vem curto (26,4B), e o exato aparece ao passar o mouse (no celular, tocando no número)</td></tr>
            <tr><td>PvP Ranqueado</td><td>o rank e o PR (ver <a data-cap="pvp">PvP Ranqueado</a>)</td></tr>
            <tr><td>Bosses</td><td>vitórias em boss: em <b>Todos</b> (o padrão da aba), a soma de todos os bosses; ou as de um boss só, escolhido no seletor</td></tr>
            <tr><td>Guild Diário</td><td>GP da guild, que dá o bônus de XP e loot (ver <a data-cap="guild">Guilds</a>)</td></tr>
@@ -10782,6 +10977,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
         <p>Clicar num nome abre o perfil público do treinador — stats, Pokédex, o rank do PvP
         Ranqueado e a equipe dele no PvP, sem dados de conta. O mesmo perfil abre pelo chat e pela
         lista de amigos.</p>
+        <p>O prêmio e as regras de cada placar ficam numa caixa <b>recolhida</b> no alto, com o relógio da
+        virada à vista: um toque em <b>Ver detalhes</b> abre a escada do prêmio, a nota e o atalho para onde
+        aquele placar se joga.</p>
 
         <h4>Top Catch da semana</h4>
         <p>O Top Catch conta quantas <b>espécies diferentes</b> você capturou <b>com bola nesta
@@ -10825,7 +11023,7 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
         fica na <a data-cap="pokedex">Pokédex</a>, no <b>Top Catch</b>; na aba Top Catch do Ranking, um
         botão leva direto para ele.</p>
 
-        <h4>Prêmio do mês: Treinadores, Top Coins e Bosses</h4>
+        <h4>Prêmio do mês: Top Treinadores, Top Coins e Bosses</h4>
         <p>No dia 1º de cada mês, às <b>00:00 de Brasília</b> (o relógio da Temporada Global de guilds),
         quem estiver nesses três placares ganha diamante pela posição — no de Bosses, vale o
         <b>Todos</b>, a soma das vitórias em todos os bosses (o Top Catch tem prêmio próprio, toda
@@ -10856,7 +11054,7 @@ poder = arred( nível × 10 × score )</pre>
         <p>A exceção é o <a data-cap="lendarios">lendário e o mítico</a>: o ⚔ deles leva o
         <b>×${MULT_LENDARIO_STATS}</b> em todos os stats, que a nota não leva — por isso um lendário sobe no
         placar muito acima do que a nota escondida dele diria.</p>
-        <p>A aba mostra essa fórmula no topo do placar.</p>
+        <p>O placar mostra essa fórmula numa caixa recolhida no alto — um toque abre.</p>
         <p><b>A coroa.</b> O 1º do Pokémon Forte leva a <b>coroa do Ranks</b> antes do nome — na placa em
         cima dele no campo (na hunt do dono), na Equipe e na ficha.
         É só a coroa, sem outro prêmio, e ela passa para quem ultrapassar em até 2 minutos.</p>
@@ -10864,13 +11062,13 @@ poder = arred( nível × 10 × score )</pre>
         ${nota(`O placar sai do banco, não da memória do jogo, e é uma foto renovada a cada 10 segundos: o
         que você vê pode estar até uns <b>15 segundos</b> atrasado. Para um ranking, é irrelevante.`)}`,
       en: `
-        <p>The world-wide ladder, not your server's. Eight tabs:</p>
+        <p>The world-wide ladder, not your server's. There are eight boards, picked from the menu at the top of the window:</p>
         ${tabela(
-          ['Tab', 'What it sorts by'],
-          `<tr><td>Trainers</td><td>trainer level (XP breaks ties)</td></tr>
+          ['Board', 'What it sorts by'],
+          `<tr><td>Top Trainers</td><td>trainer level (XP breaks ties); the card shows the level, and the exact XP shows up when you hover it (on a phone, tap the number)</td></tr>
            <tr><td>Strongest Pokémon</td><td>a pokémon's <b>power</b>, from any trainer</td></tr>
            <tr><td>Top Catch</td><td><b>distinct species</b> caught <b>with a ball this week</b>, not total catches; resets every week and pays diamonds (see below)</td></tr>
-           <tr><td>Top Coins</td><td>gold held</td></tr>
+           <tr><td>Top Coins</td><td>gold held; the number is shortened (26.4B), and the exact amount shows up when you hover it (on a phone, tap the number)</td></tr>
            <tr><td>Ranked PvP</td><td>rank and PR (see <a data-cap="pvp">Ranked PvP</a>)</td></tr>
            <tr><td>Bosses</td><td>boss wins: in <b>All</b> (the tab's default), the sum over every boss; or the wins against one boss, picked in the selector</td></tr>
            <tr><td>Guild Daily</td><td>guild GP, which grants the XP and loot bonus (see <a data-cap="guild">Guilds</a>)</td></tr>
@@ -10879,6 +11077,9 @@ poder = arred( nível × 10 × score )</pre>
         <p>Clicking a name opens that trainer's public profile — stats, Pokédex progress, their
         Ranked PvP rank and PvP team, without account details. The same profile opens from the
         chat and the friends list.</p>
+        <p>Each board's prize and rules sit in a <b>collapsed</b> box at the top, with the reset clock in
+        view: tapping <b>See details</b> opens the prize ladder, the note and the shortcut to where that
+        board is played.</p>
 
         <h4>Weekly Top Catch</h4>
         <p>Top Catch counts how many <b>distinct species</b> you caught <b>with a ball this
@@ -10923,7 +11124,7 @@ poder = arred( nível × 10 × score )</pre>
         the <a data-cap="pokedex">Pokédex</a>, under <b>Top Catch</b>; on the Rankings' Top Catch tab, a
         button takes you straight to it.</p>
 
-        <h4>Monthly prize: Trainers, Top Coins and Bosses</h4>
+        <h4>Monthly prize: Top Trainers, Top Coins and Bosses</h4>
         <p>On the 1st of every month, at <b>00:00 Brasília time</b> (the Global Guild Season clock),
         whoever is on these three ladders gets diamonds by place — for Bosses, the <b>All</b> ladder
         counts, the sum of wins over every boss (Top Catch has its own prize, every week — see
@@ -10955,7 +11156,7 @@ power = round( level × 10 × score )</pre>
         <p>The exception is the <a data-cap="lendarios">legendary and the mythical</a>: their ⚔ carries the
         <b>×${MULT_LENDARIO_STATS}</b> on every stat, which the score does not — so a legendary climbs the
         ladder far above what its hidden score would say.</p>
-        <p>The tab shows this formula at the top of the ladder.</p>
+        <p>The board shows this formula in a collapsed box at the top — tap to open it.</p>
         <p><b>The crown.</b> The #1 Strongest Pokémon wears the <b>Ranks crown</b> before its name — on
         the tag above it in the field (in its owner's hunt), in the
         Team and in its details sheet. It is just the crown, with no other prize, and it moves to whoever
@@ -10964,13 +11165,13 @@ power = round( level × 10 × score )</pre>
         ${nota(`The ladder comes from the database, not from live memory, as a snapshot renewed every 10
         seconds: what you see may be up to about <b>15 seconds</b> behind. For a ranking, that is irrelevant.`)}`,
       es: `
-        <p>La clasificación del mundo entero, no de tu servidor. Ocho pestañas:</p>
+        <p>La clasificación del mundo entero, no de tu servidor. Son ocho clasificaciones, elegidas en el menú de arriba de la ventana:</p>
         ${tabela(
-          ['Pestaña', 'Qué ordena'],
-          `<tr><td>Entrenadores</td><td>nivel del entrenador (desempata el XP)</td></tr>
+          ['Clasificación', 'Qué ordena'],
+          `<tr><td>Top Entrenadores</td><td>nivel del entrenador (desempata el XP); la tarjeta muestra el nivel, y el XP exacto aparece al pasar el ratón (en el móvil, tocando el número)</td></tr>
            <tr><td>Pokémon Fuerte</td><td>el <b>poder</b> de un pokémon, de cualquier entrenador</td></tr>
            <tr><td>Top Captura</td><td><b>especies distintas</b> capturadas <b>con bola esta semana</b>, no capturas totales; se reinicia cada semana y paga diamantes (ver abajo)</td></tr>
-           <tr><td>Top Coins</td><td>oro acumulado</td></tr>
+           <tr><td>Top Coins</td><td>oro acumulado; el número va abreviado (26,4B), y el exacto aparece al pasar el ratón (en el móvil, tocando el número)</td></tr>
            <tr><td>PvP Clasificatorio</td><td>el rango y los PR del PvP Clasificatorio (ver <a data-cap="pvp">PvP Clasificatorio</a>)</td></tr>
            <tr><td>Jefes</td><td>victorias contra jefes: en <b>Todos</b> (lo que abre la pestaña), la suma de todos los jefes; o las de un jefe solo, elegido en el selector</td></tr>
            <tr><td>Guild Diaria</td><td>GP de la guild, que da el bonus de XP y loot (ver <a data-cap="guild">Guilds</a>)</td></tr>
@@ -10979,6 +11180,9 @@ power = round( level × 10 × score )</pre>
         <p>Hacer clic en un nombre abre el perfil público del entrenador — stats, progreso de
         Pokédex, el rango del PvP Clasificatorio y su equipo de PvP, sin datos de cuenta. El mismo
         perfil se abre desde el chat y la lista de amigos.</p>
+        <p>El premio y las reglas de cada clasificación quedan en un recuadro <b>plegado</b> arriba, con el
+        reloj del cierre a la vista: un toque en <b>Ver detalles</b> abre la escalera del premio, la nota y el
+        atajo a donde se juega esa clasificación.</p>
 
         <h4>Top Captura de la semana</h4>
         <p>El Top Captura cuenta cuántas <b>especies distintas</b> capturaste <b>con bola esta
@@ -11023,7 +11227,7 @@ power = round( level × 10 × score )</pre>
         la <a data-cap="pokedex">Pokédex</a>, en <b>Top Captura</b>; en la pestaña Top Captura de la
         Clasificación, un botón te lleva directo a él.</p>
 
-        <h4>Premio del mes: Entrenadores, Top Coins y Jefes</h4>
+        <h4>Premio del mes: Top Entrenadores, Top Coins y Jefes</h4>
         <p>El día 1 de cada mes, a las <b>00:00 de Brasilia</b> (el reloj de la Temporada Global de
         guilds), quien esté en estas tres clasificaciones gana diamantes según el puesto — en Jefes,
         cuenta <b>Todos</b>, la suma de las victorias contra todos los jefes (el Top Captura tiene premio
@@ -11055,7 +11259,7 @@ poder = redond( nivel × 10 × score )</pre>
         <p>La excepción es el <a data-cap="lendarios">legendario y el mítico</a>: su ⚔ lleva el
         <b>×${MULT_LENDARIO_STATS}</b> en todos los stats, que la nota no lleva — por eso un legendario sube
         en el placar muy por encima de lo que diría su nota escondida.</p>
-        <p>La pestaña muestra esta fórmula arriba del placar.</p>
+        <p>La clasificación muestra esta fórmula en un recuadro plegado arriba: un toque lo abre.</p>
         <p><b>La corona.</b> El 1º de Pokémon Fuerte lleva la <b>corona de Ranks</b> antes del nombre —
         en la placa encima de él en el campo (en la cacería de su dueño), en el Equipo y en la ficha. Es solo la corona, sin otro premio, y pasa a quien lo supere en
         hasta 2 minutos.</p>
@@ -11074,30 +11278,31 @@ poder = redond( nivel × 10 × score )</pre>
     html: (c) => ({
       pt: `
         <p>O balcão do jogo. Compra e venda com o <b>NPC</b>, em <b>ouro</b>, sem taxa nenhuma e
-        em quantidade ilimitada. Três abas.</p>
+        em quantidade ilimitada. No alto, a chave <b>Comprar | Vender</b> troca a metade da tela.</p>
 
-        <h4>Compra</h4>
+        <h4>Comprar</h4>
+        <p>As categorias ficam numa barra à esquerda (no celular, numa fita no alto):</p>
         <ul>
           <li><b>Pokébolas</b> — as compráveis, aos preços da <a data-cap="captura">tabela</a>.</li>
           <li><b>Poções</b> e <b>Revives</b> — todas as variantes, ao preço de catálogo.</li>
           <li><b>Ovos</b> — os três Mystery Eggs da <a data-cap="chocadeira">Chocadeira</a>.</li>
         </ul>
+        <p>Cada produto fica num <b>palanque</b>: o desenho na luz, quanto você já tem, o preço da
+        unidade, o contador e os atalhos <b>×10</b>, <b>×100</b> e <b>Máx</b> (o máximo que o seu ouro
+        paga, até 9.999 por compra). O botão <b>Comprar</b> já mostra o total. A luz sobe do produto
+        mais simples para o melhor de cada categoria.</p>
         <p>O <b>Bronze Boss Token</b> (entrada de <a data-cap="bosses">boss</a>) <b>não</b> se
         compra aqui — é drop raro na Outland (${pctBossToken(c)} por kill) e prêmio do <a data-cap="passe">Passe de Batalha</a>.${dicaOutlandTiers(c, 'bosses')}</p>
 
-        <h4>Venda</h4>
-        <p>Tudo que os pokémon dropam, pelo valor de catálogo (<b>100%</b> do preço de NPC — não
-        há desconto). Há um botão de <b>vender todo o loot</b> para o inventário inteiro.</p>
-        <ul>
-          <li>O <b>cadeado</b> no card <b>tranca</b> um item: ele fica fora do "vender todo" até você
-          destrancar.</li>
-          <li>A <b>Venda Automática</b>, ao lado do botão, vende sozinha o loot que cai na hunt —
-          e, ao ligar, já vende o que está na bolsa. Os itens trancados ficam de fora.</li>
-        </ul>
-        ${nota(`<b>Consumível que o NPC vende, o NPC não recompra.</b> Poção e revive entram nessa
-        regra. O Bronze Boss Token também <b>não</b> pode ser vendido ao NPC — anuncie no
-        <a data-cap="comunidade">Mercado da Comunidade</a> se quiser passar adiante.`, 'aviso')}
-        <p>Bola e poção sobrando na bolsa? A <b>Lixeira</b>, na aba <b>Treinador</b> da Bolsa, joga
+        <h4>Vender</h4>
+        <p>Do outro lado da chave, o NPC compra os <b>pokémon capturados</b> (a conta está logo
+        abaixo). <b>Item não se vende ao NPC</b>: o loot saiu do jogo em 15/10/2026 — os pokémon
+        soltam só as pedras de evolução dos tipos deles, e o que o loot rendia vem no ouro de cada
+        abate, o <b>bônus de loot</b> (ver <a data-cap="combate">Combate</a>). O loot que estava na
+        mochila de cada um virou Coins pelo preço do NPC, no primeiro login depois da mudança.</p>
+        ${nota(`Pedra, Bronze Boss Token e o resto do que tem valor entre jogadores se vendem no
+        <a data-cap="comunidade">Mercado da Comunidade</a>.`, 'aviso')}
+        <p>Bola e poção sobrando na mochila? A <b>Lixeira</b>, na aba <b>Treinador</b> da Mochila, joga
         fora a quantidade que você escolher (ou <b>Tudo</b>). Ela só aceita bolas, poções e
         revives, e o que vai para ela <b>some para sempre</b> — não há como desfazer.</p>
 
@@ -11127,48 +11332,55 @@ poder = redond( nivel × 10 × score )</pre>
           <li>A <b>setinha</b> no canto do card manda o pokémon para a Coleção. No Depot (Centro
           de Cerulean), os guardados têm duas abas, <b>Depot</b> e <b>Coleção</b>, e a mesma
           setinha leva de uma para a outra. A Coleção também abre de qualquer lugar, na aba
-          <b>Coleção</b> da Bolsa.</li>
+          <b>Coleção</b> da Mochila.</li>
           <li>Mover não troca o pokémon de lugar nenhum: é uma marca. Ele continua valendo no
           <a data-cap="comunidade">Mercado da Comunidade</a>, na
           <a data-cap="oferenda">Oferenda</a> e nas equipes, com uma <b>★</b>. Nesses seletores, o
           filtro <b>Local</b> mostra só a Equipe, o Depot ou a Coleção.</li>
           <li>Cada pokémon espera alguns segundos antes de mudar de lado de novo.</li>
-          <li><b>Auto Coleção</b> manda sozinho para a Coleção os shinys, os P5 e quem tem nota
-          a partir da que você escolher (interruptores ao lado do "vender todo"). Pokémon
-          comprado no Mercado da Comunidade e pokémon refinado também chegam na Coleção.</li>
+          <li><b>Auto Coleção</b> (o botão <b>★</b> ao lado do "vender todo"): um painel com seis
+          regras — <b>Lendário/Mítico</b>, <b>Shiny</b>, Potência mínima, Qualidade mínima, IV mínimo e
+          Nota mínima —, cada uma com um interruptor de liga/desliga. Cada regra ligada basta sozinha: o
+          pokémon que passar em qualquer uma vai para a Coleção. Para todo jogador, <b>Lendário/Mítico</b>,
+          <b>Shiny</b> e <b>Potência P4+</b> vêm ligados, e o resto desligado. Vale na captura, na compra
+          no Mercado e, ao <b>Salvar</b> — depois de mostrar quantos são —, para quem você já tem. A
+          trava só tranca: desligar uma regra não devolve ninguém ao Depot. Pokémon comprado no
+          Mercado da Comunidade e pokémon refinado também chegam na Coleção.</li>
           <li><b>Pastas</b>: dentro da Coleção você cria até <b>${MAX_PASTAS} pastas</b>, com nome e
           ícone ("PvP", "GvG", "Torneio", "Evoluir para Mega"…) — a Coleção de sempre é a
-          <b>Geral</b>, e a aba Coleção da Bolsa mostra uma pasta de cada vez. No <b>⋮</b> da ficha de um
+          <b>Geral</b>, e a aba Coleção da Mochila mostra uma pasta de cada vez. No <b>⋮</b> da ficha de um
           pokémon seu, <b>Mover para</b> leva ele a uma pasta (do Depot, isso já o guarda na Coleção).
           É só organização: em qualquer pasta ele continua fora da venda ao NPC, e apagar uma pasta
           devolve os pokémon dela à Geral.</li>
         </ul>`,
       en: `
         <p>The game's counter. Buying and selling with the <b>NPC</b>, in <b>gold</b>, with no fee
-        whatsoever and in unlimited quantity. Three tabs.</p>
+        whatsoever and in unlimited quantity. At the top, the <b>Buy | Sell</b> switch flips the
+        screen.</p>
 
         <h4>Buy</h4>
+        <p>The categories sit on a bar on the left (on a phone, on a strip at the top):</p>
         <ul>
           <li><b>Poké Balls</b> — the purchasable ones, at the <a data-cap="captura">table</a>
           prices.</li>
           <li><b>Potions</b> and <b>Revives</b> — every variant, at catalogue price.</li>
           <li><b>Eggs</b> — the three Mystery Eggs for the <a data-cap="chocadeira">Incubator</a>.</li>
         </ul>
+        <p>Every product stands on its own <b>stand</b>: the art in the spotlight, how many you
+        already have, the unit price, the counter and the <b>×10</b>, <b>×100</b> and <b>Max</b>
+        shortcuts (the most your gold pays for, up to 9,999 per purchase). The <b>Buy</b> button already
+        shows the total. The light grows from the simplest product to the best one in each category.</p>
         <p>The <b>Bronze Boss Token</b> is <b>not</b> sold here — it is a rare Outland drop (${pctBossToken(c)} per kill) and a <a data-cap="passe">Battle Pass</a> prize.${dicaOutlandTiers(c, 'bosses')}</p>
 
         <h4>Sell</h4>
-        <p>Everything pokémon drop, at catalogue value (<b>100%</b> of the NPC price — no
-        discount). There is a <b>sell all loot</b> button for the whole inventory.</p>
-        <ul>
-          <li>The <b>padlock</b> on a card <b>locks</b> an item: it stays out of "sell all" until you
-          unlock it.</li>
-          <li><b>Auto-Sell</b>, next to the button, sells the loot that drops in the hunt by itself —
-          and, when switched on, sells what is already in the bag. Locked items stay out.</li>
-        </ul>
-        ${nota(`<b>What the NPC sells, the NPC does not buy back.</b> Potions and revives follow
-        that rule. The Bronze Boss Token also <b>cannot</b> be sold to the NPC — list it on the
-        <a data-cap="comunidade">Community Market</a> instead.`, 'aviso')}
-        <p>Too many balls and potions in the bag? The <b>Trash</b>, on the Bag's <b>Trainer</b> tab,
+        <p>On the other side of the switch, the NPC buys your <b>caught pokémon</b> (the formula is
+        right below). <b>Items are not sold to the NPC</b>: loot left the game on 10/15/2026 — pokémon
+        drop only the evolution stones of their types, and what loot used to earn comes in the gold of
+        every defeat, the <b>loot bonus</b> (see <a data-cap="combate">Combat</a>). The loot each player
+        had in the backpack became Coins at the NPC price, on the first login after the change.</p>
+        ${nota(`Stones, the Bronze Boss Token and everything else that players value are sold on the
+        <a data-cap="comunidade">Community Market</a>.`, 'aviso')}
+        <p>Too many balls and potions in the backpack? The <b>Trash</b>, on the Backpack's <b>Trainer</b> tab,
         throws away the amount you choose (or <b>All</b>). It only takes balls, potions and
         revives, and whatever goes in is <b>gone for good</b> — there is no undo.</p>
 
@@ -11198,49 +11410,58 @@ poder = redond( nivel × 10 × score )</pre>
           <li>The <b>arrow</b> in the card's corner sends a pokémon to the Collection. In the
           Depot (Cerulean Center), stored pokémon have two tabs, <b>Depot</b> and
           <b>Collection</b>, and the same arrow moves them across. The Collection also opens from
-          anywhere, in the Bag's <b>Collection</b> tab.</li>
+          anywhere, in the Backpack's <b>Collection</b> tab.</li>
           <li>Moving does not take the pokémon anywhere: it is a mark. It still counts on the
           <a data-cap="comunidade">Community Market</a>, in the
           <a data-cap="oferenda">Offering</a> and on your teams, with a <b>★</b>. In those pickers
           the <b>Location</b> filter shows only the Team, the Depot or the Collection.</li>
           <li>Each pokémon waits a few seconds before it can switch sides again.</li>
-          <li><b>Auto Collection</b> sends shinies, P5s and anything at or above the score you pick
-          straight to the Collection (switches next to "sell all"). Pokémon bought on the
-          Community Market and refined pokémon also land in the Collection.</li>
+          <li><b>Auto Collection</b> (the <b>★</b> button next to "sell all"): a panel with six
+          rules — <b>Legendary/Mythical</b>, <b>Shiny</b>, Minimum potency, Minimum quality, Minimum IV
+          and Minimum score —, each with an on/off switch. Each rule that is on is enough by itself:
+          a pokémon that passes any of them goes to the Collection. For every player,
+          <b>Legendary/Mythical</b>, <b>Shiny</b> and <b>Potency P4+</b> come on, and the rest off. It
+          applies when catching, when buying on the Market and, when you <b>Save</b> — after showing
+          how many —, to the ones you already have. The lock only locks: turning a rule off sends no
+          one back to the Depot. Pokémon bought on the Community Market and refined pokémon also land
+          in the Collection.</li>
           <li><b>Folders</b>: inside the Collection you can create up to <b>${MAX_PASTAS} folders</b>,
           with a name and an icon ("PvP", "GvG", "Tournament", "Mega evolve"…) — the usual
-          Collection is <b>General</b>, and the Bag's Collection tab shows one folder at a time. In the
+          Collection is <b>General</b>, and the Backpack's Collection tab shows one folder at a time. In the
           <b>⋮</b> of your pokémon's sheet, <b>Move to</b> puts it in a folder (from the Depot, that also
           keeps it in the Collection). It is just organizing: in any folder it stays out of NPC sales,
           and deleting a folder sends its pokémon back to General.</li>
         </ul>`,
       es: `
         <p>El mostrador del juego. Compra y venta con el <b>NPC</b>, en <b>oro</b>, sin comisión
-        alguna y en cantidad ilimitada. Tres pestañas.</p>
+        alguna y en cantidad ilimitada. Arriba, el interruptor <b>Comprar | Vender</b> cambia la mitad
+        de la pantalla.</p>
 
-        <h4>Compra</h4>
+        <h4>Comprar</h4>
+        <p>Las categorías están en una barra a la izquierda (en el móvil, en una cinta arriba):</p>
         <ul>
           <li><b>Poké Balls</b> — las comprables, a los precios de la
           <a data-cap="captura">tabla</a>.</li>
           <li><b>Pociones</b> y <b>Revivires</b> — todas las variantes, a precio de catálogo.</li>
           <li><b>Huevos</b> — los tres Mystery Eggs de la <a data-cap="chocadeira">Incubadora</a>.</li>
         </ul>
+        <p>Cada producto está en su <b>pedestal</b>: el dibujo bajo la luz, cuántos ya tienes, el
+        precio por unidad, el contador y los atajos <b>×10</b>, <b>×100</b> y <b>Máx</b> (lo máximo que
+        tu oro paga, hasta 9.999 por compra). El botón <b>Comprar</b> ya muestra el total. La luz sube
+        del producto más simple al mejor de cada categoría.</p>
         <p>El <b>Bronze Boss Token</b> <b>no</b> se compra aquí — es drop raro en Outland (${pctBossToken(c)} por kill) y premio del <a data-cap="passe">Pase de Batalla</a>.${dicaOutlandTiers(c, 'bosses')}</p>
 
-        <h4>Venta</h4>
-        <p>Todo lo que sueltan los pokémon, al valor de catálogo (<b>100%</b> del precio de NPC —
-        sin descuento). Hay un botón de <b>vender todo el loot</b> para el inventario entero.</p>
-        <ul>
-          <li>El <b>candado</b> de la carta <b>bloquea</b> un objeto: queda fuera del "vender todo"
-          hasta que lo desbloquees.</li>
-          <li>La <b>Venta automática</b>, junto al botón, vende sola el loot que cae en la cacería — y,
-          al activarla, vende lo que ya está en la bolsa. Los objetos bloqueados quedan fuera.</li>
-        </ul>
-        ${nota(`<b>Lo que el NPC vende, el NPC no recompra.</b> Pociones y revivires entran en esa
-        regla. El Bronze Boss Token tampoco se vende al NPC — anúncialo en el
+        <h4>Vender</h4>
+        <p>Del otro lado del interruptor, el NPC compra los <b>pokémon capturados</b> (la cuenta está
+        justo abajo). <b>Los objetos no se venden al NPC</b>: el loot salió del juego el 15/10/2026 —
+        los pokémon sueltan solo las piedras evolutivas de sus tipos, y lo que el loot rendía viene en
+        el oro de cada derrota, el <b>bono de loot</b> (ver <a data-cap="combate">Combate</a>). El loot
+        que cada uno tenía en la mochila se convirtió en Coins al precio del NPC, en el primer inicio de
+        sesión después del cambio.</p>
+        ${nota(`Las piedras, el Bronze Boss Token y todo lo que vale entre jugadores se venden en el
         <a data-cap="comunidade">Mercado de la Comunidad</a>.`, 'aviso')}
-        <p>¿Te sobran balls y pociones en la bolsa? La <b>Papelera</b>, en la pestaña
-        <b>Entrenador</b> de la Bolsa, tira la cantidad que elijas (o <b>Todo</b>). Solo acepta
+        <p>¿Te sobran balls y pociones en la mochila? La <b>Papelera</b>, en la pestaña
+        <b>Entrenador</b> de la Mochila, tira la cantidad que elijas (o <b>Todo</b>). Solo acepta
         balls, pociones y revivires, y lo que va a ella <b>desaparece para siempre</b> — no se
         puede deshacer.</p>
 
@@ -11270,19 +11491,25 @@ poder = redond( nivel × 10 × score )</pre>
           <li>La <b>flechita</b> en la esquina de la tarjeta envía el pokémon a la Colección. En el
           Depósito (Centro de Cerulean), los guardados tienen dos pestañas, <b>Depósito</b> y
           <b>Colección</b>, y la misma flechita los pasa de una a otra. La Colección también se
-          abre desde cualquier lugar, en la pestaña <b>Colección</b> de la Bolsa.</li>
+          abre desde cualquier lugar, en la pestaña <b>Colección</b> de la Mochila.</li>
           <li>Mover no cambia el pokémon de lugar: es una marca. Sigue valiendo en el
           <a data-cap="comunidade">Mercado de la Comunidad</a>, en la
           <a data-cap="oferenda">Ofrenda</a> y en los equipos, con una <b>★</b>. En esos
           selectores, el filtro <b>Ubicación</b> muestra solo el Equipo, el Depósito o la
           Colección.</li>
           <li>Cada pokémon espera unos segundos antes de cambiar de lado otra vez.</li>
-          <li><b>Auto Colección</b> envía sola a la Colección los shinys, los P5 y los que tengan
-          nota desde la que elijas (interruptores junto a "vender todo"). Los pokémon comprados en
-          el Mercado de la Comunidad y los refinados también llegan a la Colección.</li>
+          <li><b>Auto Colección</b> (el botón <b>★</b> junto a "vender todo"): un panel con seis
+          reglas — <b>Legendario/Mítico</b>, <b>Shiny</b>, Potencia mínima, Calidad mínima, IV mínimo y
+          Nota mínima —, cada una con un interruptor de encendido/apagado. Cada regla encendida basta
+          sola: el pokémon que pase cualquiera de ellas va a la Colección. Para todo jugador,
+          <b>Legendario/Mítico</b>, <b>Shiny</b> y <b>Potencia P4+</b> vienen encendidas, y el resto
+          apagado. Vale al capturar, al comprar en el Mercado y, al <b>Guardar</b> — después de mostrar
+          cuántos son —, para los que ya tienes. El bloqueo solo bloquea: apagar una regla no devuelve a
+          nadie al Depósito. Los pokémon comprados en el Mercado de la Comunidad y los refinados también
+          llegan a la Colección.</li>
           <li><b>Carpetas</b>: dentro de la Colección creas hasta <b>${MAX_PASTAS} carpetas</b>, con
           nombre e ícono ("PvP", "GvG", "Torneo", "Evolucionar a Mega"…) — la Colección de siempre
-          es la <b>General</b>, y la pestaña Colección de la Bolsa muestra una carpeta a la vez. En el
+          es la <b>General</b>, y la pestaña Colección de la Mochila muestra una carpeta a la vez. En el
           <b>⋮</b> de la ficha de un pokémon tuyo, <b>Mover a</b> lo lleva a una carpeta (desde el
           Depósito, eso ya lo guarda en la Colección). Es solo organización: en cualquier carpeta sigue
           fuera de la venta al NPC, y borrar una carpeta devuelve sus pokémon a General.</li>
@@ -11306,7 +11533,7 @@ poder = redond( nivel × 10 × score )</pre>
 
         <h4>Anunciar</h4>
         <ul>
-          <li>Anunciar <b>tira da sua mão</b>: o item sai da bolsa e o pokémon sai do depot na
+          <li>Anunciar <b>tira da sua mão</b>: o item sai da mochila e o pokémon sai do depot na
           hora. Cancelar devolve.</li>
           <li>Você pode ter até <b>${e.maxAnuncios ?? 20} anúncios abertos</b> ao mesmo tempo.</li>
           <li><b>Um anúncio por item</b>: enquanto o seu Water Stone estiver na vitrine, não dá
@@ -11385,7 +11612,7 @@ poder = redond( nivel × 10 × score )</pre>
         (custa ${N(CUSTO_ALTO_FALANTE, 'pt')} Coins; ver <a data-cap="chat">Chat</a>).</p>
         ${nota(`O pokémon vai para o comprador com o que é <b>dele</b>: o <b>apelido</b> da Name Tag, a
         <b>Medalha de Guerra</b>, o <b>Troféu</b> de campeonato e o nome de <b>quem capturou</b>. A
-        <b>skin</b>, não: ela é do dono, e volta a ficar livre na bolsa de quem vendeu.`)}
+        <b>skin</b>, não: ela é do dono, e volta a ficar livre na mochila de quem vendeu.`)}
 
         <h4>Filtros de pokémon</h4>
         <p>Na aba de pokémon, além do tipo, dos selos e do <b>Filtrar por</b>, o grupo
@@ -11408,6 +11635,12 @@ poder = redond( nivel × 10 × score )</pre>
           pede depois do sorteio compra na hora, como sempre.</li>
           <li><b>Um pedido por jogador em cada anúncio</b>: clicar várias vezes não dá mais
           chances. Quem perde o sorteio recebe o aviso e não paga nada.</li>
+          <li><b>A janela do sorteio:</b> assim que o seu pedido entra, abre uma janelinha com
+          <b>quantos jogadores</b> estão na disputa e <b>quem são</b> (até 100 nicks; numa disputa
+          maior, o resto aparece como “+N”, e quem levou aparece sempre), o relógio dos
+          ${SEG_SORTEIO} segundos, o sorteio e <b>quem levou</b>.
+          Nada disso fica guardado: a lista existe só durante o sorteio, e não vai para a Tabela de
+          preços.</li>
         </ul>
 
         <h4>Comprar em quantidade</h4>
@@ -11438,7 +11671,7 @@ poder = redond( nivel × 10 × score )</pre>
         pedir o preço.`, 'atencao')}
         <ul>
           <li>O preço é <b>por diamante</b>; o comprador pode levar uma <b>fatia</b> do lote.</li>
-          <li>Anunciar <b>tira do seu saldo</b> na hora, como o item sai da bolsa. Cancelar
+          <li>Anunciar <b>tira do seu saldo</b> na hora, como o item sai da mochila. Cancelar
           devolve o que ainda restava no anúncio.</li>
           <li><b>Um anúncio de diamante por vez</b>, com os mesmos
           ${m.reanuncioMin ?? 30} minutos de espera entre um e o próximo. Para vender mais barato,
@@ -11512,7 +11745,7 @@ poder = redond( nivel × 10 × score )</pre>
 
         <h4>Listing</h4>
         <ul>
-          <li>Listing <b>takes it out of your hands</b>: the item leaves your bag and the pokémon
+          <li>Listing <b>takes it out of your hands</b>: the item leaves your backpack and the pokémon
           leaves your depot immediately. Cancelling returns it.</li>
           <li>You may hold up to <b>${e.maxAnuncios ?? 20} open listings</b> at a time.</li>
           <li><b>One listing per item</b>: while your Water Stone is on the shelf you cannot open
@@ -11590,7 +11823,7 @@ poder = redond( nivel × 10 × score )</pre>
         ${nota(`The pokémon goes to the buyer with what is <b>its own</b>: the Name Tag
         <b>nickname</b>, the <b>War Medal</b>, the championship <b>Trophy</b> and the name of <b>who
         caught it</b>. The <b>skin</b> does not: it belongs to the owner, and goes back to being free
-        in the seller's bag.`)}
+        in the seller's backpack.`)}
 
         <h4>Pokémon filters</h4>
         <p>On the pokémon tab, besides type, badges and <b>Filter by</b>, the <b>Ranges</b> group
@@ -11613,6 +11846,12 @@ poder = redond( nivel × 10 × score )</pre>
           window. Requests after the draw buy right away, as always.</li>
           <li><b>One request per player per listing</b>: clicking several times does not add
           chances. Whoever loses the draw gets a notice and pays nothing.</li>
+          <li><b>The draw window:</b> as soon as your request gets in, a small window opens with
+          <b>how many players</b> are in the draw and <b>who they are</b> (up to 100 nicks; in a
+          bigger draw the rest shows as “+N”, and the winner always shows), the
+          ${SEG_SORTEIO}-second clock, the draw and <b>who won</b>. None
+          of it is stored: the list only exists during the draw, and it does not go to the Price
+          table.</li>
         </ul>
 
         <h4>Buy in bulk</h4>
@@ -11645,7 +11884,7 @@ poder = redond( nivel × 10 × score )</pre>
         <ul>
           <li>The price is <b>per diamond</b>; the buyer can take a <b>slice</b> of the lot.</li>
           <li>Listing <b>takes it out of your balance</b> right away, the way an item leaves your
-          bag. Cancelling returns whatever was still in the listing.</li>
+          backpack. Cancelling returns whatever was still in the listing.</li>
           <li><b>One diamond listing at a time</b>, with the same ${m.reanuncioMin ?? 30} minutes
           of wait between one and the next. To sell cheaper, edit the price of the one already up.</li>
           <li>Diamonds <b>bought from another player</b> cannot be resold: whoever received them
@@ -11714,7 +11953,7 @@ poder = redond( nivel × 10 × score )</pre>
 
         <h4>Anunciar</h4>
         <ul>
-          <li>Anunciar <b>te lo quita de la mano</b>: el objeto sale de la bolsa y el pokémon sale
+          <li>Anunciar <b>te lo quita de la mano</b>: el objeto sale de la mochila y el pokémon sale
           del depot al instante. Cancelar lo devuelve.</li>
           <li>Puedes tener hasta <b>${e.maxAnuncios ?? 20} anuncios abiertos</b> a la vez.</li>
           <li><b>Un anuncio por objeto</b>: mientras tu Water Stone esté en la vitrina no puedes
@@ -11793,7 +12032,7 @@ poder = redond( nivel × 10 × score )</pre>
         (cuesta ${N(CUSTO_ALTO_FALANTE, 'es')} Coins; ver <a data-cap="chat">Chat</a>).</p>
         ${nota(`El pokémon va al comprador con lo que es <b>suyo</b>: el <b>apodo</b> de la Name Tag,
         la <b>Medalla de Guerra</b>, el <b>Trofeo</b> de campeonato y el nombre de <b>quien lo
-        capturó</b>. La <b>skin</b> no: es del dueño, y vuelve a quedar libre en la bolsa de quien
+        capturó</b>. La <b>skin</b> no: es del dueño, y vuelve a quedar libre en la mochila de quien
         vendió.`)}
 
         <h4>Filtros de pokémon</h4>
@@ -11817,6 +12056,11 @@ poder = redond( nivel × 10 × score )</pre>
           ventana. Quien pide después del sorteo compra al instante, como siempre.</li>
           <li><b>Una petición por jugador en cada anuncio</b>: pulsar varias veces no da más
           oportunidades. Quien pierde el sorteo recibe el aviso y no paga nada.</li>
+          <li><b>La ventana del sorteo:</b> en cuanto tu pedido entra, se abre una ventanita con
+          <b>cuántos jugadores</b> están en el sorteo y <b>quiénes son</b> (hasta 100 nicks; en un
+          sorteo más grande, el resto aparece como “+N”, y quien se lo llevó aparece siempre), el
+          reloj de los ${SEG_SORTEIO} segundos, el sorteo y <b>quién se lo llevó</b>. Nada de eso se guarda: la lista existe solo durante el sorteo, y no va a la
+          Tabla de precios.</li>
         </ul>
 
         <h4>Comprar por cantidad</h4>
@@ -12022,20 +12266,17 @@ poder = redond( nivel × 10 × score )</pre>
         pode ser comprado <b>uma vez por semana</b>. O contador aparece no próprio botão quando
         ainda está em espera.`, 'dica')}
 
-        <h4>Personagem</h4>
-        <p>O que mexe no <b>treinador</b>: a troca de nome. A caixa da troca confere o nome <b>enquanto você
-        digita</b>: de 3 a 16 caracteres, só letras, números e _, sem palavrão, diferente do atual e sem dono —
-        maiúsculas não contam, então "Ash" e "ash" são o mesmo nome. Trocar de nome <b>reconecta</b> você ao jogo em um segundo (o
-        nick é a chave da sessão), e o nome antigo fica livre para outro jogador. Na fila ou no meio de
-        uma partida do PvP a troca é recusada antes de cobrar.</p>
-        ${tabelaDaLojaGrupo(c, 'personagem')}
+        <h4>Nick</h4>
+        <p>O nick <b>não se troca mais</b> na Loja (a Troca de Nome saiu em 16/10/2026): escolha bem no cadastro. Só a
+        <b>equipe</b> troca, em caso extremo — e a troca reconecta você ao jogo em um segundo (o nick é a chave da sessão),
+        com o nome antigo livre para outro jogador.</p>
 
         <h4>Cosméticos: Name Tag e skins</h4>
         <p>Enfeites de <b>pokémon</b> — só aparência. Espécie, stats, tipo, evolução e combate não mudam
         em nada.</p>
         <ul>
           <li><b>Name Tag</b> (${NAME_TAG_PRECO} 💎): dá um <b>nome</b> ao seu pokémon. Comprada, ela
-          espera na bolsa; use em <b>Bolsa → Itens Raros → Name Tag</b>, escolha o pokémon (equipe,
+          espera na mochila; use em <b>Mochila → Itens Raros → Name Tag</b>, escolha o pokémon (equipe,
           Depot ou Coleção) e escreva até <b>${APELIDO_MAX} letras</b>. É de <b>uso único</b>: trocar o
           nome de novo pede outra etiqueta.</li>
           <li>O nome aparece na ficha (com a espécie logo abaixo), em campo, na praça do Centro, no
@@ -12043,7 +12284,7 @@ poder = redond( nivel × 10 × score )</pre>
           de dono. No PvP o adversário continua vendo a espécie.</li>
           <li><b>Skins</b> (${SKIN_PRECO} 💎 cada): a fantasia que troca o <b>desenho</b> de um pokémon.
           Cada skin veste <b>uma espécie e uma cor</b> — a comum só veste o comum e a shiny só o shiny —,
-          e a skin de uma Mega é outra skin, da Mega. Ela fica para sempre na aba <b>Skins</b> da bolsa:
+          e a skin de uma Mega é outra skin, da Mega. Ela fica para sempre na aba <b>Skins</b> da mochila:
           vista e tire quando quiser, e cada unidade veste um pokémon.</li>
           <li>A skin é do <b>dono</b>, não do pokémon: vendê-lo não leva a skin junto, e megaevoluir um
           pokémon vestido tira a fantasia (a skin volta a ficar livre). A unidade livre se vende no
@@ -12126,20 +12367,17 @@ poder = redond( nivel × 10 × score )</pre>
         <b>once a week</b>. The countdown shows on the button itself while it is still on
         cooldown.`, 'dica')}
 
-        <h4>Character</h4>
-        <p>What changes the <b>trainer</b>: the name change. The change box checks the name <b>while you
-        type</b>: 3 to 16 characters, only letters, numbers and _, no swearing, different from your current one and not
-        taken — case doesn't count, so "Ash" and "ash" are the same name. Changing your name <b>reconnects</b> you to the game
-        within a second (the nick is the session key), and the old name becomes free for another
-        player. In the PvP queue or in the middle of a match the change is refused before charging.</p>
-        ${tabelaDaLojaGrupo(c, 'personagem')}
+        <h4>Nick</h4>
+        <p>The nick <b>can no longer be changed</b> in the Shop (the Name Change was removed on 2026-10-16): choose well when
+        you sign up. Only the <b>team</b> changes it, in extreme cases — and the change reconnects you within a second (the
+        nick is the session key), with the old name free for another player.</p>
 
         <h4>Cosmetics: Name Tag and skins</h4>
         <p>Decorations for a <b>pokémon</b> — looks only. Species, stats, type, evolution and combat
         don't change at all.</p>
         <ul>
           <li><b>Name Tag</b> (${NAME_TAG_PRECO} 💎): gives your pokémon a <b>name</b>. Once bought, it
-          waits in the bag; use it from <b>Bag → Rare Items → Name Tag</b>, pick the pokémon (team,
+          waits in the backpack; use it from <b>Backpack → Rare Items → Name Tag</b>, pick the pokémon (team,
           Depot or Collection) and write up to <b>${APELIDO_MAX} letters</b>. It is <b>single-use</b>:
           renaming again takes another tag.</li>
           <li>The name shows on the sheet (with the species right below), on the field, in the Center
@@ -12149,7 +12387,7 @@ poder = redond( nivel × 10 × score )</pre>
           <li><b>Skins</b> (${SKIN_PRECO} 💎 each): the costume that changes a pokémon's
           <b>sprite</b>. Each skin fits <b>one species and one colour</b> — the regular one only fits a
           regular pokémon and the shiny one only a shiny —, and a Mega's skin is a separate skin, for
-          the Mega. It stays forever on the bag's <b>Skins</b> tab: put it on and take it off whenever
+          the Mega. It stays forever on the backpack's <b>Skins</b> tab: put it on and take it off whenever
           you want, and each unit dresses one pokémon.</li>
           <li>The skin belongs to the <b>owner</b>, not the pokémon: selling it doesn't take the skin
           along, and mega evolving a dressed pokémon takes the costume off (the skin is free again).
@@ -12233,21 +12471,17 @@ poder = redond( nivel × 10 × score )</pre>
         solo se puede comprar <b>una vez por semana</b>. El contador aparece en el propio botón
         mientras sigue en espera.`, 'dica')}
 
-        <h4>Personaje</h4>
-        <p>Lo que cambia al <b>entrenador</b>: el cambio de nombre. La caja del cambio comprueba el nombre
-        <b>mientras escribes</b>: de 3 a 16 caracteres, solo letras, números y _, sin groserías, distinto del actual y sin
-        dueño — las mayúsculas no cuentan, así que "Ash" y "ash" son el mismo nombre. Cambiar de nombre te <b>reconecta</b>
-        al juego en un segundo (el nick es la llave de la sesión), y el nombre antiguo queda libre
-        para otro jugador. En la cola o en medio de una partida del PvP el cambio se rechaza antes de
-        cobrar.</p>
-        ${tabelaDaLojaGrupo(c, 'personagem')}
+        <h4>Nick</h4>
+        <p>El nick <b>ya no se cambia</b> en la Tienda (el Cambio de Nombre salió el 16/10/2026): elige bien al registrarte.
+        Solo el <b>equipo</b> lo cambia, en casos extremos — y el cambio te reconecta en un segundo (el nick es la llave de la
+        sesión), con el nombre antiguo libre para otro jugador.</p>
 
         <h4>Cosméticos: Name Tag y skins</h4>
         <p>Adornos de <b>pokémon</b> — solo apariencia. Especie, stats, tipo, evolución y combate no
         cambian en nada.</p>
         <ul>
           <li><b>Name Tag</b> (${NAME_TAG_PRECO} 💎): le da un <b>nombre</b> a tu pokémon. Comprada,
-          espera en la bolsa; úsala en <b>Bolsa → Objetos Raros → Name Tag</b>, elige el pokémon
+          espera en la mochila; úsala en <b>Mochila → Objetos Raros → Name Tag</b>, elige el pokémon
           (equipo, Depósito o Colección) y escribe hasta <b>${APELIDO_MAX} letras</b>. Es de <b>un solo
           uso</b>: cambiar el nombre otra vez pide otra etiqueta.</li>
           <li>El nombre aparece en la ficha (con la especie justo debajo), en el campo, en la plaza del
@@ -12257,7 +12491,7 @@ poder = redond( nivel × 10 × score )</pre>
           <li><b>Skins</b> (${SKIN_PRECO} 💎 cada una): el disfraz que cambia el <b>dibujo</b> de un
           pokémon. Cada skin viste <b>una especie y un color</b> — la común solo viste al común y la
           shiny solo al shiny —, y la skin de una Mega es otra skin, de la Mega. Queda para siempre en
-          la pestaña <b>Skins</b> de la bolsa: póntela y quítatela cuando quieras, y cada unidad viste a
+          la pestaña <b>Skins</b> de la mochila: póntela y quítatela cuando quieras, y cada unidad viste a
           un pokémon.</li>
           <li>La skin es del <b>dueño</b>, no del pokémon: venderlo no se lleva la skin, y
           megaevolucionar un pokémon disfrazado le quita el disfraz (la skin vuelve a quedar libre). La
