@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "FAIRY"
-    },
-    {
-      "tipo": "pokemon",
       "soShiny": 1
     }
   ],
@@ -146,12 +142,20 @@
       "novas": 21,
       "cortado": false,
       "em": "2026-10-16T11:27:30.424Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FAIRY",
+      "linhas": 133,
+      "novas": 13,
+      "cortado": false,
+      "em": "2026-10-16T13:31:35.950Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 51,
+  "livroRodizio": 76,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-16T12:29:35.476Z",
-  "pvpMetaEm": "2026-10-16T12:29:17.032Z"
+  "pvpMetaEm": "2026-10-16T13:31:23.148Z"
 }
