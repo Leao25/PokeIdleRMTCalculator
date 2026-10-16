@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "POISON"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "ELECTRIC"
     },
     {
@@ -126,12 +122,20 @@
       "novas": 181,
       "cortado": false,
       "em": "2026-10-16T01:08:52.126Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "POISON",
+      "linhas": 1338,
+      "novas": 10,
+      "cortado": false,
+      "em": "2026-10-16T03:13:02.273Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 50,
+  "livroRodizio": 75,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
-  "pvpMetaEm": "2026-10-16T02:10:43.577Z"
+  "pvpMetaEm": "2026-10-16T03:12:48.251Z"
 }
