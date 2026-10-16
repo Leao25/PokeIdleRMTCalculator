@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "ELECTRIC"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "ICE"
     },
     {
@@ -130,10 +126,18 @@
       "novas": 10,
       "cortado": false,
       "em": "2026-10-16T03:13:02.273Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "ELECTRIC",
+      "linhas": 228,
+      "novas": 96,
+      "cortado": false,
+      "em": "2026-10-16T05:16:37.934Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 37,
+  "livroRodizio": 62,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
