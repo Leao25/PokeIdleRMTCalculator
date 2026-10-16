@@ -12,7 +12,8 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // as funções de preço: o mesmo docs/preco.js que o site e o Sniper ao vivo carregam
-let codigo = await readFile(path.join(RAIZ, 'docs/preco.js'), 'utf8');
+// PRECO=caminho testa uma cópia experimental do preco.js
+let codigo = await readFile(process.env.PRECO || path.join(RAIZ, 'docs/preco.js'), 'utf8');
 // PATCH='[["texto","troca"],…]' testa uma variação da fórmula sem mexer no site
 for (const [a, b] of JSON.parse(process.env.PATCH || '[]')) { if (!codigo.includes(a)) throw new Error(`patch não achou: ${a}`); codigo = codigo.split(a).join(b); }
 const criarPreco = new Function(`${codigo}

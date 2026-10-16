@@ -140,9 +140,10 @@ function criarPreco(state) {
     const items = pool.map((s) => {
       const d = dist(f, s), age = (fimMin - s.min) / 1440;
       // a moeda escolhida manda: Gemas e Coins são dois mercados com preços diferentes, e a outra moeda só
-      // completa (×30; medido no teste contra vendas reais: o comum em Gemas errava ±150% com ×4, ±135% com ×30).
+      // completa (×300; medido no teste contra vendas reais: o comum em Gemas errava ±150% com ×4, ±133% com
+      // ×30 e ±130% com ×300; a taxa Gema/Coins por espécie foi testada e não ajudou).
       // Venda recente pesa mais: meia-vida de 7 dias (o mercado muda rápido).
-      const peso = s.moeda === state.moeda ? 30 : 1;
+      const peso = s.moeda === state.moeda ? 30 : 0.1;
       return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * Math.pow(0.5, Math.max(age, 0) / 7) };
     }).filter((x) => x.w > 0).sort((a, b) => a.v - b.v);
     const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);

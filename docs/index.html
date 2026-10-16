@@ -968,6 +968,14 @@ function render() {
       if (parados.length) h += `<div class="alert">Anúncios de ${esc(f.species)} ${grupoTxt} <b>iguais ou melhores</b> que o seu, parados há 3+ dias sem vender: ${parados.map((x) => `<b>${fmtShow(x.v)}</b> (P${x.a.pot} Nv ${nf(0).format(x.a.lvl)}, há ${fmtIdade(x.a.criadoEm)})`).join(", ")}. Se eles não vendem por esse preço, o seu dificilmente vende por mais.</div>`;
     }
     const pesoOutra = est.items.reduce((a, x) => a + (x.s.moeda !== state.moeda ? x.w : 0), 0) / Math.max(1e-9, est.items.reduce((a, x) => a + x.w, 0));
+    // poucas vendas da espécie NA MOEDA escolhida: o número se apoia em outros níveis ou na outra moeda
+    const pertoNv = (s) => !(f.lvl > 0) || (s.lvl >= f.lvl / 1.4 && s.lvl <= f.lvl * 1.4);
+    const naMoeda = est.sameMatch.filter((s) => s.moeda === state.moeda && pertoNv(s)).length;
+    const naOutra = est.sameMatch.filter((s) => s.moeda !== state.moeda && pertoNv(s)).length;
+    if (naMoeda < 3 && naOutra >= 2 && naOutra > naMoeda) {
+      const outraTxt = state.moeda === "gemas" ? "Coins" : "Gemas";
+      h += `<div class="alert bad">Em <b>${state.moeda === "gemas" ? "Gemas" : "Coins"}</b> ${naMoeda ? `há só ${naMoeda} venda${naMoeda === 1 ? "" : "s"}` : "não há vendas"} de ${esc(f.species)} ${f.shiny ? "shiny" : "comum"} perto deste nível no período, contra ${naOutra} em ${outraTxt}. Este valor tem pouca base nesta moeda (o mercado em Gemas varia muito mais que o de Coins): se puder, anuncie em ${outraTxt}, onde o preço é mais confiável.</div>`;
+    }
     if (pesoOutra > 0.3) {
       const tx = state.taxaPk?.[f.shiny ? "shiny" : "comum"];
       h += `<div class="alert">${nf(0).format(pesoOutra * 100)}% do peso vem de vendas feitas em ${state.moeda === "gemas" ? "Coins" : "Gemas"}. Elas foram convertidas pela taxa do <b>mercado de pokémon</b> (1 Gema ≈ ${short(tx)} Coins), e não pela do diamante: quem paga pokémon em Gemas paga, em Coins equivalentes, bem mais caro.</div>`;
