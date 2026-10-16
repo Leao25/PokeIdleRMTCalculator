@@ -533,9 +533,10 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
             </div>
           </div>
           <div class="farm-ctrl farm-extras">
-            <label class="chk" title="Golpe especial de 2.800, recarga de 60 s, acerta o alvo e quem estiver colado nele (3×3). O tipo tem que ser um dos tipos do pokémon."><input type="checkbox" id="farm-tm"> TM Elemental</label>
-            <select id="farm-tm-tipo" aria-label="Tipo do TM Elemental"></select>
+            <label class="chk" title="Z-Move (o antigo TM Elemental): golpe especial de 2.800, recarga de 60 s, acerta o alvo e quem estiver colado nele (3×3). O tipo tem que ser um dos tipos do pokémon."><input type="checkbox" id="farm-tm"> Z-Move</label>
+            <select id="farm-tm-tipo" aria-label="Tipo do Z-Move"></select>
             <label class="chk" title="Os golpes passam a acertar todos os selvagens em volta (11×11), o que rende muito quando eles se amontoam em volta do seu pokémon."><input type="checkbox" id="farm-aoe"> TM AoE</label>
+            <label class="chk" title="Loot Boost da loja (+40%): desde 16/10 multiplica o bônus de loot do ouro de cada abate (o loot vendido ao NPC saiu do jogo)."><input type="checkbox" id="farm-loot"> Loot Boost</label>
             <label class="chk" title="XP Share: o pokémon do posto da casa ganha esta % do XP que o de batalha ganha, por cima (o de batalha continua com 100%)."><input type="checkbox" id="farm-casa"> Tenho casa</label>
             <label class="mini">XP Share (%) <input id="farm-casa-pct" inputmode="decimal" placeholder="5"></label>
           </div>
@@ -1445,8 +1446,19 @@ function chanceCaptura(npc, bola = 4) {
 
 /** XP de um abate: só o nível da hunt importa (shared/sell-value.mjs do jogo). */
 const xpPorAbate = (n) => n <= 150 ? Math.floor((6 * n * n) / 10) + 8 : Math.round(13500 * (n / 150) ** 1.25);
-/** Ouro de um abate (mesma fonte), com o teto do Nv 25.000. */
-const ouroPorAbate = (n) => Math.min(15776, Math.max(1, Math.round(36 * Math.max(1, n) ** 0.6006668740248916)));
+/** Ouro-base de um abate (mesma fonte), com o teto do Nv 25.000. */
+const ouroBaseAbate = (n) => Math.min(15776, Math.max(1, Math.round(36 * Math.max(1, n) ** 0.6006668740248916)));
+/**
+ * Ouro de um abate desde 16/10/2026 (shared/recompensa-hunt.mjs): o jogo tirou o loot vendido ao NPC e paga o
+ * valor dele como BÔNUS DE LOOT: renda-alvo = 1,15 × ouro-base até o Nv 25.000 (acima, 1,15 × 15.776 ×
+ * (n/25.000)^0,30), bônus = alvo − base, multiplicado pelo Loot Boost (+40%). Bate com o medido no Gulpin
+ * Nv 500 em 15/10 (1.688/abate, com a venda automática de drops antiga; a conta dá 1.731).
+ */
+function ouroPorAbate(n, lootPct = 0) {
+  const base = ouroBaseAbate(n), m = Math.max(1, n);
+  const alvo = Math.round((m <= 25000 ? base : 15776 * (m / 25000) ** 0.3) * 1.15);
+  return base + Math.round(Math.max(0, alvo - base) * (1 + lootPct / 100));
+}
 /** Quantos níveis o pokémon sobe em uma hora ganhando xpH, a partir do nível L (o custo cresce a cada nível). */
 function niveisPorHora(L, xpH) {
   let n = Math.floor(L), resta = xpH, frac = L - n, niveis = 0;
@@ -1533,7 +1545,7 @@ async function renderFarm() {
   const linhas = alvos.map((e) => {
     const outland = e.dex >= 2000;
     const r = abatesPorHora(voce, e, E.tipos, outland ? T_ANDAR_OUTLAND : T_ANDAR);
-    const xpH = r.porHora * xpPorAbate(e.L) * bonusXp, ouroH = r.porHora * ouroPorAbate(e.L);
+    const xpH = r.porHora * xpPorAbate(e.L) * bonusXp, ouroH = r.porHora * ouroPorAbate(e.L, $("farm-loot")?.checked ? 40 : 0);
     const risco = r.risco, lutas = r.lutas, hpPerdidoH = r.hpPerdidoH;
     const cap = chanceCaptura(e.npc, bola);
     const shinyH = r.porHora * cap * REGRAS.chanceShiny;
@@ -1573,7 +1585,7 @@ async function renderFarm() {
         <div class="farm-top-n">~${fmtNiveis(nv)} por hora</div>
         <div class="small">≈ ${short(top.xpH)} XP/h · ${short(top.ouroH)} Coins/h · ${nf(0).format(top.abates)} abates/h${top.gp > 0 && top.gp < 1.5 ? " (±30%: abates de 1 golpe dependem do mapa)" : ""} · ${pocao(top)}</div>
         ${casaPct > 0 ? `<div class="small">Casa (${nf(casaPct % 1 ? 1 : 0).format(casaPct)}% de XP Share): o pokémon do posto ganha <b>+${short(top.xpH * casaPct / 100)} XP/h</b>, por cima.</div>` : ""}
-        ${voce.tm || voce.aoe ? `<div class="small muted">Com ${[voce.tm ? "TM Elemental " + voce.tm : "", voce.aoe ? "TM AoE" : ""].filter(Boolean).join(" e ")}: pela regra da wiki, ainda sem medição no jogo.</div>` : ""}
+        ${voce.tm || voce.aoe ? `<div class="small muted">Com ${[voce.tm ? "Z-Move " + voce.tm : "", voce.aoe ? "TM AoE" : ""].filter(Boolean).join(" e ")}: pela regra da wiki, ainda sem medição no jogo.</div>` : ""}
         ${quase ? `<div class="small muted">Quase empatada: ${linha(quase)} (~${fmtNiveis(niveisPorHora(L, quase.xpH))}/h, ${pocao(quase)}). A diferença cabe na margem do cálculo.</div>` : ""}
         ${tranquila && tranquila !== quase ? `<div class="small muted">Mais tranquila: ${linha(tranquila)} (~${fmtNiveis(niveisPorHora(L, tranquila.xpH))}/h, ${pocao(tranquila)}).</div>` : ""}</div>`; })() : ""}
     <div class="farm-modos">
@@ -1686,7 +1698,7 @@ async function renderSniper() {
       const original = a.moeda !== state.moeda ? `<div class="orig">${a.moeda === "gemas" ? nf(0).format(a.preco) + " Gemas" : short(a.preco) + " Coins"}</div>` : "";
       return `<tr class="click" data-sn="${a.id}" tabindex="0">
         <td data-v="${(x.desc * 100).toFixed(2)}"><span class="pill-desc">−${nf(0).format(x.desc * 100)}%</span>${suspeito ? ' <span class="aviso" title="Desconto grande demais: pode ser um anúncio combinado entre amigos, que some na hora">⚠</span>' : ""}${x.confianca < 2 ? ' <span class="muted small" title="Poucas vendas parecidas para comparar">~</span>' : ""}</td>
-        <td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${a.tm ? ' <span class="tag">TM</span>' : ""}</td>
+        <td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${a.shiny ? "✨ " : ""}${esc(a.species)}${a.tm ? ' <span class="tag">Z-Move</span>' : ""}</td>
         <td class="r n">${nf(0).format(a.lvl)}</td><td class="r n">${a.pot}</td><td class="r n">${Number.isFinite(a.nota) ? nf(2).format(a.nota) : "—"}</td>
         <td class="r n"><b>${valor(x.precoGem)}</b>${original}</td><td class="r n muted">${valor(x.est.p50)}</td>
         <td class="r n">${x.lucro > 0 ? "+" + valor(x.lucro) : "—"}</td>
@@ -2200,7 +2212,7 @@ async function renderMetaPvp(fichas) {
   out.innerHTML = `<h3 style="margin-top:14px">Meta do PvP Ranqueado</h3>
     <p class="muted small">Times dos 100 primeiros da escada (${lidos} de ${pvpMeta.jogadores.length} lidos; atualizado ${fmtIdade(Date.parse(pvpMeta.em))} atrás). O jogo só mostra o topo${pvpMeta.total ? `, de ${nf(0).format(pvpMeta.total)} classificados` : ""}. Força medida pelo <b>Poder no PvP</b> (a mesma conta da ficha do jogo, com o nível comprimido acima do 150): um pokémon no topo tem ⚔ PvP mediano de <b>${fmtPvp(med(todosPvp))}</b>.</p>
     <div class="seg" role="group" aria-label="Faixa do ranking">${[10, 50, 100].map((n) => `<button data-pf="${n}" aria-pressed="${faixa === n}">Top ${n}</button>`).join("")}</div>
-    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Times</th><th class="r">Melhor posição</th><th class="r">Nv típico</th><th class="r" title="Poder no PvP (⚔), a mesma conta da ficha do jogo">⚔ PvP típico</th><th class="r">✨</th><th class="r">TM</th><th class="r">AoE</th></tr></thead><tbody>
+    ${lista.length ? `<div class="tbl"><table><thead><tr><th>Pokémon</th><th class="r">Times</th><th class="r">Melhor posição</th><th class="r">Nv típico</th><th class="r" title="Poder no PvP (⚔), a mesma conta da ficha do jogo">⚔ PvP típico</th><th class="r">✨</th><th class="r">Z-Move</th><th class="r">AoE</th></tr></thead><tbody>
       ${lista.map((u) => { const foto = urlFoto(u.nome, u.shiny > u.times / 2); return `<tr><td>${foto ? `<img class="sp-mini" src="${foto}" alt="" width="32" height="32" loading="lazy" onerror="this.remove()">` : ""}${esc(u.nome)}</td><td class="r n">${u.times} <span class="muted small">(${pct(u.times, jogs)})</span></td><td class="r n">${u.melhor}º</td><td class="r n">${nf(0).format(med(u.nv))}</td><td class="r n">${u.pvp.length ? fmtPvp(med(u.pvp)) : "—"}</td><td class="r n">${pct(u.shiny, u.times)}</td><td class="r n">${pct(u.tm, u.times)}</td><td class="r n">${pct(u.aoe, u.times)}</td></tr>`; }).join("")}
     </tbody></table></div>` : '<p class="muted">Ainda sem times lidos nessa faixa.</p>'}
     ${fichas.length ? `<h3 style="margin-top:10px">Seu time contra o topo</h3><ul class="pvp-seu">${fichas.map(linhaSua).join("")}</ul>` : '<p class="muted small">Cole as fichas do seu time acima para ver como cada um se compara com o topo.</p>'}`;
@@ -2407,7 +2419,7 @@ camposNivel.forEach((c) => c.addEventListener("input", () => {
 }));
 $("farm-bola").addEventListener("change", renderFarm);
 // TM e casa: lembrados neste navegador
-const EXTRAS_FARM = ["farm-tm", "farm-aoe", "farm-casa", "farm-casa-pct", "farm-tm-tipo"];
+const EXTRAS_FARM = ["farm-tm", "farm-aoe", "farm-casa", "farm-casa-pct", "farm-tm-tipo", "farm-loot"];
 try { const x = JSON.parse(localStorage.getItem("rtm-farm-extras") || "{}"); for (const id of EXTRAS_FARM) if (x[id] != null) { if ($(id).type === "checkbox") $(id).checked = !!x[id]; else $(id).value = x[id]; } } catch (e) {}
 const salvarExtras = () => { try { localStorage.setItem("rtm-farm-extras", JSON.stringify(Object.fromEntries(EXTRAS_FARM.map((id) => [id, $(id).type === "checkbox" ? $(id).checked : $(id).value])))); } catch (e) {} };
 for (const id of EXTRAS_FARM) $(id).addEventListener(id === "farm-casa-pct" ? "input" : "change", () => { salvarExtras(); clearTimeout(timerBx); timerBx = setTimeout(renderFarm, 250); });

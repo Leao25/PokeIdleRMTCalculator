@@ -1,5 +1,5 @@
 {
- "revisadoEm": "2026-10-15T17:30:56Z",
+ "revisadoEm": "2026-10-16T18:21:36Z",
  "nota": "Data da última revisão manual das regras do site contra a wiki. Atualizar depois de revisar uma mudança do jogo.",
- "ultimaRevisao": "15/10 15:53 UTC: wiki (diagonal da tabela de tipos na grade; ficha no ranking) e app.js (filtros da Pokédex, ficha no ranking). Nada de combate, XP, ouro, captura ou preço."
+ "ultimaRevisao": "16/10 15:36 UTC: fim do loot vendido ao NPC: o ouro do abate ganhou o bônus de loot (+15% até o Nv 25.000; Loot Boost multiplica o bônus) — Onde farmar atualizado (caixa Loot Boost). Drops agora só pedra dos tipos (0,2/0,35/0,5% por estágio) e drops raros. TM Elemental virou Z-Move (mesmo golpe: 2.800, 60 s, 3×3) — só o nome no site. XP, ouro-base, captura, combate e comissão do Mercado sem mudança."
 }
