@@ -817,6 +817,16 @@ function parseFicha(t) {
     const ivs = ["HP", "ATK", "DEF", "SP\\.ATK", "SP\\.DEF", "SPD"].map((k) => +(t.match(new RegExp("^" + k + "\\s*[\\d.]+\\s*IV\\s*(\\d+)", "m")) || [])[1]);
     if (ivs.every((v) => v > 0)) f.ivs = ivs;
   }
+  // refino: o jogo cola o "+N" no nome ("Mega Gengar+4"); a espécie é sem ele, e o N fica à parte
+  const mRef = String(f.species || "").match(/^(.*?)\s*\+\s*(\d+)\s*$/);
+  if (mRef) { f.species = mRef[1].trim(); f.refino = +mRef[2]; }
+  if (!f.refino && f.species) {
+    // o nome com "+N" pode estar noutra linha (a espécie foi achada por "Espécie#94 Mega Gengar")
+    for (const l of t.split(/\r?\n/)) {
+      const m = l.trim().replace(/^[×✨\s]+/, "").match(/^(.*?)\s*\+\s*(\d+)\s*$/);
+      if (m && norm(m[1].replace(/^shiny\s+/i, "")) === norm(f.species)) { f.refino = +m[2]; break; }
+    }
+  }
   return f;
 }
 function fichaToFields(f) {
@@ -931,7 +941,7 @@ function render() {
 
   // veredito
   const est = estimate(f, kept, fim);
-  const tags = [`P${f.pot}`, Number.isFinite(f.lvl) ? `Nv ${nf(0).format(f.lvl)}` : null, Number.isFinite(f.nota) ? `nota ${nf(3).format(f.nota)}` : null,
+  const tags = [state.refino > 0 ? `+${state.refino} refino` : null, `P${f.pot}`, Number.isFinite(f.lvl) ? `Nv ${nf(0).format(f.lvl)}` : null, Number.isFinite(f.nota) ? `nota ${nf(3).format(f.nota)}` : null,
     Number.isFinite(f.q) ? `Q ${nf(3).format(f.q)}` : null, Number.isFinite(f.iv) ? `IV ${f.iv}/192` : null].filter(Boolean);
   const temFicha = !!f.species;
   $("detalhes").hidden = !temFicha;
@@ -953,6 +963,7 @@ function render() {
       ? `${esc(f.species)} tem ${est.sameMatch.length ? "só " + est.sameMatch.length : "nenhuma"} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período: o preço acima é o de um pokémon ${f.shiny ? "shiny" : "comum"} <b>genérico</b> parecido (outras espécies de nível, potência e nota próximos), não um preço de ${esc(f.species)}. Se a espécie tem pouca procura, ela pode valer bem menos.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
     h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
+    if (state.refino > 0) h += `<div class="alert">Este pokémon tem <b>refino +${state.refino}</b>. As vendas do histórico não dizem se o pokémon vendido era refinado, então o preço acima é o de um pokémon <b>sem refino</b>. O refino soma direto nos stats-base (e custa caro: ter +N num stat sai por 500 × N³ pedras), o que pesa mais para quem compra para PvP. Lembre: refinar tranca o pokémon na venda, e é preciso destravar pelo cadeado.</div>`;
     // PROCURA e anúncios parecidos parados: avisos, não mudam o número (ver procura() em preco.js)
     if (!anunciosDados && !state.carregandoAnuncios) { state.carregandoAnuncios = true; carregarAnuncios().then(() => render()).catch(() => {}); }
     if (state.vendas30?.fim !== fim) state.vendas30 = { fim, m: vendasPorEspecie(state.base, fim) };
@@ -1060,7 +1071,7 @@ function render() {
   const tg = $("toggle-all"); if (tg) tg.onclick = () => { state.showAll = !state.showAll; render(); };
   document.querySelectorAll("[data-gr]").forEach((b) => b.onclick = () => { state.grupoRank = b.dataset.gr; render(); });
   document.querySelectorAll("#ranking tr.click").forEach((tr) => {
-    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; state.ivs = null; state.atuais = null; abrirAba("avaliar"); render();
+    const go = () => { $("f-sp").value = tr.dataset.sp; $("f-shiny").checked = state.grupoRank === "shiny"; state.ivs = null; state.atuais = null; state.refino = 0; abrirAba("avaliar"); render();
       $("verdict").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
     tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter") go(); };
   });
@@ -1678,7 +1689,7 @@ async function renderSniper() {
   out.querySelectorAll("tr[data-sn]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.sn);
     const go = () => {
-      $("ficha").value = ""; state.ivs = null; state.atuais = null;
+      $("ficha").value = ""; state.ivs = null; state.atuais = null; state.refino = 0;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -1986,7 +1997,7 @@ async function renderTrocar() {
   out.querySelectorAll("tr[data-tr]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.tr);
     const go = () => {
-      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null;
+      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null; state.refino = 0;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -2270,7 +2281,7 @@ async function renderTime() {
   out.querySelectorAll("tr[data-tm]").forEach((tr) => {
     const a = A.lista.find((x) => String(x.id) === tr.dataset.tm);
     const go = () => {
-      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null;
+      $("ficha").value = ""; state.ivs = a.ivs || null; state.atuais = null; state.refino = 0;
       fichaToFields({ species: a.species, lvl: a.lvl, pot: a.pot, nota: a.nota, q: a.q, iv: a.iv, shiny: a.shiny });
       $("c-anuncio").value = a.moeda === (state.moeda === "gemas" ? "gemas" : "coins") ? a.preco : Math.round(state.moeda === "gemas" ? emExibicao(a.preco, a.moeda, a.shiny) : emExibicao(a.preco, a.moeda, a.shiny) * state.rate);
       abrirAba("comprar"); render();
@@ -2371,11 +2382,11 @@ async function renderSniperItens() {
 }
 
 // ---------- eventos ----------
-$("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; state.atuais = f.statsAtuais ? { v: f.statsAtuais, lvl: f.lvl } : null; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
+$("ficha").oninput = () => { const f = parseFicha($("ficha").value); state.ivs = f.ivs || null; state.atuais = f.statsAtuais ? { v: f.statsAtuais, lvl: f.lvl } : null; state.refino = f.refino || 0; fichaToFields(f); state.grupoRank = f.shiny ? "shiny" : "comum"; render(); };
 ["f-sp", "f-lvl", "f-pot", "f-nota", "f-q", "f-iv", "f-shiny"].forEach((id) => $(id).addEventListener("input", render));
 $("ex1").onclick = () => { $("ficha").value = EX1; $("ficha").oninput(); };
 $("ex2").onclick = () => { $("ficha").value = EX2; $("ficha").oninput(); };
-$("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; state.atuais = null; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
+$("limpar").onclick = () => { $("ficha").value = ""; state.ivs = null; state.atuais = null; state.refino = 0; fichaToFields({ pot: 1 }); render(); $("ficha").focus(); };
 document.querySelectorAll("[data-aba]").forEach((b) => { b.onclick = () => abrirAba(b.dataset.aba); });
 window.addEventListener("hashchange", () => abrirAba(location.hash.slice(1)));
 $("c-liq").addEventListener("input", atualizarCalcs);
