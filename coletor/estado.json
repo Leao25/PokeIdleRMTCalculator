@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "FIGHTING"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "POISON"
     },
     {
@@ -122,12 +118,20 @@
       "novas": 1354,
       "cortado": false,
       "em": "2026-10-15T23:04:41.157Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "FIGHTING",
+      "linhas": 726,
+      "novas": 181,
+      "cortado": false,
+      "em": "2026-10-16T01:08:52.126Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 63,
+  "livroRodizio": 88,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
-  "pvpMetaEm": "2026-10-16T00:06:30.863Z"
+  "pvpMetaEm": "2026-10-16T01:08:37.807Z"
 }
