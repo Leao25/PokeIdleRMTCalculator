@@ -128,36 +128,6 @@ function criarPreco(state) {
     return beta;
   }
 
-  /**
-   * Quanto a POTÊNCIA mexe no preço, medido no próprio mercado: dentro de cada grupo espécie + faixa de
-   * nível + moeda, o preço de cada potência contra o P1 do mesmo grupo; a mediana disso por potência.
-   * Sem dados suficientes, usa o medido em 15/10 (P2 ×1,17 · P3 ×1,6 · P4 ×2,2 · P5 ×8).
-   */
-  let potCache = null;
-  function fatoresPotencia(kept) {
-    if (potCache?.kept === kept) return potCache.f;
-    const f = {};
-    for (const sh of [false, true]) {
-      const g = {};
-      for (const s of kept) if (s.shiny === sh && s.gem > 0) (g[`${s.species}|${Math.round(2 * Math.log2(Math.max(1, s.lvl)))}|${s.moeda}`] ||= []).push(s);
-      const difs = { 2: [], 3: [], 4: [], 5: [] };
-      for (const l of Object.values(g)) {
-        const p1 = l.filter((s) => s.pot === 1).map((s) => Math.log(s.gem));
-        if (p1.length < 2) continue;
-        const b = p1.reduce((a, x) => a + x, 0) / p1.length;
-        for (const s of l) if (s.pot > 1) difs[s.pot]?.push(Math.log(s.gem) - b);
-      }
-      const padrao = { 1: 1, 2: 1.17, 3: 1.6, 4: 2.2, 5: 8 };
-      const med = (a) => { a = a.slice().sort((x, y) => x - y); return a[a.length >> 1]; };
-      const r = { 1: 1 };
-      for (const p of [2, 3, 4, 5]) r[p] = difs[p].length >= 10 ? Math.exp(med(difs[p])) : padrao[p];
-      for (const p of [2, 3, 4, 5]) r[p] = Math.max(r[p], r[p - 1]); // nunca menor que a potência de baixo
-      f[sh ? "shiny" : "comum"] = r;
-    }
-    potCache = { kept, f };
-    return f;
-  }
-
   function estimate(f, kept, fimMin) {
     const same = kept.filter((s) => norm(s.species) === norm(f.species));
     const sameMatch = same.filter((s) => s.shiny === f.shiny);
@@ -167,11 +137,6 @@ function criarPreco(state) {
     // Cada venda é levada ao nível da ficha antes de entrar na conta (fator entre 1/8 e 8).
     const beta = elasticidadeNivel(kept)[f.shiny ? "shiny" : "comum"];
     const ajuste = (s) => Number.isFinite(f.lvl) && f.lvl > 0 && s.lvl > 0 ? Math.min(8, Math.max(1 / 8, (f.lvl / s.lvl) ** beta)) : 1;
-    // e levada à POTÊNCIA da ficha (só no comum): um P5 não pode sair com preço de P4 só porque nunca
-    // vendeu P5 naquela moeda. Teste (14 dias): P5 comum viés −33% → −1%, erro ±145% → ±120%; geral ±94% → ±91%.
-    // No shiny piorava um pouco (±50% → ±52%), por isso fica de fora.
-    const fp = fatoresPotencia(kept)[f.shiny ? "shiny" : "comum"];
-    const ajustePot = (s) => (!f.shiny && fp[f.pot] && fp[s.pot] ? Math.min(8, Math.max(1 / 8, fp[f.pot] / fp[s.pot])) : 1);
     // A espécie quase não vende perto do nível NA MOEDA escolhida, mas vende na outra? Então as vendas
     // dela na outra moeda (convertidas) pesam como se fossem desta, em vez de deixar o preço com outras
     // espécies. Caso que motivou: Honchkrow P4 Nv 167 em Gemas saía 124 (genérico) com 3 vendas dele em
@@ -188,7 +153,7 @@ function criarPreco(state) {
       // ×30 e ±130% com ×300; a taxa Gema/Coins por espécie foi testada e não ajudou).
       // Venda recente pesa mais: meia-vida de 7 dias (o mercado muda rápido).
       const peso = s.moeda === state.moeda ? 30 : socorro && doGrupo(s) && pertoNv(s) ? 30 : 0.1;
-      return { s, d, v: s.gem * ajuste(s) * ajustePot(s), w: peso * Math.exp(-d) * Math.pow(0.5, Math.max(age, 0) / 7) };
+      return { s, d, v: s.gem * ajuste(s), w: peso * Math.exp(-d) * Math.pow(0.5, Math.max(age, 0) / 7) };
     }).filter((x) => x.w > 0).sort((a, b) => a.v - b.v);
     const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
     // o fator típico aplicado (média ponderada), para o laudo explicar quando for grande
@@ -238,7 +203,7 @@ function criarPreco(state) {
   }
 
   /** Esquece as contas guardadas (taxa e elasticidade): chamar quando o histórico for recarregado. */
-  const limparCaches = () => { taxaCache = null; elasticCache = null; potCache = null; };
+  const limparCaches = () => { taxaCache = null; elasticCache = null; };
   return { quant, norm, speciesOf, venda, taxaPokemon, emExibicao, gemOf, limpar, dist, wQuant, elasticidadeNivel, estimate, limparCaches, procura, vendasPorEspecie };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = { criarPreco };
