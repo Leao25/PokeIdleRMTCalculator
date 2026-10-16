@@ -2095,7 +2095,11 @@
 {"em":1792134267650,"moeda":"gold","bruto":112500000,"qtd":5},
 {"em":1792134786213,"moeda":"gold","bruto":22500000,"qtd":1},
 {"em":1792135049177,"moeda":"gold","bruto":20000000,"qtd":1},
-{"em":1792135065540,"moeda":"gold","bruto":22500000,"qtd":1}],"cotacoes":[{"em":"2026-10-14T20:24:04.628Z","coinsPorGema":3299746,"janela":"últimas 24 h"},
+{"em":1792135065540,"moeda":"gold","bruto":22500000,"qtd":1},
+{"em":1792136493676,"moeda":"gold","bruto":22500000,"qtd":1},
+{"em":1792137068314,"moeda":"orb","bruto":18,"qtd":2},
+{"em":1792137291318,"moeda":"orb","bruto":8,"qtd":1},
+{"em":1792137316350,"moeda":"orb","bruto":64,"qtd":8}],"cotacoes":[{"em":"2026-10-14T20:24:04.628Z","coinsPorGema":3299746,"janela":"últimas 24 h"},
 {"em":"2026-10-14T21:24:16.941Z","coinsPorGema":3277391,"janela":"últimas 24 h"},
 {"em":"2026-10-14T22:24:30.619Z","coinsPorGema":3269995,"janela":"últimas 24 h"},
 {"em":"2026-10-14T23:25:39.760Z","coinsPorGema":3246790,"janela":"últimas 24 h"},
@@ -2126,4 +2130,5 @@
 {"em":"2026-10-16T04:14:48.171Z","coinsPorGema":3004651,"janela":"últimas 24 h"},
 {"em":"2026-10-16T05:16:35.224Z","coinsPorGema":3013313,"janela":"últimas 24 h"},
 {"em":"2026-10-16T06:18:23.051Z","coinsPorGema":3016686,"janela":"últimas 24 h"},
-{"em":"2026-10-16T07:20:11.895Z","coinsPorGema":3004954,"janela":"últimas 24 h"}]}
+{"em":"2026-10-16T07:20:11.895Z","coinsPorGema":3004954,"janela":"últimas 24 h"},
+{"em":"2026-10-16T08:21:59.889Z","coinsPorGema":2961950,"janela":"últimas 24 h"}]}
