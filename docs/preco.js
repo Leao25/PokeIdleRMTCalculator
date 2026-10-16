@@ -158,8 +158,8 @@ function criarPreco(state) {
     const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
     // o fator típico aplicado (média ponderada), para o laudo explicar quando for grande
     const fatorNivel = sw ? Math.exp(items.reduce((a, x) => a + x.w * Math.log(x.v / x.s.gem), 0) / sw) : 1;
-    const est = { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0, beta, fatorNivel,
-      p25: wQuant(items, 0.25), p50: wQuant(items, 0.5), p75: wQuant(items, 0.75) };
+    const est = { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0, beta, fatorNivel, ...pontos(items) };
+    if (state.degraus) return comFaixas(degraus(f, kept, fimMin, est, ajuste));
 
     // Pouca venda da espécie perto do nível da ficha? Mistura com o que pokémon do mesmo grupo
     // (shiny ou comum), de nível, nota e potência parecidos, venderam — de qualquer espécie.
@@ -173,14 +173,77 @@ function criarPreco(state) {
         if (mesmaP.length >= 8) viz = mesmaP;
         if (viz.length >= 6) {
           const vi = viz.map((s) => ({ s, v: s.gem, w: 1 })).sort((a, b) => a.v - b.v);
-          const ref = { p25: wQuant(vi, 0.25), p50: wQuant(vi, 0.5), p75: wQuant(vi, 0.75) };
+          const ref = pontos(vi);
           const mix = (a, b) => !Number.isFinite(a) ? b : Math.exp(pesoEspecie * Math.log(a) + (1 - pesoEspecie) * Math.log(b));
           est.ref = { n: viz.length, nPerto, pesoEspecie, ...ref, mesmaP: viz === mesmaP };
-          est.p25 = mix(est.p25, ref.p25); est.p50 = mix(est.p50, ref.p50); est.p75 = mix(est.p75, ref.p75);
+          for (const k of Object.keys(ref)) est[k] = mix(est[k], ref[k]);
         }
       }
     }
+    return comFaixas(est);
+  }
+
+  /** Os pontos da distribuição de preço usados no laudo e no Sniper (p25/p50/p75 ficam por compatibilidade). */
+  const QUANTIS = { p20: 0.2, p25: 0.25, p35: 0.35, p50: 0.5, p65: 0.65, p75: 0.75, p80: 0.8 };
+  function pontos(items) { const o = {}; for (const [k, q] of Object.entries(QUANTIS)) o[k] = wQuant(items, q); return o; }
+  /**
+   * As três faixas de venda, como trechos da distribuição (16/10/2026). Medido em 11.234 vendas reais:
+   * no comum, Rápido ≈ −50% a −25% do justo, Justo ≈ −25% a +35%, Paciência ≈ +35% a +115%; no shiny,
+   * bem mais apertado (−36%…+47%). O Sniper calcula o lucro pelo PISO da faixa escolhida.
+   */
+  function comFaixas(est) {
+    est.faixas = { rapido: [est.p20, est.p35], justo: [est.p35, est.p65], paciencia: [est.p65, est.p80] };
     return est;
+  }
+
+  /**
+   * Regra em degraus (pedida pelo usuário em 16/10/2026). "Venda parecida" = mesma espécie, mesmo
+   * shiny/comum, mesma potência e nível até 1,4× para cima ou para baixo.
+   *   1. 3+ vendas parecidas na moeda escolhida → só elas.
+   *   2. Menos de 3 → junta as vendas parecidas na outra moeda, convertidas direto pela cotação do
+   *      diamante (state.rate); se somarem 3+, só elas.
+   *   3. Ainda menos de 3 → pokémon de outras espécies na moeda escolhida, do mesmo shiny/comum, com
+   *      potência, nível, nota, qualidade, IV e TIPO parecidos (state.tiposDe(espécie) → [t1, t2]),
+   *      sem misturar Outland com selvagem normal (state.outlandDe(espécie)).
+   * Em todos: cada venda é levada ao nível da ficha, e as mais parecidas e recentes pesam mais.
+   */
+  function degraus(f, kept, fimMin, est0, ajuste) {
+    const perto = (s) => !(f.lvl > 0) || (s.lvl >= f.lvl / 1.4 && s.lvl <= f.lvl * 1.4);
+    const doGrupo = (s) => norm(s.species) === norm(f.species) && s.shiny === f.shiny;
+    const parecida = (s) => doGrupo(s) && s.pot === f.pot && perto(s);
+    // valor na unidade de exibição com a conversão pelo diamante: Gema vale state.rate Coins
+    const peloDiamante = (s) => s.moeda === "gemas" ? s.price : s.price / state.rate;
+    const recencia = (s) => Math.pow(0.5, Math.max((fimMin - s.min) / 1440, 0) / 7);
+    const mesma = kept.filter((s) => parecida(s) && s.moeda === state.moeda);
+    const outra = kept.filter((s) => parecida(s) && s.moeda !== state.moeda);
+    const tiposF = state.tiposDe?.(f.species) || null;
+    const difTipo = (s) => {
+      const t = tiposF && state.tiposDe?.(s.species);
+      if (!t) return 0;
+      const comuns = t.filter((x) => tiposF.includes(x)).length;
+      return comuns === Math.max(t.length, tiposF.length) ? 0 : comuns > 0 ? 0.5 : 1;
+    };
+    let lista, degrau;
+    if (mesma.length >= 3) { degrau = 1; lista = mesma.map((s) => ({ s, v: s.gem, d: dist(f, s) })); }
+    else if (mesma.length + outra.length >= 3) { degrau = 2; lista = [...mesma, ...outra].map((s) => ({ s, v: peloDiamante(s), d: dist(f, s) })); }
+    else {
+      degrau = 3;
+      // outras espécies: sem o peso de "espécie diferente", com o de tipo diferente
+      // Outland (Furious Scyther, Brave Blastoise…) e selvagem normal são mercados diferentes: a da
+      // Outland vale bem menos. Só compara dentro do mesmo lado (state.outlandDe(espécie) → true/false).
+      const ladoF = !!state.outlandDe?.(f.species);
+      const cand = kept.filter((s) => s.shiny === f.shiny && s.moeda === state.moeda && perto(s) && !!state.outlandDe?.(s.species) === ladoF);
+      const mesmaP = cand.filter((s) => s.pot === f.pot);
+      lista = (mesmaP.length >= 6 ? mesmaP : cand).map((s) => ({ s, v: s.gem, d: dist(f, s) - (norm(s.species) !== norm(f.species) ? 2.5 : 0) + difTipo(s) * 1.5 }));
+      // as 1–2 vendas da própria espécie (qualquer moeda, pelo diamante) entram também
+      for (const s of [...mesma, ...outra]) if (!lista.some((x) => x.s === s)) lista.push({ s, v: peloDiamante(s), d: dist(f, s) });
+    }
+    const items = lista.map((x) => ({ s: x.s, d: x.d, v: x.v * ajuste(x.s), w: Math.exp(-x.d) * recencia(x.s) }))
+      .filter((x) => x.w > 0 && x.v > 0).sort((a, b) => a.v - b.v);
+    const sw = items.reduce((a, x) => a + x.w, 0), sw2 = items.reduce((a, x) => a + x.w * x.w, 0);
+    return { ...est0, items, degrau, nMesma: mesma.length, nOutra: outra.length, fallback: degrau === 3,
+      ess: sw2 ? sw * sw / sw2 : 0, fatorNivel: sw ? Math.exp(items.reduce((a, x) => a + x.w * Math.log(x.v / (x.s.gem || x.v)), 0) / sw) : 1,
+      ...pontos(items) };
   }
 
   /**

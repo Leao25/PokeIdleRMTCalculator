@@ -97,7 +97,7 @@ main { display: grid; gap: 18px; min-width: 0; }
 @media (max-width: 560px) { .prices { grid-template-columns: minmax(0, 1fr); } }
 .price { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; background: var(--sunk); align-content: start; }
 .price.mid { border-color: var(--acc); background: var(--acc-soft); }
-.price .v { font: 700 1.7rem/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.price .v { font: 700 1.35rem/1.15 var(--f-display); font-variant-numeric: tabular-nums; }
 .price.mid .v { color: var(--acc); }
 .price .net { font-size: .8rem; color: var(--muted); }
 .price .net b { color: var(--ink); font-family: var(--f-mono); font-weight: 500; }
@@ -956,9 +956,11 @@ function render() {
   } else {
     // sem vendas suficientes da espécie, o número é o de um pokémon genérico parecido: confiança baixa
     const conf = est.fallback ? ["bad", "Confiança baixa"] : est.ess >= 6 ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
-    const box = (cls, name, gem, hint) => { const v = toShow(gem), l = liquido(v);
-      return `<div class="price ${cls}"><span class="lbl">${name}</span><span class="v">${fmtVal(v)}</span><span class="net">você recebe <b>${fmtVal(Math.floor(l))}</b> (${nf(1).format((1 - l / v) * 100)}% de taxa)</span><span class="net">${hint}</span></div>`; };
-    h += `<div class="prices">${box("", "Vender rápido", est.p25, "abaixo de 3/4 dos parecidos")}${box("mid", "Preço justo", est.p50, `mediana ponderada · ${unit()}`)}${box("", "Com paciência", est.p75, "acima de 3/4 dos parecidos")}</div>`;
+    // Cada faixa é um trecho da distribuição das vendas parecidas (ver comFaixas em preco.js)
+    const box = (cls, name, [lo, hi], hint) => { const a = toShow(lo), b = toShow(hi), la = liquido(a), lb = liquido(b);
+      return `<div class="price ${cls}"><span class="lbl">${name}</span><span class="v">${fmtVal(a)} – ${fmtVal(b)}</span><span class="net">você recebe <b>${fmtVal(Math.floor(la))} – ${fmtVal(Math.floor(lb))}</b> (${nf(1).format((1 - lb / b) * 100)}% de taxa)</span><span class="net">${hint}</span></div>`; };
+    const fx = est.faixas;
+    h += `<div class="prices">${box("", "Vender rápido", fx.rapido, "vende logo: só 1 em 5 parecidos saiu por menos")}${box("mid", "Preço justo", fx.justo, `o miolo das vendas · centro ${fmtVal(toShow(est.p50))} ${unit()}`)}${box("", "Com paciência", fx.paciencia, "vende, mas poucos compradores pagam isso")}</div>`;
     const why = est.fallback
       ? `${esc(f.species)} tem ${est.sameMatch.length ? "só " + est.sameMatch.length : "nenhuma"} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período: o preço acima é o de um pokémon ${f.shiny ? "shiny" : "comum"} <b>genérico</b> parecido (outras espécies de nível, potência e nota próximos), não um preço de ${esc(f.species)}. Se a espécie tem pouca procura, ela pode valer bem menos.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;

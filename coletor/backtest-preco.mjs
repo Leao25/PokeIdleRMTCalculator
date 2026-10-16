@@ -18,7 +18,16 @@ let codigo = await readFile(process.env.PRECO || path.join(RAIZ, 'docs/preco.js'
 for (const [a, b] of JSON.parse(process.env.PATCH || '[]')) { if (!codigo.includes(a)) throw new Error(`patch não achou: ${a}`); codigo = codigo.split(a).join(b); }
 const criarPreco = new Function(`${codigo}
 return criarPreco;`)();
-const state = { moeda: 'coins', rate: 3e6, dias: 30, taxaPk: null };
+const state = { moeda: 'coins', rate: 3e6, dias: 30, taxaPk: null, degraus: !!process.env.DEGRAUS };
+{
+  // tipos por espécie (para a regra em degraus): DEGRAUS=1 liga
+  const esp = JSON.parse(await readFile(path.join(RAIZ, 'docs/dados/especies.json'), 'utf8'));
+  const n = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const mapa = new Map(esp.e.map((x) => [n(x[0]), x[3] >= 0 ? [x[2], x[3]] : [x[2]]]));
+  const outland = new Set(esp.e.filter((x) => x[1] >= 2001 && x[1] < 3000).map((x) => n(x[0])));
+  state.outlandDe = (s) => outland.has(n(String(s).replace(/^mega\s+/i, '')));
+  state.tiposDe = (s) => mapa.get(n(s)) || mapa.get(n(String(s).replace(/^mega\s+/i, '').replace(/\s+[XY]$/, ''))) || null;
+}
 const P = criarPreco(state);
 const M = { ...P, setCache: P.limparCaches };
 
@@ -47,7 +56,7 @@ for (let d = DIAS; d >= 1; d--) {
       const est = M.estimate(f, kept, ini);
       if (!(est.p50 > 0)) continue;
       const nEsp = est.sameMatch.length, nPerto = est.sameMatch.filter((x) => x.lvl >= s.lvl / 1.4 && x.lvl <= s.lvl * 1.4).length;
-      res.push({ q: s.q, nota: s.nota, r: est.p50 / s.gem, dentro: s.gem >= est.p25 && s.gem <= est.p75, moeda, shiny: s.shiny, lvl: s.lvl, pot: s.pot, nEsp, nPerto, misturado: !!est.ref, species: s.species, real: s.gem, est: est.p50 });
+      res.push({ q: s.q, nota: s.nota, r: est.p50 / s.gem, dentro: s.gem >= est.p25 && s.gem <= est.p75, moeda, shiny: s.shiny, lvl: s.lvl, pot: s.pot, nEsp, nPerto, misturado: !!est.ref, degrau: est.degrau, species: s.species, real: s.gem, est: est.p50 });
     }
   }
 }
@@ -70,6 +79,7 @@ resumo('shiny · Coins', res.filter((x) => x.shiny && x.moeda === 'coins'));
 resumo('3+ vendas da espécie perto do nível', res.filter((x) => x.nPerto >= 3));
 resumo('0–2 vendas perto do nível', res.filter((x) => x.nPerto < 3));
 resumo('misturado com outras espécies', res.filter((x) => x.misturado));
+for (const g of [1, 2, 3]) for (const m of ['coins', 'gemas']) resumo(`degrau ${g} · ${m}`, res.filter((x) => x.degrau === g && x.moeda === m));
 resumo('comum Nv ≤ 100', res.filter((x) => !x.shiny && x.lvl <= 100));
 resumo('comum Nv 101–300', res.filter((x) => !x.shiny && x.lvl > 100 && x.lvl <= 300));
 resumo('comum Nv > 300', res.filter((x) => !x.shiny && x.lvl > 300));
