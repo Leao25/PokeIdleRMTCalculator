@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.5.0
+// @version      1.5.1
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -275,9 +275,10 @@
    * pokémon em Gema paga por faixa (13% até 500, 10% até 5.000, 7,5% acima); em Coins e item em
    * Gema, 15%.
    */
-  /** Por quanto revender: o PISO da faixa escolhida no laudo (Rápido p20–p35, Justo p35–p65, Paciência p65–p80),
-   *  o lado conservador. Sem as faixas (referência resumida), p25/p50/p75. Item: média de 7 dias. */
-  const alvoRevenda = (x, qual = cfg.revenda) => (x.tipo === 'pokemon' && x.fx ? x.fx[qual][0]
+  /** Por quanto revender: o MEIO (geométrico) da faixa escolhida no laudo (Rápido p20–p35, Justo p35–p65,
+   *  Paciência p65–p80). O piso (1.4.0–1.5.0) deixava o Coins quase sem pechincha: nos anúncios de 24 h de
+   *  16/10, Justo com 30% de lucro dava 5 por dia (antes 16); pelo meio, 13. Sem as faixas, p25/p50/p75. Item: média de 7 dias. */
+  const alvoRevenda = (x, qual = cfg.revenda) => (x.tipo === 'pokemon' && x.fx ? Math.sqrt(x.fx[qual][0] * x.fx[qual][1])
     : x.tipo === 'pokemon' && x.p25 ? (qual === 'rapido' ? x.p25 : qual === 'paciencia' ? x.p75 : x.ref) : x.ref);
   /** Lucro sobre o que se paga, revendendo pelo alvo escolhido, já sem a comissão (quem compra não paga taxa). */
   const lucroDe = (x, qual) => { const alvo = alvoRevenda(x, qual); return { alvo, valor: liquidoRevenda(alvo, x.moeda, x.tipo) - x.preco, pct: (liquidoRevenda(alvo, x.moeda, x.tipo) - x.preco) / x.preco }; };
@@ -442,7 +443,7 @@
           <div class="sub">${precoTxt(x.preco, x.moeda)} · ${x.fx ? (() => { const fx = (k) => `${precoTxt(Math.round(x.fx[k][0]), x.moeda)}–${precoTxt(Math.round(x.fx[k][1]), x.moeda)}`; return `justo <b>${fx('justo')}</b> (rápido ${fx('rapido')} · paciência ${fx('paciencia')})`; })()
             : x.p25 ? `justo <b>${precoTxt(Math.round(x.ref), x.moeda)}</b> (rápido ${precoTxt(Math.round(x.p25), x.moeda)} · paciência ${precoTxt(Math.round(x.p75), x.moeda)})` : `ref. ${precoTxt(Math.round(x.ref), x.moeda)}`} · ${esc(x.extra)}</div>
           ${x.procura?.nivel === 'baixa' ? `<div class="sub aviso-procura">⚠ pouca procura: ${x.procura.vendas} venda${x.procura.vendas === 1 ? '' : 's'} em 30 dias e ${x.procura.abertos} anúncio${x.procura.abertos === 1 ? '' : 's'} aberto${x.procura.abertos === 1 ? '' : 's'} — pode ser difícil revender</div>` : ''}
-          <div class="sub">${(() => { const l = lucroDe(x); const nomeF = cfg.revenda === 'rapido' ? 'rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'justo'; const como = x.tipo === 'pokemon' && x.fx ? `pelo piso da faixa ${nomeF}` : x.tipo === 'pokemon' && x.p25 ? (cfg.revenda === 'rapido' ? 'pelo rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'pelo justo') : 'pela média de 7 dias'; return l.valor > 0 ? `<span class="desc">+${precoTxt(Math.round(l.valor), x.moeda)}</span> revendendo ${como} (${precoTxt(Math.round(l.alvo), x.moeda)}), já sem a comissão` : `sem lucro revendendo ${como}, depois da comissão`; })()}</div>
+          <div class="sub">${(() => { const l = lucroDe(x); const nomeF = cfg.revenda === 'rapido' ? 'rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'justo'; const como = x.tipo === 'pokemon' && x.fx ? `pelo meio da faixa ${nomeF}` : x.tipo === 'pokemon' && x.p25 ? (cfg.revenda === 'rapido' ? 'pelo rápido' : cfg.revenda === 'paciencia' ? 'com paciência' : 'pelo justo') : 'pela média de 7 dias'; return l.valor > 0 ? `<span class="desc">+${precoTxt(Math.round(l.valor), x.moeda)}</span> revendendo ${como} (${precoTxt(Math.round(l.alvo), x.moeda)}), já sem a comissão` : `sem lucro revendendo ${como}, depois da comissão`; })()}</div>
           <div class="sub">visto há ${ha(x.primeiro)}${x.conferido ? ` · à venda há ${ha(x.conferido)}` : ''}${x.tipo === 'pokemon' ? ` · <button data-acao="ver" data-id="${Number(x.id) || 0}">Ver anúncio</button>${x.laudo ? ` <button data-acao="laudo" data-k="${esc(k)}" title="Abre o Avaliar do site com esta ficha">Laudo</button>` : ''}` : ' · busque o item no Market'} · <button data-acao="visto" data-k="${esc(k)}" title="Esconde este anúncio: ele não volta na próxima leitura">ok</button></div></div>`).join('')
         : `<div class="vazio">${!socket ? 'Esperando o jogo conectar…' : !cfg.ligado ? 'Pausado.' : 'Nenhuma pechincha agora. O painel avisa quando aparecer.'}</div>`}</div>
       <div class="rod">${Date.now() < calmaAte ? '<b>O jogo pediu calma: lendo 1×/min por 2 min.</b><br>' : ''}${ultimaLeitura ? `Última leitura há ${ha(ultimaLeitura)}` : 'Ainda sem leitura'} · ${hist ? `preço justo do site (${hist.n.toLocaleString('pt-BR')} vendas)` : `referência ${ref ? `resumida de ${new Date(ref.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (carregando as vendas…)` : 'carregando'}`} · <button data-acao="limpar">limpar</button><br>% = lucro sobre o que você paga, revendendo pelo preço escolhido (Rápido, Justo ou Paciência), já sem a comissão; quem compra não paga taxa. O preço justo é a mesma conta do Avaliar do site, mas o mercado varia muito: confira o laudo antes de comprar caro.</div>`;
