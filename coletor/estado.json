@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "BUG"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "NORMAL"
     },
     {
@@ -138,12 +134,20 @@
       "novas": 34,
       "cortado": false,
       "em": "2026-10-16T07:20:14.835Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "BUG",
+      "linhas": 3742,
+      "novas": 16,
+      "cortado": false,
+      "em": "2026-10-16T09:23:51.782Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 75,
+  "livroRodizio": 38,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
-  "pvpMetaEm": "2026-10-16T03:12:48.251Z"
+  "pvpMetaEm": "2026-10-16T09:23:40.567Z"
 }
