@@ -1,5 +1,5 @@
 {
-  "ultimaPrincipal": "2026-10-15T22:02:36.999Z",
+  "ultimaPrincipal": "2026-10-16T00:06:44.352Z",
   "fila": [
     {
       "tipo": "pokemon",
@@ -125,9 +125,9 @@
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 38,
+  "livroRodizio": 63,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
-  "pvpMetaEm": "2026-10-15T23:04:27.614Z"
+  "pvpMetaEm": "2026-10-16T00:06:30.863Z"
 }
