@@ -3,10 +3,6 @@
   "fila": [
     {
       "tipo": "pokemon",
-      "elemento": "NORMAL"
-    },
-    {
-      "tipo": "pokemon",
       "elemento": "FAIRY"
     },
     {
@@ -142,12 +138,20 @@
       "novas": 16,
       "cortado": false,
       "em": "2026-10-16T09:23:51.782Z"
+    },
+    {
+      "tipo": "pokemon",
+      "elemento": "NORMAL",
+      "linhas": 99,
+      "novas": 21,
+      "cortado": false,
+      "em": "2026-10-16T11:27:30.424Z"
     }
   ],
   "explorado": "2026-10-14T22:24:30.614Z",
-  "livroRodizio": 63,
+  "livroRodizio": 26,
   "exploradoPvp": "2026-10-15T06:38:22.962Z",
   "exploradoPvpFalhou": false,
   "catalogoEm": "2026-10-15T15:53:11.796Z",
-  "pvpMetaEm": "2026-10-16T09:23:40.567Z"
+  "pvpMetaEm": "2026-10-16T11:27:17.785Z"
 }
