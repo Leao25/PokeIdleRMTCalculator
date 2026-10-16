@@ -32,7 +32,7 @@ import { registrarAnuncios } from './anuncios-historico.mjs';
 import { atualizarMetaPvp } from './pvp-meta.mjs';
 
 const URL_JOGO = 'wss://pokeidle.io';
-const INTERVALO_PRINCIPAL_MS = 110 * 60 * 1000; // ~2 h, com folga para o atraso do agendador
+const INTERVALO_PRINCIPAL_MS = 50 * 60 * 1000; // de hora em hora (a planilha aceita 1 pedido por hora), com folga para o atraso
 const ARQ_ESTADO = path.join(path.dirname(fileURLToPath(import.meta.url)), 'estado.json');
 
 function exigir(nome) {

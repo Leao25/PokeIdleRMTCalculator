@@ -1,9 +1,11 @@
-name: Revezamento (recuperação do mês)
+name: Revezamento (coleta de hora em hora)
 
-# SOLUÇÃO DE CONTORNO, temporária: enquanto o agendador do GitHub não dispara o "Coletar vendas",
-# esta execução fica ~5h30 no ar, roda o coletor de hora em hora e, antes do limite de 6 horas do
-# GitHub, dispara a próxima. Para sozinha quando a fila de recuperação (coletor/estado.json) acaba.
-# Para desligar antes: Actions → este workflow → "..." → Disable workflow.
+# O motor da coleta. O agendador do GitHub (o "Coletar vendas") só dispara a cada 3–5 horas no plano
+# gratuito; esta execução fica ~5h30 no ar, roda o coletor de hora em hora e, antes do limite de 6
+# horas do GitHub, dispara a próxima — sem parar. O "Coletar vendas" agendado fica de reserva: enquanto
+# o revezamento roda, ele é cancelado (mesmo grupo); se a corrente cair, ele segue a cada 3–5 h.
+# Para religar a corrente: Actions → este workflow → "Run workflow".
+# Para desligar: Actions → este workflow → "..." → Disable workflow.
 on:
   workflow_dispatch:
 
@@ -38,7 +40,6 @@ jobs:
         run: |
           git config user.name "coletor"
           git config user.email "coletor@users.noreply.github.com"
-          fila() { node -e "console.log((require('./coletor/estado.json').fila||[]).length)"; }
           comeco=$(date +%s)
           LIMITE=$(( 5 * 3600 + 20 * 60 ))   # depois disso, passa o bastão
           volta=0
@@ -61,15 +62,11 @@ jobs:
               git commit -q --allow-empty -m "Vendas $(date -u +'%Y-%m-%d %H:%M') UTC (revezamento, sem novidade)" && { git pull -q --rebase -X theirs || { git rebase --abort 2>/dev/null; git pull -q --no-rebase -X ours; }; } && git push -q || true
             fi
             echo "::endgroup::"
-            if [ "$(fila)" = "0" ]; then echo "Fila de recuperação vazia: o revezamento termina aqui."; exit 0; fi
           done
       - name: Passar o bastão
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          restam=$(node -e "console.log((require('./coletor/estado.json').fila||[]).length)")
-          if [ "$restam" != "0" ]; then
-            echo "Ainda há $restam pedido(s) na fila: disparando a próxima volta."
-            gh workflow run revezamento.yml --ref main
-          fi
+          echo "Disparando a próxima volta."
+          gh workflow run revezamento.yml --ref main
