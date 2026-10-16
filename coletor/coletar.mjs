@@ -26,6 +26,7 @@ import { calcularCotacao, juntarDiamantes } from './diamantes.mjs';
 import { gravarMercado, lerAnuncios, lerItens, lerLivros } from './mercado.mjs';
 import { explorarPvp } from './explorar-pvp.mjs';
 import { gerarReferencia } from './referencia.mjs';
+import { gerarModelo } from './modelo.mjs';
 import { gravarRegras, verificarVersao } from './regras.mjs';
 import { gravarCatalogo } from './catalogo.mjs';
 import { registrarAnuncios } from './anuncios-historico.mjs';
@@ -255,6 +256,7 @@ async function main() {
   const vendas = converter(resp.mercado.linhas, sal);
   const { adicionadas, total } = await juntarAoHistorico(vendas, { fonte: devePrincipal ? 'coletor' : `recuperação (${descrever(filtros)})`, cotacao });
   await gerarReferencia().then((n) => console.log(`Referência do Sniper ao vivo: ${n} grupos.`)).catch((e) => console.log(`Referência: ${e.message}`));
+  await gerarModelo().then((t) => console.log(`Modelo de preço: ${t}.`)).catch((e) => console.log(`Modelo de preço: ${e.message}`));
   console.log(`${resp.mercado.linhas.length} linhas recebidas${resp.mercado.cortado ? ' (cortada no teto de 5.000)' : ''}; ${adicionadas} vendas novas; ${total} no histórico.`);
 
   if (devePrincipal) estado.ultimaPrincipal = new Date().toISOString();

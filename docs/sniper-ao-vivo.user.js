@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.4.0
+// @version      1.5.0
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -9,7 +9,8 @@
 // @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @connect      pokeidle-rmt-calculator.vercel.app
-// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=7
+// @require      https://pokeidle-rmt-calculator.vercel.app/preco.js?v=8
+// @require      https://pokeidle-rmt-calculator.vercel.app/modelo-preco.js?v=1
 // @downloadURL  https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // @updateURL    https://pokeidle-rmt-calculator.vercel.app/sniper-ao-vivo.user.js
 // ==/UserScript==
@@ -97,6 +98,11 @@
       st.taxaPk = P.taxaPokemon(base);
       const kept = {};
       for (const m of ['coins', 'gemas']) { st.moeda = m; kept[m] = P.limpar(base.map((s) => ({ ...s }))).kept; }
+      // o modelo de preço (o mesmo do site): sem ele, o preco.js usa a mistura antiga
+      try {
+        const dados = await pegarJson('dados/modelo.json');
+        if (dados && typeof criarModelo === 'function') { const M = criarModelo(); st.modelo = { prever: (f, m) => M.prever(dados, f, m) }; }
+      } catch (e) { /* segue sem o modelo */ }
       hist = { kept, fim, n: base.length, vendas30: P.vendasPorEspecie(base, fim) }; histEm = Date.now();
       pintar();
     } catch (e) { /* tenta na próxima hora */ }

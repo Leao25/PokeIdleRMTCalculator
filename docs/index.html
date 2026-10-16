@@ -571,6 +571,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
 </div>
 
 <script src="preco.js"></script>
+<script src="modelo-preco.js"></script>
 <script>
 (() => {
 const $ = (id) => document.getElementById(id);
@@ -955,13 +956,19 @@ function render() {
       + (outro.length ? ` As ${outro.length} vendas de ${esc(f.species)} ${f.shiny ? "comum" : "shiny"} ficaram entre ${fmtShow(outro[0])} e ${fmtShow(outro[outro.length - 1])} ${unit()}, mas não servem de referência.` : "") + `</div>`;
   } else {
     // sem vendas suficientes da espécie, o número é o de um pokémon genérico parecido: confiança baixa
-    const conf = est.fallback ? ["bad", "Confiança baixa"] : est.ess >= 6 ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
+    const nMoeda = est.sameMatch.filter((s) => s.moeda === state.moeda).length;
+    const conf = est.modelo
+      ? (est.modelo.nParecidas >= 6 ? ["ok", "Confiança boa"] : nMoeda >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"])
+      : est.fallback ? ["bad", "Confiança baixa"] : est.ess >= 6 ? ["ok", "Confiança boa"] : est.ess >= 3 ? ["", "Confiança média"] : ["bad", "Confiança baixa"];
     // Cada faixa é um trecho da distribuição das vendas parecidas (ver comFaixas em preco.js)
     const box = (cls, name, [lo, hi], hint) => { const a = toShow(lo), b = toShow(hi), la = liquido(a), lb = liquido(b);
       return `<div class="price ${cls}"><span class="lbl">${name}</span><span class="v">${fmtVal(a)} – ${fmtVal(b)}</span><span class="net">você recebe <b>${fmtVal(Math.floor(la))} – ${fmtVal(Math.floor(lb))}</b> (${nf(1).format((1 - lb / b) * 100)}% de taxa)</span><span class="net">${hint}</span></div>`; };
     const fx = est.faixas;
     h += `<div class="prices">${box("", "Vender rápido", fx.rapido, "vende logo: só 1 em 5 parecidos saiu por menos")}${box("mid", "Preço justo", fx.justo, `o miolo das vendas · centro ${fmtVal(toShow(est.p50))} ${unit()}`)}${box("", "Com paciência", fx.paciencia, "vende, mas poucos compradores pagam isso")}</div>`;
-    const why = est.fallback
+    const nP = est.modelo?.nParecidas ?? 0, moedaTxt = state.moeda === "coins" ? "Coins" : "Gemas";
+    const why = est.modelo
+      ? `${nP ? `<b>${nP}</b> venda${nP === 1 ? "" : "s"} de ${esc(f.species)} parecida${nP === 1 ? "" : "s"} em ${moedaTxt} (mesma potência, nível próximo) pesa${nP === 1 ? "" : "m"} <b>${nf(0).format(est.modelo.pesoEspecie * 100)}%</b> do preço; o resto` : `Nenhuma venda de ${esc(f.species)} parecida em ${moedaTxt} (mesma potência, nível próximo): o preço`} vem do <b>modelo</b>, que aprende com todas as vendas dos últimos 30 dias quanto a potência, o nível, a nota, a qualidade, o IV, o tipo e a própria espécie mexem no preço${nMoeda ? ` (${esc(f.species)} tem ${nMoeda} venda${nMoeda === 1 ? "" : "s"} ${f.shiny ? "shiny" : nMoeda === 1 ? "comum" : "comuns"} em ${moedaTxt} no período)` : `; ${esc(f.species)} não tem vendas ${f.shiny ? "shiny" : "comuns"} em ${moedaTxt} no período, então vale o que pokémon do mesmo tipo e potência valem`}.`
+      : est.fallback
       ? `${esc(f.species)} tem ${est.sameMatch.length ? "só " + est.sameMatch.length : "nenhuma"} venda${est.sameMatch.length === 1 ? "" : "s"} ${f.shiny ? "shiny" : "comum"} no período: o preço acima é o de um pokémon ${f.shiny ? "shiny" : "comum"} <b>genérico</b> parecido (outras espécies de nível, potência e nota próximos), não um preço de ${esc(f.species)}. Se a espécie tem pouca procura, ela pode valer bem menos.`
       : `Baseado em ${est.sameMatch.length} vendas de ${esc(f.species)}${f.shiny ? " shiny" : " comum"}, pesadas pela semelhança (equivale a ~${nf(0).format(est.ess)} vendas idênticas).`;
     h += `<div class="alert ${conf[0]}"><b>${conf[1]}.</b> ${why}</div>`;
@@ -2426,8 +2433,16 @@ const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m
 $("m-gemas").onclick = () => setM("gemas"); $("m-coins").onclick = () => setM("coins");
 document.querySelectorAll("[data-dias]").forEach((b) => b.onclick = () => { state.dias = +b.dataset.dias; try { localStorage.setItem("rtm-dias", state.dias); } catch (e) {} render(); });
 
+// o modelo de preço (docs/modelo-preco.js), ajustado pelo coletor: chega depois e refaz a tela
+const modeloPromessa = fetch("dados/modelo.json?t=" + Date.now()).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 carregarHistorico()
   .then(() => {
+    modeloPromessa.then((d) => {
+      if (!d || typeof criarModelo !== "function") return;
+      const M = criarModelo();
+      state.modelo = { prever: (f, m) => M.prever(d, f, m), em: d.em };
+      render();
+    });
     // ?f=… : ficha vinda de fora (o botão "Laudo" do Sniper ao vivo): {species, lvl, pot, nota, q, iv, shiny, moeda}
     let vinda = null;
     try {

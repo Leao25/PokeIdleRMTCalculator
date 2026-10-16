@@ -18,6 +18,10 @@ let codigo = await readFile(process.env.PRECO || path.join(RAIZ, 'docs/preco.js'
 for (const [a, b] of JSON.parse(process.env.PATCH || '[]')) { if (!codigo.includes(a)) throw new Error(`patch não achou: ${a}`); codigo = codigo.split(a).join(b); }
 const criarPreco = new Function(`${codigo}
 return criarPreco;`)();
+// o modelo (docs/modelo-preco.js), ajustado a cada dia só com as vendas anteriores; SEM_MODELO=1 desliga
+const criarModelo = new Function(`${await readFile(path.join(RAIZ, 'docs/modelo-preco.js'), 'utf8')}
+return criarModelo;`)();
+const MODELO = criarModelo(), ESPECIES = JSON.parse(await readFile(path.join(RAIZ, 'docs/dados/especies.json'), 'utf8'));
 const state = { moeda: 'coins', rate: 3e6, dias: 30, taxaPk: null, degraus: !!process.env.DEGRAUS };
 {
   // tipos por espécie (para a regra em degraus): DEGRAUS=1 liga
@@ -49,6 +53,7 @@ for (let d = DIAS; d >= 1; d--) {
     state.moeda = moeda; M.setCache();
     state.taxaPk = M.taxaPokemon(antes);
     const { kept } = M.limpar(antes.map((s) => ({ ...s })));
+    if (!process.env.SEM_MODELO) { const dados = MODELO.ajustarTudo(kept, ini, ESPECIES); state.modelo = { prever: (f, m) => MODELO.prever(dados, f, m) }; }
     // a venda testada também passa pelo mesmo filtro de "fora da curva" (com o histórico de antes)
     const { kept: testeOk } = M.limpar([...antes.map((s) => ({ ...s })), ...teste.filter((s) => s.moeda === moeda).map((s) => ({ ...s, _t: 1 }))]);
     for (const s of testeOk.filter((x) => x._t)) {

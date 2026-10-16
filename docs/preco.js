@@ -66,12 +66,19 @@ function criarPreco(state) {
     const kept = [], gone = [], by = {};
     // A curva é por espécie + shiny + potência: um P5 comum vale dezenas de vezes um P1 da mesma espécie.
     raw.forEach((s) => { s.gem = gemOf(s); (by[`${s.species}|${s.shiny ? 1 : 0}|${s.pot}`] ||= []).push(s); });
+    // Mesmo vendedor → mesmo comprador mais de uma vez (amigos, contas do mesmo dono, cliente fixo): no comum
+    // em Gemas o preço foge muito (±186%, 38% acima do mercado). Medido em 16/10/2026: tirar do comum em Gemas
+    // leva o erro nas vendas normais de ±123% a ±118%; em Coins e no shiny piora, então fica só lá.
+    const pares = new Map();
+    for (const s of raw) if (s.seller && s.buyer) { const k = s.seller + ">" + s.buyer; pares.set(k, (pares.get(k) || 0) + 1); }
+    const parRepetido = (s) => !s.shiny && s.moeda === "gemas" && s.seller && (pares.get(s.seller + ">" + s.buyer) || 0) >= 2;
     for (const k in by) {
       const list = by[k], med = quant(list.map((s) => s.gem).sort((a, b) => a - b), 0.5);
       for (const s of list) {
         // Piso na moeda da venda (não convertido): 2 Gemas ou 2 Coins é transferência, não preço.
         // Comum barato vende mesmo por 5–7 Gemas, então o piso em Gema é baixo.
         if (!(s.moeda === "gemas" ? s.price >= 3 : s.price >= 100000)) gone.push({ s, why: "valor simbólico" });
+        else if (parRepetido(s)) gone.push({ s, why: "mesmo vendedor e comprador repetidos" });
         // Margem larga: no comum, nível e nota mudam muito o preço; a mediana ponderada já segura o resto.
         else if (list.length >= 4 && (s.gem < med / 15 || s.gem > med * 25)) gone.push({ s, why: "fora da curva" });
         else kept.push(s);
@@ -160,6 +167,21 @@ function criarPreco(state) {
     const fatorNivel = sw ? Math.exp(items.reduce((a, x) => a + x.w * Math.log(x.v / x.s.gem), 0) / sw) : 1;
     const est = { same, sameMatch, fallback: sameMatch.length < 3, items, ess: sw2 ? sw * sw / sw2 : 0, beta, fatorNivel, ...pontos(items) };
     if (state.degraus) return comFaixas(degraus(f, kept, fimMin, est, ajuste));
+
+    // MODELO (modelo-preco.js, ajustado pelo coletor): as vendas parecidas da própria espécie (mesma moeda,
+    // potência e nível até 1,4×) pesam n/(n+6); o resto vem do modelo. Medido em 16/10/2026: erro típico
+    // ±89% → ±78%, P5 comum ±150% → ±89%. Sem o modelo carregado, segue a mistura antiga logo abaixo.
+    const mp = state.modelo?.prever?.(f, state.moeda);
+    if (mp) {
+      const nP = kept.filter((s) => doGrupo(s) && s.moeda === state.moeda && s.pot === f.pot && pertoNv(s)).length;
+      const wS = nP / (nP + 6), conv = state.moeda === "coins" ? 1 / state.rate : 1;
+      for (const [k, q] of Object.entries(QUANTIS)) {
+        const kq = wQuant(items, q), mq = mp[k] * conv;
+        est[k] = Number.isFinite(kq) && kq > 0 ? Math.exp(wS * Math.log(kq) + (1 - wS) * Math.log(mq)) : mq;
+      }
+      est.modelo = { nParecidas: nP, pesoEspecie: wS };
+      return comFaixas(est);
+    }
 
     // Pouca venda da espécie perto do nível da ficha? Mistura com o que pokémon do mesmo grupo
     // (shiny ou comum), de nível, nota e potência parecidos, venderam — de qualquer espécie.
