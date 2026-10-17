@@ -1,15 +1,15 @@
 {
- "em": "2026-10-17T01:59:09.513Z",
+ "em": "2026-10-17T03:01:30.112Z",
  "itens": {
   "2": {
    "nome": "Ancient Stone",
    "categoria": "stone",
-   "anuncios": 354,
-   "unidades": 11926,
-   "minGold": 69999,
+   "anuncios": 358,
+   "unidades": 12175,
+   "minGold": 70085,
    "minOrb": 2,
-   "mediaGold": 83159,
-   "vendidosGold": 47629,
+   "mediaGold": 83127,
+   "vendidosGold": 47735,
    "mediaOrb": 2,
    "vendidosOrb": 7638,
    "livro": {
@@ -95,12 +95,12 @@
   "23": {
    "nome": "Cocoon Stone",
    "categoria": "stone",
-   "anuncios": 657,
-   "unidades": 103634,
-   "minGold": 97,
+   "anuncios": 680,
+   "unidades": 106190,
+   "minGold": 5401,
    "minOrb": 2,
-   "mediaGold": 32873,
-   "vendidosGold": 451835,
+   "mediaGold": 32640,
+   "vendidosGold": 456630,
    "mediaOrb": 34,
    "vendidosOrb": 179,
    "livro": {
@@ -186,8 +186,8 @@
   "28": {
    "nome": "Crystal Stone",
    "categoria": "stone",
-   "anuncios": 209,
-   "unidades": 12022,
+   "anuncios": 212,
+   "unidades": 12068,
    "minGold": 47908,
    "minOrb": 2,
    "mediaGold": 228870,
@@ -277,12 +277,12 @@
   "31": {
    "nome": "Darkness Stone",
    "categoria": "stone",
-   "anuncios": 233,
-   "unidades": 20597,
-   "minGold": 71000,
+   "anuncios": 243,
+   "unidades": 20780,
+   "minGold": 62377,
    "minOrb": 2,
-   "mediaGold": 101673,
-   "vendidosGold": 56618,
+   "mediaGold": 101547,
+   "vendidosGold": 56811,
    "mediaOrb": 594,
    "vendidosOrb": 6,
    "livro": {
@@ -368,12 +368,12 @@
   "40": {
    "nome": "Earth Stone",
    "categoria": "stone",
-   "anuncios": 708,
-   "unidades": 46991,
-   "minGold": 66998,
+   "anuncios": 700,
+   "unidades": 47695,
+   "minGold": 54000,
    "minOrb": 2,
-   "mediaGold": 69483,
-   "vendidosGold": 196773,
+   "mediaGold": 69545,
+   "vendidosGold": 198997,
    "mediaOrb": 204,
    "vendidosOrb": 10,
    "livro": {
@@ -459,12 +459,12 @@
   "45": {
    "nome": "Enigma Stone",
    "categoria": "stone",
-   "anuncios": 227,
-   "unidades": 26883,
-   "minGold": 50000,
+   "anuncios": 189,
+   "unidades": 24510,
+   "minGold": 120000,
    "minOrb": 2,
-   "mediaGold": 66683,
-   "vendidosGold": 74083,
+   "mediaGold": 67854,
+   "vendidosGold": 77582,
    "mediaOrb": 61,
    "vendidosOrb": 2,
    "livro": {
@@ -550,56 +550,56 @@
   "49": {
    "nome": "Feather Stone",
    "categoria": "stone",
-   "anuncios": 239,
-   "unidades": 51358,
-   "minGold": 71279,
+   "anuncios": 246,
+   "unidades": 52360,
+   "minGold": 54688,
    "minOrb": 2,
-   "mediaGold": 69813,
-   "vendidosGold": 301460,
+   "mediaGold": 70413,
+   "vendidosGold": 300575,
    "mediaOrb": 24,
    "vendidosOrb": 51,
    "livro": {
     "gold": {
-     "anuncios": 19,
-     "unidades": 916,
+     "anuncios": 23,
+     "unidades": 1461,
      "top": [
       [
-       69497,
-       28
+       54688,
+       9
       ],
       [
-       70199,
-       7
+       55241,
+       2
       ],
       [
-       70199,
-       4
+       55632,
+       2
       ],
       [
-       70199,
-       49
+       62487,
+       2
       ],
       [
-       70199,
-       15
+       70000,
+       10
       ],
       [
-       87500,
-       24
+       70413,
+       41
       ],
       [
-       87500,
-       64
+       78480,
+       2
       ],
       [
-       89500,
-       4
+       78480,
+       2
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 23021,
+     "unidades": 23569,
      "top": [
       [
        2,
@@ -635,56 +635,56 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "53": {
    "nome": "Fire Stone",
    "categoria": "stone",
-   "anuncios": 327,
+   "anuncios": 334,
    "unidades": 72125,
-   "minGold": 50986,
+   "minGold": 58816,
    "minOrb": 2,
-   "mediaGold": 74478,
-   "vendidosGold": 597280,
+   "mediaGold": 74374,
+   "vendidosGold": 600976,
    "mediaOrb": 33,
    "vendidosOrb": 321,
    "livro": {
     "gold": {
-     "anuncios": 30,
-     "unidades": 11443,
+     "anuncios": 26,
+     "unidades": 7493,
      "top": [
       [
-       57573,
-       3
+       58816,
+       5
       ],
       [
-       57573,
-       21
-      ],
-      [
-       65332,
-       58
-      ],
-      [
-       65333,
+       58945,
        2
       ],
       [
-       65333,
-       24
+       66232,
+       4
       ],
       [
-       65333,
-       49
+       74374,
+       10
       ],
       [
-       65333,
-       203
+       74388,
+       979
       ],
       [
-       65333,
-       11
+       74456,
+       29
+      ],
+      [
+       74470,
+       19
+      ],
+      [
+       75000,
+       17
       ]
      ]
     },
@@ -726,32 +726,44 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "66": {
    "nome": "Heart Stone",
    "categoria": "stone",
    "anuncios": 176,
-   "unidades": 4067,
+   "unidades": 4062,
    "minGold": 65000,
    "minOrb": 2,
    "mediaGold": 81588,
    "vendidosGold": 36501,
-   "mediaOrb": 181,
-   "vendidosOrb": 41,
+   "mediaOrb": 182,
+   "vendidosOrb": 40,
    "livro": {
     "gold": {
      "anuncios": 60,
-     "unidades": 910,
+     "unidades": 932,
      "top": [
       [
        65000,
-       48
+       5
       ],
       [
        65000,
        1
+      ],
+      [
+       65000,
+       29
+      ],
+      [
+       65000,
+       19
+      ],
+      [
+       65000,
+       2
       ],
       [
        69999,
@@ -764,24 +776,12 @@
       [
        69999,
        26
-      ],
-      [
-       70000,
-       2
-      ],
-      [
-       70000,
-       2
-      ],
-      [
-       70000,
-       3
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 1161,
+     "unidades": 1180,
      "top": [
       [
        2,
@@ -817,62 +817,62 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "71": {
    "nome": "Ice Stone",
    "categoria": "stone",
-   "anuncios": 272,
-   "unidades": 8298,
-   "minGold": 71340,
+   "anuncios": 285,
+   "unidades": 8530,
+   "minGold": 70614,
    "minOrb": 2,
-   "mediaGold": 97283,
-   "vendidosGold": 28845,
+   "mediaGold": 97286,
+   "vendidosGold": 28814,
    "mediaOrb": 118,
    "vendidosOrb": 23,
    "livro": {
     "gold": {
-     "anuncios": 60,
-     "unidades": 854,
+     "anuncios": 26,
+     "unidades": 390,
      "top": [
       [
-       92004,
+       70614,
        3
       ],
       [
-       92004,
-       21
-      ],
-      [
-       92004,
-       1
-      ],
-      [
-       92004,
-       10
-      ],
-      [
-       92004,
-       19
-      ],
-      [
-       92005,
-       5
-      ],
-      [
-       92005,
-       1
-      ],
-      [
-       92005,
+       70615,
        2
+      ],
+      [
+       70615,
+       14
+      ],
+      [
+       70615,
+       1
+      ],
+      [
+       70615,
+       2
+      ],
+      [
+       71330,
+       70
+      ],
+      [
+       71330,
+       4
+      ],
+      [
+       71340,
+       20
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 2420,
+     "unidades": 2434,
      "top": [
       [
        2,
@@ -908,62 +908,62 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "76": {
    "nome": "Leaf Stone",
    "categoria": "stone",
-   "anuncios": 449,
-   "unidades": 45237,
-   "minGold": 61998,
+   "anuncios": 450,
+   "unidades": 46224,
+   "minGold": 64801,
    "minOrb": 2,
-   "mediaGold": 82226,
-   "vendidosGold": 234417,
+   "mediaGold": 82202,
+   "vendidosGold": 235152,
    "mediaOrb": 15,
    "vendidosOrb": 414,
    "livro": {
     "gold": {
-     "anuncios": 42,
-     "unidades": 14279,
+     "anuncios": 50,
+     "unidades": 2390,
      "top": [
       [
-       63299,
-       1
+       64801,
+       4
       ],
       [
-       63300,
-       3
-      ],
-      [
-       79999,
+       64801,
        2
+      ],
+      [
+       64801,
+       39
+      ],
+      [
+       79920,
+       44
+      ],
+      [
+       79920,
+       19
+      ],
+      [
+       80000,
+       41
       ],
       [
        80000,
        1
       ],
       [
-       80938,
-       3
-      ],
-      [
-       82136,
-       12
-      ],
-      [
-       82208,
-       2
-      ],
-      [
-       82215,
-       779
+       80000,
+       14
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 7892,
+     "unidades": 7956,
      "top": [
       [
        2,
@@ -999,56 +999,56 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "87": {
    "nome": "Metal Stone",
    "categoria": "stone",
-   "anuncios": 492,
-   "unidades": 34181,
-   "minGold": 4850,
+   "anuncios": 495,
+   "unidades": 33583,
+   "minGold": 24627,
    "minOrb": 2,
-   "mediaGold": 53591,
-   "vendidosGold": 77489,
+   "mediaGold": 52562,
+   "vendidosGold": 81044,
    "mediaOrb": 80,
    "vendidosOrb": 47,
    "livro": {
     "gold": {
      "anuncios": 60,
-     "unidades": 10892,
+     "unidades": 1916,
      "top": [
       [
-       32932,
+       24627,
+       1
+      ],
+      [
+       24627,
+       76
+      ],
+      [
+       25389,
        3
       ],
       [
-       36000,
-       74
+       26174,
+       3
       ],
       [
-       36000,
-       14
+       26174,
+       6
       ],
       [
-       40000,
+       26984,
+       3
+      ],
+      [
+       26984,
+       5
+      ],
+      [
+       26984,
        8
-      ],
-      [
-       41386,
-       15
-      ],
-      [
-       50744,
-       35
-      ],
-      [
-       54999,
-       579
-      ],
-      [
-       55000,
-       50
       ]
      ]
     },
@@ -1090,62 +1090,62 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "106": {
    "nome": "Punch Stone",
    "categoria": "stone",
-   "anuncios": 160,
-   "unidades": 24698,
-   "minGold": 90999,
+   "anuncios": 163,
+   "unidades": 25850,
+   "minGold": 90000,
    "minOrb": 2,
-   "mediaGold": 112896,
-   "vendidosGold": 46677,
+   "mediaGold": 112895,
+   "vendidosGold": 46679,
    "mediaOrb": 9,
    "vendidosOrb": 983,
    "livro": {
     "gold": {
-     "anuncios": 58,
-     "unidades": 5339,
+     "anuncios": 57,
+     "unidades": 7979,
      "top": [
       [
-       91000,
-       6
+       90000,
+       37
+      ],
+      [
+       90999,
+       9
+      ],
+      [
+       90999,
+       93
+      ],
+      [
+       90999,
+       1001
       ],
       [
        91000,
-       162
+       1317
       ],
       [
        91000,
-       33
+       5
       ],
       [
        91000,
-       10
+       63
       ],
       [
        91000,
-       39
-      ],
-      [
-       91000,
-       1
-      ],
-      [
-       91000,
-       1
-      ],
-      [
-       91000,
-       39
+       696
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 13328,
+     "unidades": 13312,
      "top": [
       [
        2,
@@ -1181,56 +1181,56 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "109": {
    "nome": "Rock Stone",
    "categoria": "stone",
-   "anuncios": 984,
-   "unidades": 79677,
-   "minGold": 17689,
+   "anuncios": 1013,
+   "unidades": 84295,
+   "minGold": 30954,
    "minOrb": 2,
-   "mediaGold": 65308,
-   "vendidosGold": 449051,
+   "mediaGold": 65064,
+   "vendidosGold": 451015,
    "mediaOrb": 12,
    "vendidosOrb": 294,
    "livro": {
     "gold": {
-     "anuncios": 25,
-     "unidades": 2655,
+     "anuncios": 55,
+     "unidades": 4316,
      "top": [
       [
-       22513,
-       1
+       30607,
+       2
       ],
       [
-       22513,
-       23
-      ],
-      [
-       25316,
-       9
-      ],
-      [
-       42000,
-       21
-      ],
-      [
-       43998,
+       30954,
        3
       ],
       [
-       49487,
-       361
+       34443,
+       10
       ],
       [
-       65000,
-       15
+       34443,
+       1
       ],
       [
-       70000,
-       26
+       34502,
+       1
+      ],
+      [
+       34767,
+       2
+      ],
+      [
+       35100,
+       1
+      ],
+      [
+       35142,
+       1
       ]
      ]
     },
@@ -1272,15 +1272,15 @@
       ]
      ]
     },
-    "em": "2026-10-16T23:55:00.703Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "133": {
    "nome": "Thunder Stone",
    "categoria": "stone",
-   "anuncios": 167,
-   "unidades": 6339,
-   "minGold": 55000,
+   "anuncios": 174,
+   "unidades": 6351,
+   "minGold": 54450,
    "minOrb": 2,
    "mediaGold": 80318,
    "vendidosGold": 27556,
@@ -1288,46 +1288,46 @@
    "vendidosOrb": 20,
    "livro": {
     "gold": {
-     "anuncios": 34,
-     "unidades": 917,
+     "anuncios": 60,
+     "unidades": 450,
      "top": [
       [
-       75000,
-       18
-      ],
-      [
-       75000,
-       2
-      ],
-      [
-       75000,
+       54450,
        1
       ],
       [
-       80000,
-       1
-      ],
-      [
-       80539,
-       1
-      ],
-      [
-       80867,
+       54450,
        4
       ],
       [
-       80867,
-       3
+       54450,
+       4
       ],
       [
-       80867,
-       11
+       54450,
+       4
+      ],
+      [
+       54450,
+       1
+      ],
+      [
+       55000,
+       13
+      ],
+      [
+       55000,
+       5
+      ],
+      [
+       55000,
+       1
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 4264,
+     "unidades": 4268,
      "top": [
       [
        2,
@@ -1363,62 +1363,62 @@
       ]
      ]
     },
-    "em": "2026-10-16T18:44:49.858Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "139": {
    "nome": "Venom Stone",
    "categoria": "stone",
-   "anuncios": 381,
-   "unidades": 14639,
-   "minGold": 68000,
+   "anuncios": 404,
+   "unidades": 15120,
+   "minGold": 65339,
    "minOrb": 2,
-   "mediaGold": 80168,
-   "vendidosGold": 64676,
+   "mediaGold": 80022,
+   "vendidosGold": 64985,
    "mediaOrb": 11,
    "vendidosOrb": 140,
    "livro": {
     "gold": {
-     "anuncios": 11,
-     "unidades": 327,
+     "anuncios": 60,
+     "unidades": 803,
      "top": [
       [
-       82855,
-       20
-      ],
-      [
-       100000,
-       261
-      ],
-      [
-       108489,
-       27
-      ],
-      [
-       114724,
+       65339,
        2
       ],
       [
-       114822,
+       65339,
        1
       ],
       [
-       118800,
-       2
-      ],
-      [
-       200000,
-       2
-      ],
-      [
-       218444,
+       65999,
        7
+      ],
+      [
+       66990,
+       13
+      ],
+      [
+       67000,
+       15
+      ],
+      [
+       67997,
+       2
+      ],
+      [
+       67997,
+       1
+      ],
+      [
+       67997,
+       4
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 3603,
+     "unidades": 3601,
      "top": [
       [
        2,
@@ -1454,56 +1454,56 @@
       ]
      ]
     },
-    "em": "2026-10-16T18:44:49.858Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "142": {
    "nome": "Water Stone",
    "categoria": "stone",
-   "anuncios": 233,
-   "unidades": 18134,
-   "minGold": 102000,
+   "anuncios": 225,
+   "unidades": 18474,
+   "minGold": 111542,
    "minOrb": 2,
-   "mediaGold": 149355,
-   "vendidosGold": 99307,
+   "mediaGold": 149308,
+   "vendidosGold": 99444,
    "mediaOrb": 25,
    "vendidosOrb": 37,
    "livro": {
     "gold": {
-     "anuncios": 35,
-     "unidades": 4340,
+     "anuncios": 31,
+     "unidades": 1196,
      "top": [
       [
-       124998,
-       4
-      ],
-      [
-       124999,
-       20
-      ],
-      [
-       124999,
-       5
-      ],
-      [
-       124999,
-       14
-      ],
-      [
-       125000,
-       37
-      ],
-      [
-       125000,
+       111542,
        3
       ],
       [
-       126000,
-       100
+       111558,
+       27
       ],
       [
-       127000,
-       10
+       111558,
+       3
+      ],
+      [
+       120000,
+       1
+      ],
+      [
+       124179,
+       1
+      ],
+      [
+       139000,
+       5
+      ],
+      [
+       139900,
+       40
+      ],
+      [
+       140000,
+       4
       ]
      ]
     },
@@ -1545,15 +1545,15 @@
       ]
      ]
     },
-    "em": "2026-10-16T18:44:49.858Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "209": {
    "nome": "Sun Stone",
    "categoria": "stone",
-   "anuncios": 286,
-   "unidades": 1877,
-   "minGold": 80999,
+   "anuncios": 289,
+   "unidades": 1914,
+   "minGold": 80189,
    "minOrb": 2,
    "mediaGold": 105589,
    "vendidosGold": 6820,
@@ -1561,9 +1561,17 @@
    "vendidosOrb": 5,
    "livro": {
     "gold": {
-     "anuncios": 31,
+     "anuncios": 30,
      "unidades": 900,
      "top": [
+      [
+       80189,
+       4
+      ],
+      [
+       80999,
+       7
+      ],
       [
        81000,
        1
@@ -1582,19 +1590,11 @@
       ],
       [
        89999,
-       51
+       52
       ],
       [
        90000,
        10
-      ],
-      [
-       90000,
-       1
-      ],
-      [
-       90000,
-       7
       ]
      ]
     },
@@ -1636,31 +1636,39 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "40530": {
    "nome": "AoE TM Disk Piece",
    "categoria": "tm",
-   "anuncios": 48,
-   "unidades": 97,
+   "anuncios": 44,
+   "unidades": 75,
    "minGold": 999000000,
-   "minOrb": 348,
+   "minOrb": 350,
    "mediaGold": 1475506172,
    "vendidosGold": 9,
-   "mediaOrb": 437,
-   "vendidosOrb": 1217,
+   "mediaOrb": 435,
+   "vendidosOrb": 1242,
    "livro": {
     "gold": {
      "anuncios": 13,
      "unidades": 16,
      "top": [
       [
+       999000000,
+       1
+      ],
+      [
+       1000000000,
+       1
+      ],
+      [
        1200000000,
        1
       ],
       [
-       1340000000,
+       1200000000,
        1
       ],
       [
@@ -1676,43 +1684,15 @@
        1
       ],
       [
-       1400000000,
-       1
-      ],
-      [
-       1450000000,
-       1
-      ],
-      [
        1450000000,
        1
       ]
      ]
     },
     "orb": {
-     "anuncios": 38,
-     "unidades": 112,
+     "anuncios": 31,
+     "unidades": 59,
      "top": [
-      [
-       348,
-       5
-      ],
-      [
-       348,
-       36
-      ],
-      [
-       348,
-       8
-      ],
-      [
-       348,
-       1
-      ],
-      [
-       348,
-       1
-      ],
       [
        350,
        1
@@ -1724,10 +1704,30 @@
       [
        385,
        1
+      ],
+      [
+       385,
+       1
+      ],
+      [
+       386,
+       4
+      ],
+      [
+       400,
+       2
+      ],
+      [
+       400,
+       1
+      ],
+      [
+       400,
+       1
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "40575": {
@@ -1745,10 +1745,10 @@
   "59194": {
    "nome": "TM Disk Piece",
    "categoria": "tm",
-   "anuncios": 24,
-   "unidades": 42,
+   "anuncios": 28,
+   "unidades": 54,
    "minGold": 899000000,
-   "minOrb": 360,
+   "minOrb": 344,
    "mediaGold": 1000000000,
    "vendidosGold": 5,
    "mediaOrb": 395,
@@ -1771,10 +1771,6 @@
        1
       ],
       [
-       944999000,
-       1
-      ],
-      [
        990000000,
        1
       ],
@@ -1785,16 +1781,36 @@
       [
        1000000000,
        1
+      ],
+      [
+       2000000000,
+       1
       ]
      ]
     },
     "orb": {
-     "anuncios": 19,
-     "unidades": 42,
+     "anuncios": 21,
+     "unidades": 47,
      "top": [
       [
-       360,
+       344,
        1
+      ],
+      [
+       344,
+       4
+      ],
+      [
+       344,
+       1
+      ],
+      [
+       345,
+       1
+      ],
+      [
+       360,
+       2
       ],
       [
        365,
@@ -1807,86 +1823,66 @@
       [
        370,
        1
-      ],
-      [
-       378,
-       8
-      ],
-      [
-       379,
-       1
-      ],
-      [
-       380,
-       6
-      ],
-      [
-       380,
-       2
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70000": {
    "nome": "Bronze Boss Token",
    "categoria": "boss",
-   "anuncios": 342,
-   "unidades": 5980,
-   "minGold": 13000000,
+   "anuncios": 351,
+   "unidades": 6060,
+   "minGold": 13999997,
    "minOrb": 5,
-   "mediaGold": 14187295,
-   "vendidosGold": 41151,
+   "mediaGold": 14185599,
+   "vendidosGold": 41438,
    "mediaOrb": 5,
-   "vendidosOrb": 157189,
+   "vendidosOrb": 157989,
    "livro": {
     "gold": {
-     "anuncios": 47,
-     "unidades": 570,
+     "anuncios": 60,
+     "unidades": 650,
      "top": [
       [
-       14100000,
-       8
+       13999997,
+       16
       ],
       [
-       14200000,
-       6
-      ],
-      [
-       14200000,
-       3
-      ],
-      [
-       14201808,
-       1
-      ],
-      [
-       14201808,
+       13999997,
        2
       ],
       [
-       15000000,
-       12
+       13999998,
+       4
       ],
       [
-       15000000,
-       5
+       13999998,
+       1
       ],
       [
-       15000000,
-       11
+       13999998,
+       2
+      ],
+      [
+       13999998,
+       2
+      ],
+      [
+       13999998,
+       2
+      ],
+      [
+       13999998,
+       3
       ]
      ]
     },
     "orb": {
      "anuncios": 60,
-     "unidades": 645,
+     "unidades": 570,
      "top": [
-      [
-       5,
-       1
-      ],
       [
        5,
        1
@@ -1897,60 +1893,52 @@
       ],
       [
        5,
-       3
+       4
+      ],
+      [
+       5,
+       2
       ],
       [
        5,
        1
       ],
       [
-       5,
+       6,
+       5
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       6,
        10
-      ],
-      [
-       5,
-       17
-      ],
-      [
-       5,
-       1
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70011": {
    "nome": "Key Fragment",
    "categoria": "fragment",
-   "anuncios": 56,
-   "unidades": 65,
+   "anuncios": 48,
+   "unidades": 56,
    "minGold": 521862093,
-   "minOrb": 235,
-   "mediaGold": 520606335,
-   "vendidosGold": 236,
+   "minOrb": 231,
+   "mediaGold": 520622097,
+   "vendidosGold": 239,
    "mediaOrb": 242,
-   "vendidosOrb": 2080,
+   "vendidosOrb": 2101,
    "livro": {
     "gold": {
-     "anuncios": 13,
-     "unidades": 14,
+     "anuncios": 10,
+     "unidades": 10,
      "top": [
       [
-       520832210,
-       1
-      ],
-      [
-       521000000,
-       1
-      ],
-      [
        521862093,
        1
-      ],
-      [
-       521862093,
-       2
       ],
       [
        575000000,
@@ -1967,80 +1955,80 @@
       [
        584999999,
        1
+      ],
+      [
+       620000000,
+       1
+      ],
+      [
+       620000000,
+       1
+      ],
+      [
+       620023390,
+       1
       ]
      ]
     },
     "orb": {
-     "anuncios": 33,
-     "unidades": 39,
+     "anuncios": 38,
+     "unidades": 46,
      "top": [
       [
-       252,
+       231,
        1
       ],
       [
-       262,
+       241,
        1
       ],
       [
-       262,
+       241,
+       1
+      ],
+      [
+       242,
        2
       ],
       [
-       263,
+       242,
        1
       ],
       [
-       270,
+       242,
        1
       ],
       [
-       274,
+       249,
        1
       ],
       [
-       274,
-       1
-      ],
-      [
-       274,
+       250,
        1
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70012": {
    "nome": "Shiny Stone Fragment",
    "categoria": "fragment",
-   "anuncios": 175,
-   "unidades": 228,
-   "minGold": 329099900,
-   "minOrb": 119,
-   "mediaGold": 340288302,
-   "vendidosGold": 241,
+   "anuncios": 169,
+   "unidades": 222,
+   "minGold": 329099999,
+   "minOrb": 115,
+   "mediaGold": 340179189,
+   "vendidosGold": 246,
    "mediaOrb": 134,
-   "vendidosOrb": 1996,
+   "vendidosOrb": 2015,
    "livro": {
     "gold": {
-     "anuncios": 25,
-     "unidades": 28,
+     "anuncios": 24,
+     "unidades": 27,
      "top": [
       [
        329099999,
-       1
-      ],
-      [
-       329099999,
-       1
-      ],
-      [
-       329999999,
-       1
-      ],
-      [
-       329999999,
        1
       ],
       [
@@ -2058,6 +2046,18 @@
       [
        330000000,
        2
+      ],
+      [
+       330000000,
+       1
+      ],
+      [
+       330000000,
+       2
+      ],
+      [
+       330000000,
+       1
       ]
      ]
     },
@@ -2066,16 +2066,16 @@
      "unidades": 82,
      "top": [
       [
+       115,
+       1
+      ],
+      [
        120,
        1
       ],
       [
        120,
-       3
-      ],
-      [
-       120,
-       1
+       10
       ],
       [
        120,
@@ -2099,27 +2099,31 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70013": {
    "nome": "Bicycle Fragment",
    "categoria": "fragment",
-   "anuncios": 73,
-   "unidades": 90,
-   "minGold": 364999999,
-   "minOrb": 174,
-   "mediaGold": 384102710,
-   "vendidosGold": 201,
+   "anuncios": 75,
+   "unidades": 93,
+   "minGold": 350000000,
+   "minOrb": 165,
+   "mediaGold": 383766723,
+   "vendidosGold": 203,
    "mediaOrb": 150,
-   "vendidosOrb": 1901,
+   "vendidosOrb": 1909,
    "livro": {
     "gold": {
-     "anuncios": 28,
-     "unidades": 31,
+     "anuncios": 27,
+     "unidades": 30,
      "top": [
       [
-       354999999,
+       350000000,
+       1
+      ],
+      [
+       364999999,
        1
       ],
       [
@@ -2145,16 +2149,12 @@
       [
        370000000,
        1
-      ],
-      [
-       374999995,
-       1
       ]
      ]
     },
     "orb": {
-     "anuncios": 43,
-     "unidades": 58,
+     "anuncios": 48,
+     "unidades": 63,
      "top": [
       [
        165,
@@ -2162,14 +2162,14 @@
       ],
       [
        165,
-       2
-      ],
-      [
-       174,
        1
       ],
       [
-       174,
+       165,
+       1
+      ],
+      [
+       175,
        1
       ],
       [
@@ -2190,36 +2190,36 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70014": {
    "nome": "Mega Stone Fragment",
    "categoria": "fragment",
-   "anuncios": 29,
-   "unidades": 67,
+   "anuncios": 33,
+   "unidades": 74,
    "minGold": 220000000,
    "minOrb": 73,
    "mediaGold": 250353009,
    "vendidosGold": 144,
    "mediaOrb": 79,
-   "vendidosOrb": 1991,
+   "vendidosOrb": 1986,
    "livro": {
     "gold": {
      "anuncios": 8,
      "unidades": 11,
      "top": [
       [
-       218999999,
-       1
+       220000000,
+       2
       ],
       [
-       219000000,
+       220000000,
        1
       ],
       [
        220000000,
-       3
+       2
       ],
       [
        257114324,
@@ -2244,57 +2244,57 @@
      ]
     },
     "orb": {
-     "anuncios": 21,
-     "unidades": 45,
+     "anuncios": 25,
+     "unidades": 63,
      "top": [
       [
-       60,
+       73,
        1
       ],
       [
-       69,
-       2
-      ],
-      [
-       74,
-       1
-      ],
-      [
-       74,
+       73,
        8
       ],
       [
-       76,
+       73,
+       2
+      ],
+      [
+       73,
        1
       ],
       [
-       78,
+       73,
        1
       ],
       [
-       79,
-       1
+       73,
+       2
       ],
       [
-       80,
+       73,
+       13
+      ],
+      [
+       74,
        2
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70015": {
    "nome": "Mega Shiny Stone Fragment",
    "categoria": "fragment",
-   "anuncios": 39,
-   "unidades": 103,
+   "anuncios": 37,
+   "unidades": 92,
    "minGold": 880000000,
-   "minOrb": 230,
+   "minOrb": 243,
    "mediaGold": 999000000,
    "vendidosGold": 1,
-   "mediaOrb": 291,
-   "vendidosOrb": 742,
+   "mediaOrb": 290,
+   "vendidosOrb": 762,
    "livro": {
     "gold": {
      "anuncios": 8,
@@ -2335,24 +2335,16 @@
      ]
     },
     "orb": {
-     "anuncios": 32,
-     "unidades": 83,
+     "anuncios": 29,
+     "unidades": 81,
      "top": [
+      [
+       243,
+       2
+      ],
       [
        245,
        31
-      ],
-      [
-       245,
-       1
-      ],
-      [
-       260,
-       1
-      ],
-      [
-       260,
-       1
       ],
       [
        265,
@@ -2367,12 +2359,20 @@
        1
       ],
       [
-       272,
+       278,
+       1
+      ],
+      [
+       280,
+       2
+      ],
+      [
+       295,
        1
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70021": {
@@ -2414,14 +2414,14 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70040": {
    "nome": "Common House",
    "categoria": "casa",
-   "anuncios": 4,
-   "unidades": 4,
+   "anuncios": 6,
+   "unidades": 6,
    "minGold": null,
    "minOrb": 1700,
    "mediaGold": 3950000000,
@@ -2435,19 +2435,23 @@
      "top": []
     },
     "orb": {
-     "anuncios": 5,
-     "unidades": 5,
+     "anuncios": 6,
+     "unidades": 6,
      "top": [
       [
        1700,
        1
       ],
       [
-       1700,
+       2170,
        1
       ],
       [
        2199,
+       1
+      ],
+      [
+       2200,
        1
       ],
       [
@@ -2460,7 +2464,7 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70041": {
@@ -2481,11 +2485,15 @@
      "top": []
     },
     "orb": {
-     "anuncios": 3,
-     "unidades": 3,
+     "anuncios": 4,
+     "unidades": 4,
      "top": [
       [
        4000,
+       1
+      ],
+      [
+       4500,
        1
       ],
       [
@@ -2498,7 +2506,7 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70042": {
@@ -2532,7 +2540,7 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70060": {
@@ -2574,7 +2582,7 @@
       ]
      ]
     },
-    "em": "2026-10-17T00:57:04.085Z"
+    "em": "2026-10-17T03:01:30.112Z"
    }
   },
   "70061": {
@@ -2626,8 +2634,8 @@
   "70080": {
    "nome": "Common Bicycle",
    "categoria": "bicicleta",
-   "anuncios": 7,
-   "unidades": 7,
+   "anuncios": 8,
+   "unidades": 8,
    "minGold": null,
    "minOrb": 1800,
    "mediaGold": null,
@@ -2738,14 +2746,14 @@
   "70095": {
    "nome": "Safari Ticket",
    "categoria": "ticket",
-   "anuncios": 32,
-   "unidades": 115,
+   "anuncios": 36,
+   "unidades": 121,
    "minGold": 200000000,
-   "minOrb": 38,
-   "mediaGold": 270333333,
-   "vendidosGold": 15,
-   "mediaOrb": 128,
-   "vendidosOrb": 278,
+   "minOrb": 36,
+   "mediaGold": 258055556,
+   "vendidosGold": 18,
+   "mediaOrb": 126,
+   "vendidosOrb": 283,
    "livro": {
     "gold": {
      "anuncios": 5,
@@ -2969,14 +2977,14 @@
   "73004": {
    "nome": "Mega Charizard Y Dracula Skin",
    "categoria": "skin",
-   "anuncios": 4,
-   "unidades": 4,
+   "anuncios": 3,
+   "unidades": 3,
    "minGold": 300000000,
-   "minOrb": 199,
+   "minOrb": 200,
    "mediaGold": 325000000,
    "vendidosGold": 2,
-   "mediaOrb": 152,
-   "vendidosOrb": 4,
+   "mediaOrb": 161,
+   "vendidosOrb": 5,
    "livro": {
     "gold": {
      "anuncios": 2,
@@ -3488,14 +3496,14 @@
   "73505": {
    "nome": "Shiny Mega Charizard Y Ender Skin",
    "categoria": "skin",
-   "anuncios": 5,
-   "unidades": 5,
-   "minGold": 300000000,
-   "minOrb": 219,
+   "anuncios": 4,
+   "unidades": 4,
+   "minGold": 240000000,
+   "minOrb": 220,
    "mediaGold": 100000001,
    "vendidosGold": 2,
    "mediaOrb": 220,
-   "vendidosOrb": 1,
+   "vendidosOrb": 2,
    "livro": {
     "gold": {
      "anuncios": 1,
