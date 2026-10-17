@@ -2135,7 +2135,10 @@ function analisarTime(E, membros) {
   });
   const golpesTime = new Set(membros.flatMap((m) => m.golpes));
   const cobertura = E.tipos.map((d) => ({ d, ok: [...golpesTime].some((a) => mult1(a, d) >= 2) }));
-  return { def, buracos: def.filter((x) => x.peso >= 1).sort((a, b) => b.peso - a.peso), semCobertura: cobertura.filter((c) => !c.ok).map((c) => c.d) };
+  // EFETIVO CONTRA: tipos que algum golpe do time acerta ×2 ou mais, e quem do time acerta (pelos golpes até o nível dele)
+  const efetivo = E.tipos.map((d) => ({ d, quem: membros.filter((m) => m.golpes.some((a) => mult1(a, d) >= 2)).map((m) => m.esp.nome) }))
+    .filter((x) => x.quem.length).sort((a, b) => b.quem.length - a.quem.length);
+  return { def, buracos: def.filter((x) => x.peso >= 1).sort((a, b) => b.peso - a.peso), semCobertura: cobertura.filter((c) => !c.ok).map((c) => c.d), efetivo };
 }
 
 // ---------- meta do PvP (times do top 100, lidos pelo coletor: dados/pvp-meta.json) ----------
@@ -2285,6 +2288,7 @@ async function renderTime() {
   out.innerHTML = `<div class="time-resumo">
       <div><span class="lbl">Seu time</span><div class="chips">${membros.map((m) => `<span class="tag">${m.f.shiny ? "✨ " : ""}${esc(m.esp.nome)} ${m.tipos.map(chipTipo).join("")}</span>`).join("")}</div></div>
       <div><span class="lbl">Fraquezas do time</span><div class="chips">${an.buracos.length ? an.buracos.map((b) => `${chipTipo(b.a)}<span class="muted small">${b.fracos}× fraco</span>`).join(" ") : '<span class="bom small">nenhuma fraqueza sem resistência</span>'}</div></div>
+      <div><span class="lbl">Efetivo contra</span><div class="chips">${an.efetivo.length ? an.efetivo.map((x) => `<span title="Acertam ×2 ou mais: ${esc(x.quem.join(", "))}">${chipTipo(x.d)}<span class="muted small">${x.quem.length}×</span></span>`).join(" ") : '<span class="muted small">nenhum golpe do time acerta ×2</span>'}</div></div>
       <div><span class="lbl">Sem golpe super efetivo contra</span><div class="chips">${an.semCobertura.length ? an.semCobertura.map(chipTipo).join("") : '<span class="bom small">o time acerta todos os tipos</span>'}</div></div>
     </div>
     <details class="inv-det"><summary>Tabela de fraquezas tipo a tipo</summary>${grade}</details>
