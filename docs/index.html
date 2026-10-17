@@ -255,7 +255,13 @@ a.tema[aria-current="page"] { border-color: var(--acc); color: var(--acc); }
 .inv-det summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
 .inv-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
 .inv-card h3 { font-size: 1rem; }
-.time-fichas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.time-fichas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .time-fichas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.laudo-time { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px; background: var(--sunk); margin-bottom: 12px; }
+.laudo-time.ok { border-left-color: var(--good); } .laudo-time.bad { border-left-color: var(--bad); }
+.laudo-time .nota-time { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.laudo-time .nota-time b { font: 700 1.35rem/1.1 var(--f-display); }
+.laudo-time ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 @media (max-width: 900px) { .time-fichas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .time-fichas { grid-template-columns: minmax(0, 1fr); } }
 .time-ficha { display: grid; gap: 4px; align-content: start; }
@@ -326,7 +332,7 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
     <button role="tab" data-aba="comprar" aria-selected="false">Comprar</button>
     <button role="tab" data-aba="investir" aria-selected="false">Vale investir?</button>
     <button role="tab" data-aba="trocar" aria-selected="false">Quero trocar</button>
-    <button role="tab" data-aba="time" aria-selected="false">Complete meu time</button>
+    <button role="tab" data-aba="time" aria-selected="false">Avalie meu time</button>
     <button role="tab" data-aba="farmar" aria-selected="false">Onde farmar</button>
     <button role="tab" data-aba="mercado" aria-selected="false">Mercado</button>
   </nav>
@@ -421,15 +427,16 @@ td.bom, .bom { color: var(--good); } td.ruim, .ruim { color: var(--bad); }
       <div class="vista" data-vista="time" hidden>
         <section class="panel" id="time">
           <div class="head-row">
-            <div><span class="lbl">Fraquezas e cobertura</span><h2>Complete meu time</h2></div>
+            <div><span class="lbl">Fraquezas, cobertura e ranking</span><h2>Avalie meu time</h2></div>
             <div class="farm-ctrl"><label class="mini">Aceito gastar até <span class="calc-linha"><input id="tm-orc" inputmode="numeric" placeholder="sem limite"> <span class="u">Gemas</span></span></label></div>
           </div>
-          <p class="muted small">Cole a ficha de cada pokémon do seu time (botão Copiar p/ ChatGPT do jogo), até 4. O site mostra as fraquezas do time e procura nos anúncios o 5º que mais ajuda.</p>
+          <p class="muted small">Cole a ficha de cada pokémon do seu time (botão Copiar p/ ChatGPT do jogo), até 5. O site mostra as fraquezas e a cobertura do time, procura nos anúncios quem mais ajuda e, com as 5 fichas, dá o laudo da equipe.</p>
           <div class="time-fichas">
             <label class="time-ficha"><span class="lbl">Pokémon 1</span><textarea id="tm-f1" rows="3" spellcheck="false" aria-label="Ficha do pokémon 1"></textarea><span class="small muted" id="tm-r1"></span></label>
             <label class="time-ficha"><span class="lbl">Pokémon 2</span><textarea id="tm-f2" rows="3" spellcheck="false" aria-label="Ficha do pokémon 2"></textarea><span class="small muted" id="tm-r2"></span></label>
             <label class="time-ficha"><span class="lbl">Pokémon 3</span><textarea id="tm-f3" rows="3" spellcheck="false" aria-label="Ficha do pokémon 3"></textarea><span class="small muted" id="tm-r3"></span></label>
             <label class="time-ficha"><span class="lbl">Pokémon 4</span><textarea id="tm-f4" rows="3" spellcheck="false" aria-label="Ficha do pokémon 4"></textarea><span class="small muted" id="tm-r4"></span></label>
+            <label class="time-ficha"><span class="lbl">Pokémon 5</span><textarea id="tm-f5" rows="3" spellcheck="false" aria-label="Ficha do pokémon 5"></textarea><span class="small muted" id="tm-r5"></span></label>
           </div>
           <div id="time-out"></div>
           <div id="pvp-out" class="pvp-meta"></div>
@@ -2222,23 +2229,91 @@ async function renderMetaPvp(fichas) {
   out.querySelectorAll("[data-pf]").forEach((b) => { b.onclick = () => { state.pvpFaixa = +b.dataset.pf; renderMetaPvp(fichas); }; });
 }
 
+/**
+ * O LAUDO da equipe (com as 5 fichas): composição (cobertura de tipos + fraquezas sem resistência, 0–10) e
+ * força no ranking (soma do Poder no PvP dos 5, a mesma conta da ficha do jogo, contra a soma de cada time
+ * do top 100 lido pelo coletor). A posição só dá para estimar DENTRO do top 100: o jogo não mostra o resto.
+ */
+function laudoDoTime(E, membros, an) {
+  const n = E.tipos.length;
+  const nEfetivo = an.efetivo.length, pesoFraq = an.buracos.reduce((t, b) => t + b.peso, 0);
+  // defesa: cada tipo que pega mais gente do que resiste conta o saldo; 10 de saldo somado zera
+  const cob = 5 * nEfetivo / n, def = 5 * Math.max(0, 1 - pesoFraq / 10);
+  const comp = cob + def;
+  // força: Poder no PvP de cada um (precisa da tabela de stats da ficha)
+  const pvpDe = (m) => { const st = m.f.statsAtuais; return st && m.f.lvl > 0 ? poderPvp(m.esp, E.tipos, { hp: st[0], atk: st[1], def: st[2], spAtk: st[3], spDef: st[4] }, m.f.lvl, null) : 0; };
+  const pvps = membros.map((m) => ({ m, p: pvpDe(m) }));
+  const temTodos = pvps.every((x) => x.p > 0), somaSua = pvps.reduce((t, x) => t + x.p, 0);
+  let forca = null;
+  if (temTodos && pvpMeta) {
+    const times = pvpMeta.jogadores.filter((j) => Array.isArray(j.time) && j.time.length).map((j) => ({ pos: j.pos,
+      soma: j.time.reduce((t, p) => t + (p._pvp ?? (p._pvp = poderPvp(E.porNome.get(norm(p.nome)), E.tipos, p.stats, p.nv, p.tm))), 0) }))
+      .filter((t) => t.soma > 0).sort((a, b) => a.soma - b.soma);
+    if (times.length) {
+      const passa = times.filter((t) => t.soma <= somaSua).length;
+      // posição × log(força) é quase uma reta no top 100 (correlação −0,89 em 17/10/2026): estima pela reta
+      const xs = times.map((t) => Math.log(t.soma)), ys = times.map((t) => t.pos);
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const b = xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / (xs.reduce((a, x) => a + (x - mx) ** 2, 0) || 1);
+      const posTipica = Math.min(100, Math.max(1, Math.round(my + b * (Math.log(somaSua) - mx))));
+      forca = { times, passa, fracoTop: times[0], posTipica };
+    }
+  }
+  const dentroTop = !!forca && forca.passa > 0;
+  const nota = comp >= 7.5 && dentroTop ? ["ok", "Forte"] : comp >= 7.5 || (comp >= 5 && dentroTop) ? ["ok", "Boa"] : comp >= 5 ? ["", "Mediana"] : ["bad", "Fraca"];
+
+  const itens = [];
+  itens.push(`<b>Cobertura:</b> o time acerta <b>${nEfetivo} dos ${n} tipos</b> com golpe super efetivo${an.semCobertura.length ? `; fica sem resposta contra ${an.semCobertura.slice(0, 6).map(chipTipo).join("")}${an.semCobertura.length > 6 ? ` e mais ${an.semCobertura.length - 6}` : ""}` : ", todos os tipos"}.`);
+  itens.push(an.buracos.length
+    ? `<b>Fraquezas:</b> ${an.buracos.slice(0, 4).map((b) => `${chipTipo(b.a)} pega ${b.fracos} do time${b.resistem ? ` (só ${b.resistem} resiste${b.resistem > 1 ? "m" : ""})` : " e ninguém resiste"}`).join("; ")}.`
+    : "<b>Fraquezas:</b> nenhum tipo de ataque pega mais pokémon do time do que os que resistem a ele.");
+  const repetidos = E.tipos.filter((t) => membros.filter((m) => m.tipos.includes(t)).length >= 3);
+  if (repetidos.length) itens.push(`<b>Tipos repetidos:</b> 3 ou mais do time são ${repetidos.map(chipTipo).join("")}, o que concentra as mesmas fraquezas.`);
+  if (temTodos) {
+    const ord = pvps.slice().sort((a, b) => a.p - b.p), fraco = ord[0], forte = ord[ord.length - 1];
+    itens.push(`<b>Força:</b> Poder no PvP somado de <b>${fmtPvp(somaSua)}</b>. O mais forte é ${esc(forte.m.esp.nome)} (⚔ ${fmtPvp(forte.p)}) e o elo fraco é <b>${esc(fraco.m.esp.nome)}</b> (⚔ ${fmtPvp(fraco.p)}${forte.p / fraco.p >= 3 ? `, ${nf(0).format(forte.p / fraco.p)}× mais fraco que o ${esc(forte.m.esp.nome)}` : ""}).`);
+  } else itens.push("<b>Força:</b> cole as fichas completas (com a tabela de stats) dos 5 para calcular o Poder no PvP do time.");
+
+  let rank;
+  if (!temTodos) rank = "<b>Expectativa de rank:</b> precisa das 5 fichas completas, com a tabela de stats.";
+  else if (!forca) rank = "<b>Expectativa de rank:</b> carregando os times do top 100…";
+  else if (!dentroTop) {
+    const x = forca.fracoTop.soma / somaSua;
+    rank = `<b>Expectativa de rank: fora do top 100</b>${pvpMeta.total ? ` dos ${nf(0).format(pvpMeta.total)} classificados` : ""}. O time mais fraco do top 100 (${forca.fracoTop.pos}º) soma ⚔ ${fmtPvp(forca.fracoTop.soma)}, <b>${x >= 10 ? "~" + nf(0).format(x) : nf(1).format(x)}×</b> o seu. O jogo só mostra os 100 primeiros, então abaixo disso não dá para estimar a posição exata.`;
+  } else rank = `<b>Expectativa de rank: força de top 100</b>, parecida com a dos times por volta do <b>${forca.posTipica}º</b> lugar (o seu soma mais que ${forca.passa} dos ${forca.times.length} times lidos do top 100).`;
+
+  const falta = [];
+  if (an.semCobertura.length >= 6) falta.push(`um golpe que acerte ${an.semCobertura.slice(0, 3).map(chipTipo).join("")}`);
+  if (an.buracos[0]) falta.push(`alguém que resista a ${chipTipo(an.buracos[0].a)}`);
+  if (temTodos && forca && !dentroTop) falta.push("subir o Poder no PvP (nível, potência, mega ou Z-Move)");
+  return `<div class="laudo-time ${nota[0]}">
+      <span class="lbl">Laudo da equipe</span>
+      <div class="nota-time"><b>${nota[1]}</b><span class="small">composição <b>${nf(1).format(comp)}</b>/10 (cobertura ${nf(1).format(cob)}/5 · defesa ${nf(1).format(def)}/5)</span></div>
+      <ul>${itens.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <div>${rank}</div>
+      ${falta.length ? `<div class="small"><b>O que mais falta:</b> ${falta.join("; ")}. A lista "Quem completa o time", abaixo, procura nos anúncios quem cobre esses buracos.</div>` : '<div class="small bom">Time bem completo em tipos: o que decide daqui para frente é a força de cada um.</div>'}
+      <div class="small muted">A posição no ranking também depende de quantas lutas você vence; o laudo mede só o que o time tem (tipos e Poder no PvP).</div>
+    </div>`;
+}
+
 async function renderTime() {
   const out = $("time-out");
-  const fichas = [1, 2, 3, 4].map((i) => $(`tm-f${i}`).value.trim()).filter(Boolean).map((t) => ({ t, f: parseFicha(t) }));
+  const fichas = [1, 2, 3, 4, 5].map((i) => $(`tm-f${i}`).value.trim()).filter(Boolean).map((t) => ({ t, f: parseFicha(t) }));
   renderMetaPvp(fichas.map((x) => x.f));
   // resumo de cada ficha colada, embaixo da caixa
-  [1, 2, 3, 4].forEach((i) => {
+  [1, 2, 3, 4, 5].forEach((i) => {
     const txt = $(`tm-f${i}`).value.trim(), r = $(`tm-r${i}`);
     if (!txt) { r.textContent = ""; return; }
     const f = parseFicha(txt);
     r.innerHTML = f.species ? `${f.shiny ? "✨ " : ""}<b>${esc(f.species)}</b> P${f.pot}${Number.isFinite(f.lvl) ? " · Nv " + nf(0).format(f.lvl) : ""}` : '<span class="ruim">não reconheci a espécie</span>';
   });
-  if (!fichas.length) { out.innerHTML = '<p class="muted">Cole a ficha (Copiar p/ ChatGPT) de cada pokémon do seu time, até 4. O site procura nos anúncios o 5º que mais ajuda o time.</p>'; return; }
+  if (!fichas.length) { out.innerHTML = '<p class="muted">Cole a ficha (Copiar p/ ChatGPT) de cada pokémon do seu time, até 5. Com as 5, sai o laudo da equipe.</p>'; return; }
   out.innerHTML = '<p class="muted">Analisando…</p>';
   const E = await carregarEspecies();
   const membros = fichas.map((x) => membroDoTime(E, x.f)).filter(Boolean);
   if (!membros.length) { out.innerHTML = '<p class="muted">Não reconheci nenhuma espécie das fichas.</p>'; return; }
   const an = analisarTime(E, membros);
+  const laudo = membros.length === 5 ? laudoDoTime(E, membros, an) : "";
 
   // grade de fraquezas: uma coluna por tipo de ataque, cor pelo saldo
   const grade = `<div class="tbl"><table class="grade-tipos"><thead><tr><th>Ataque de</th>${membros.map((m) => `<th class="r">${esc(m.esp.nome)}</th>`).join("")}<th class="r">Saldo</th></tr></thead><tbody>
@@ -2285,7 +2360,7 @@ async function renderTime() {
   const top = [...porEsp.values()].slice(0, 12);
   const maxScore = Math.max(1e-9, ...top.map((c) => c.score));
 
-  out.innerHTML = `<div class="time-resumo">
+  out.innerHTML = `${laudo}<div class="time-resumo">
       <div><span class="lbl">Seu time</span><div class="chips">${membros.map((m) => `<span class="tag">${m.f.shiny ? "✨ " : ""}${esc(m.esp.nome)} ${m.tipos.map(chipTipo).join("")}</span>`).join("")}</div></div>
       <div><span class="lbl">Fraquezas do time</span><div class="chips">${an.buracos.length ? an.buracos.map((b) => `${chipTipo(b.a)}<span class="muted small">${b.fracos}× fraco</span>`).join(" ") : '<span class="bom small">nenhuma fraqueza sem resistência</span>'}</div></div>
       <div><span class="lbl">Efetivo contra</span><div class="chips">${an.efetivo.length ? an.efetivo.map((x) => `<span title="Acertam ×2 ou mais: ${esc(x.quem.join(", "))}">${chipTipo(x.d)}<span class="muted small">${x.quem.length}×</span></span>`).join(" ") : '<span class="muted small">nenhum golpe do time acerta ×2</span>'}</div></div>
@@ -2442,7 +2517,7 @@ $("tr-orc").addEventListener("input", () => { clearTimeout(timerTr); timerTr = s
 $("tr-crit").addEventListener("change", renderTrocar);
 ["si-estr", "si-pct", "si-fila", "si-susp"].forEach((id) => $(id).addEventListener("change", () => { state.siTodos = false; renderSniperItens(); }));
 let timerTm = 0;
-["tm-f1", "tm-f2", "tm-f3", "tm-f4", "tm-orc"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(timerTm); timerTm = setTimeout(renderTime, 400); }));
+["tm-f1", "tm-f2", "tm-f3", "tm-f4", "tm-f5", "tm-orc"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(timerTm); timerTm = setTimeout(renderTime, 400); }));
 let timerIt = 0;
 $("it-busca").addEventListener("input", () => { clearTimeout(timerIt); timerIt = setTimeout(renderItens, 200); });
 const setM = (m) => { state.moeda = m; try { localStorage.setItem("rtm-moeda", m); } catch (e) {} render(); };
