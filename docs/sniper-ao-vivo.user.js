@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.5.2
+// @version      1.6.0
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -31,6 +31,9 @@
   const W = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
   const SITE = 'https://pokeidle-rmt-calculator.vercel.app';
   const CHAVE = 'rmtSniperAoVivo';
+  // Dentro do PokeIdle Hub (programa de várias contas), o painel aparece na barra do hub, e não flutuando no
+  // jogo: o hub mostra o que o Sniper desenha e devolve os cliques. Fora dele (Tampermonkey), nada muda.
+  const HUB = W.__rmtHub || null;
 
   // ---------- o socket do jogo: guardado quando o jogo o cria ----------
   let socket = null;
@@ -385,6 +388,16 @@
     caixa = document.createElement('div');
     caixa.id = 'rmt-sniper';
     document.body.appendChild(caixa);
+    if (HUB) {
+      caixa.style.display = 'none';
+      // clique ou troca vindos da barra do hub: acha o mesmo botão/seleção no painel escondido e aciona
+      HUB.aoAcao((a) => {
+        const el = [...caixa.querySelectorAll(a.cfg ? '[data-cfg]' : '[data-acao]')].find((e) => (a.cfg ? e.dataset.cfg === a.cfg
+          : e.dataset.acao === a.acao && (a.v == null || e.dataset.v === a.v) && (a.id == null || e.dataset.id === a.id) && (a.k == null || e.dataset.k === a.k)));
+        if (!el) return;
+        if (a.cfg) { el.value = a.valor; el.dispatchEvent(new Event('change', { bubbles: true })); } else el.click();
+      });
+    }
     caixa.addEventListener('click', (e) => {
       const b = e.target.closest('[data-acao]');
       if (!b) return;
@@ -443,6 +456,7 @@
     pintarConteudo();
     const lista = caixa.querySelector('.lista');
     if (lista && rolagem) lista.scrollTop = rolagem;
+    if (HUB) HUB.painel(caixa.innerHTML);
   }
   function pintarConteudo() {
     requestAnimationFrame(posicionar);
