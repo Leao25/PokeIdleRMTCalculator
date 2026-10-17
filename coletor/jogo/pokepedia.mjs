@@ -94,7 +94,8 @@ import {
 // O golpe do TM ELEMENTAL é o mesmo que o servidor usa para lutar: power, cooldown e o raio da
 // área saem daqui, e o capítulo de TM Disks conta o alcance dele a partir do raio.
 import { TM_ELEMENTAL_POWER, TM_ELEMENTAL_CD_MS, TM_ELEMENTAL_RAIO } from '../shared/tm-elemental.mjs';
-import { MEGAS, megaTemShiny, MEGA_POKE_BASE } from '../shared/megas.mjs';
+import { MEGAS, MEGAS_SEGUNDAS, TODAS_AS_MEGAS, megaTemShiny, MEGA_POKE_BASE } from '../shared/megas.mjs';
+import { FORMAS } from '../shared/formas.mjs';
 import { MAX_PASTAS } from '../shared/colecao-pastas.mjs';
 import { BOOST_GUILD, BANCO_GUILD } from '../shared/guild-boost.mjs';
 import {
@@ -145,6 +146,8 @@ import { AJUSTE_REVIVE_PCT, REVIVE_ID } from '../shared/ajuste-item-espelho.mjs'
 const MIN_GUERRA = 10;
 /** Espera entre duas mensagens no chat público, em segundos: `CHAT_COOLDOWN_MS`, em `server/limites-ws.mjs`. */
 const SEG_CHAT = 30;
+/** A espera do chat da guild e das mensagens privadas (DM de amigo e Comércio), em segundos: `CHAT_GUILD_COOLDOWN_MS`. */
+const SEG_CHAT_GUILD = 5;
 /** A janela do sorteio na liberação do Mercado, em segundos: `JANELA_SORTEIO_MS`, em `server/sorteio-mercado.mjs`. */
 const SEG_SORTEIO = 3;
 /** Quantos anúncios uma compra em quantidade atravessa: `MAX_ANUNCIOS_LOTE`, em `server/market-db.mjs`. */
@@ -707,7 +710,9 @@ const REGIOES_MAPA_DOC = [
   { rotulo: { pt: 'Sinnoh', en: 'Sinnoh', es: 'Sinnoh' }, nivel: 1000 },
   { rotulo: { pt: 'Unova', en: 'Unova', es: 'Unova' }, nivel: 5000 },
   { rotulo: { pt: 'Kalos', en: 'Kalos', es: 'Kalos' }, nivel: 10000 },
-  { rotulo: { pt: 'Alola', en: 'Alola', es: 'Alola' }, nivel: 25000 },
+  { rotulo: { pt: 'Galar', en: 'Galar', es: 'Galar' }, nivel: 25000 },
+  { rotulo: { pt: 'Paldea', en: 'Paldea', es: 'Paldea' }, nivel: 40000 },
+  { rotulo: { pt: 'Alola', en: 'Alola', es: 'Alola' }, nivel: 75000 },
 ];
 
 function tabelaDeRegioes(c) {
@@ -1509,7 +1514,7 @@ function tabelaDeOvos(c) {
 /** O Absorb Bulb em %: o que ele TIRA da espera (25%), lido do fator que sobra (0,75). */
 const PCT_BULBO = Math.round((1 - BULBO_FATOR) * 100);
 
-const NOME_REGIAO_OVO = { unova: 'Unova', kalos: 'Kalos', alola: 'Alola' };
+const NOME_REGIAO_OVO = { unova: 'Unova', kalos: 'Kalos', galar: 'Galar', paldea: 'Paldea', alola: 'Alola' };
 
 /**
  * A escada do FRAGMENTO DE OVO SHINY, nível de hunt por nível de hunt — `tabelaFragmentoOvoShiny`
@@ -3705,6 +3710,11 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>Depois das nove gerações vem a aba <b>Mega</b>, com as Mega Evoluções na faixa
         <b>#3000</b> (ver <a data-cap="mega">Mega Evolução</a>).</p>
 
+        <p>E a aba <b>Formas</b>, com as <b>${FORMAS.length}</b> formas regionais e alternativas — as de
+        Alola, Galar, Hisui e Paldea, e as do Rotom, do Castform, do Deoxys e de outros. Cada forma é uma
+        <b>espécie própria</b>: stats, tipos, golpes, hunt e evolução dela, e um número que diz de quem ela
+        é (o Rattata de Alola é o <b>#4019</b>, <code>4000 + 19</code>; o Heat Rotom, o <b>#8479</b>).</p>
+
         <h4>Busca</h4>
         <p>O campo de busca ignora a aba ativa: digite o nome ou número (#${725} funciona) e
         a grade mostra qualquer geração que bater. O filtro <b>só vistos/capturados</b> esconde o
@@ -3764,6 +3774,12 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         <p>After the nine generations comes the <b>Mega</b> tab, with the Mega Evolutions in the
         <b>#3000</b> range (see <a data-cap="mega">Mega Evolution</a>).</p>
 
+        <p>And the <b>Forms</b> tab, with the <b>${FORMAS.length}</b> regional and alternate forms — the
+        Alolan, Galarian, Hisuian and Paldean ones, and Rotom's, Castform's, Deoxys' and others. Every form
+        is a <b>species of its own</b>: its own stats, types, moves, hunt and evolution, and a number that
+        says whose form it is (Alolan Rattata is <b>#4019</b>, <code>4000 + 19</code>; Heat Rotom is
+        <b>#8479</b>).</p>
+
         <h4>Search</h4>
         <p>The search box ignores the active tab: type a name or number (#725 works) and the
         grid shows matches from any generation. The <b>seen/caught only</b> filter hides what you
@@ -3821,6 +3837,11 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
 
         <p>Después de las nueve generaciones viene la pestaña <b>Mega</b>, con las Mega Evoluciones en
         el rango <b>#3000</b> (ver <a data-cap="mega">Mega Evolución</a>).</p>
+
+        <p>Y la pestaña <b>Formas</b>, con las <b>${FORMAS.length}</b> formas regionales y alternativas —
+        las de Alola, Galar, Hisui y Paldea, y las de Rotom, Castform, Deoxys y otros. Cada forma es una
+        <b>especie propia</b>: sus stats, tipos, golpes, hunt y evolución, y un número que dice de quién es
+        (el Rattata de Alola es el <b>#4019</b>, <code>4000 + 19</code>; el Heat Rotom, el <b>#8479</b>).</p>
 
         <h4>Búsqueda</h4>
         <p>El buscador ignora la pestaña activa: escribe el nombre o número (#725 vale) y la
@@ -4723,8 +4744,9 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         filtrado pelo idioma — quem fala duas línguas troca a bandeira sem perder o canal.</p>
 
         <h4>O ritmo</h4>
-        <p>Uma mensagem a cada <b>${SEG_CHAT} segundos</b>, somando os quatro canais. A espera é da
-        conta: recarregar a página ou reconectar não a zera.</p>
+        <p>Uma mensagem a cada <b>${SEG_CHAT} segundos</b> nos canais abertos (Mundo, Comércio e Dúvidas),
+        somando os três. No chat da <b>guild</b> e nas mensagens privadas (amigos e Comércio), uma a cada
+        <b>${SEG_CHAT_GUILD} segundos</b>. A espera é da conta: recarregar a página ou reconectar não a zera.</p>
 
         <h4>Palavrões</h4>
         <p>O chat barra o conteúdo <b>pesado</b> — racismo, preconceito, discurso de ódio, xingamento
@@ -4841,8 +4863,10 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         the channel.</p>
 
         <h4>The pace</h4>
-        <p>One message every <b>${SEG_CHAT} seconds</b>, across all four channels. The wait belongs to
-        the account: reloading the page or reconnecting does not reset it.</p>
+        <p>One message every <b>${SEG_CHAT} seconds</b> in the open channels (World, Trade and Help), across
+        the three. In the <b>guild</b> chat and in private messages (friends and Trade), one every
+        <b>${SEG_CHAT_GUILD} seconds</b>. The wait belongs to the account: reloading the page or reconnecting
+        does not reset it.</p>
 
         <h4>Swearing</h4>
         <p>The chat blocks <b>heavy</b> content — racism, prejudice, hate speech, explicit sexual
@@ -4958,8 +4982,10 @@ poder = redond( nivel × 10 × score )   → en nv 100: ⚔ ≈ 1000 × score</p
         idioma — quien habla dos lenguas cambia la bandera sin perder el canal.</p>
 
         <h4>El ritmo</h4>
-        <p>Un mensaje cada <b>${SEG_CHAT} segundos</b>, sumando los cuatro canales. La espera es de la
-        cuenta: recargar la página o reconectar no la reinicia.</p>
+        <p>Un mensaje cada <b>${SEG_CHAT} segundos</b> en los canales abiertos (Mundo, Comercio y Dudas),
+        sumando los tres. En el chat de la <b>guild</b> y en los mensajes privados (amigos y Comercio), uno cada
+        <b>${SEG_CHAT_GUILD} segundos</b>. La espera es de la cuenta: recargar la página o reconectar no la
+        reinicia.</p>
 
         <h4>Groserías</h4>
         <p>El chat bloquea el contenido <b>pesado</b> — racismo, prejuicio, discurso de odio, insultos
@@ -6245,9 +6271,10 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Cada região do Mapa (o seletor <b>Região</b>, no alto) pede um <b>nível mínimo do
         treinador</b> (não do pokémon); a lista mostra o nível de cada uma, o cadeado nas que ainda
         não abriram e quantas das áreas dela você já capturou. Kanto e Johto dividem a mesma
-        ilustração; Hoenn, Sinnoh, Unova e Kalos têm a sua; e a região
-        <b>${ULTIMA_REGIAO.rotulo.pt}</b> reúne as gerações 7, 8 e 9 — os pokémon de Galar e Paldea
-        moram lá. A <b>Outland</b> fica fora da ordem das gerações: é o mapa das variantes e dos
+        ilustração; Hoenn, Sinnoh, Unova e Kalos têm a sua; depois de Kalos vêm <b>Galar</b> (a
+        geração 8, com as formas de Galar e de Hisui), <b>Paldea</b> (a geração 9) e
+        <b>${ULTIMA_REGIAO.rotulo.pt}</b> (a geração 7), nesta ordem — as três ainda no mesmo mapa, o
+        de Alola. A <b>Outland</b> fica fora da ordem das gerações: é o mapa das variantes e dos
         drops raros (ver <a data-cap="combate">Combate</a>).</p>
         ${tabelaDeRegioes(c)}
 
@@ -6337,9 +6364,10 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Each Map region (the <b>Region</b> selector at the top) requires a minimum <b>trainer
         level</b> (not the pokémon's); the list shows each one's level, a padlock on the ones not
         open yet and how many of its areas you have already caught. Kanto and Johto share one
-        illustration; Hoenn, Sinnoh, Unova and Kalos have their own; and the
-        <b>${ULTIMA_REGIAO.rotulo.en}</b> region gathers generations 7, 8 and 9 — Galar and Paldea
-        pokémon live there. <b>Outland</b> sits outside the generation order: it is the map of
+        illustration; Hoenn, Sinnoh, Unova and Kalos have their own; after Kalos come
+        <b>Galar</b> (generation 8, with the Galarian and Hisuian forms), <b>Paldea</b> (generation 9)
+        and <b>${ULTIMA_REGIAO.rotulo.en}</b> (generation 7), in this order — all three on the same map
+        for now, Alola's. <b>Outland</b> sits outside the generation order: it is the map of
         variants and rare drops (see <a data-cap="combate">Combat</a>).</p>
         ${tabelaDeRegioes(c)}
 
@@ -6428,9 +6456,10 @@ no evoluciona (Spinda, variantes de Outland)           100</pre>
         <p>Cada región del Mapa (el selector <b>Región</b>, arriba) exige un <b>nivel mínimo del
         entrenador</b> (no del pokémon); la lista muestra el nivel de cada una, el candado en las que
         aún no se abrieron y cuántas de sus zonas ya capturaste. Kanto y Johto comparten la misma
-        ilustración; Hoenn, Sinnoh, Unova y Kalos tienen la suya; y la región
-        <b>${ULTIMA_REGIAO.rotulo.es}</b> reúne las generaciones 7, 8 y 9 — los pokémon
-        de Galar y Paldea viven allí. <b>Outland</b> queda fuera del orden de las generaciones: es
+        ilustración; Hoenn, Sinnoh, Unova y Kalos tienen la suya; después de Kalos vienen
+        <b>Galar</b> (la generación 8, con las formas de Galar y de Hisui), <b>Paldea</b> (la
+        generación 9) y <b>${ULTIMA_REGIAO.rotulo.es}</b> (la generación 7), en este orden — las tres
+        todavía en el mismo mapa, el de Alola. <b>Outland</b> queda fuera del orden de las generaciones: es
         el mapa de las variantes y de los drops raros (ver <a data-cap="combate">Combate</a>).</p>
         ${tabelaDeRegioes(c)}
 
@@ -8932,12 +8961,24 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
     titulo: { pt: 'Mega Evolução', en: 'Mega Evolution', es: 'Mega Evolución' },
     grupo: 'mundo',
     html: (c) => {
-      const n = MEGAS.length;
-      const semShiny = MEGAS.filter((m) => !megaTemShiny(m)).length;
+      // TODAS: as 84 da faixa #3000 e as segundas de um dex (#9000 + dex — Charizard X, Mewtwo X…).
+      const n = TODAS_AS_MEGAS.length;
+      const semShiny = TODAS_AS_MEGAS.filter((m) => !megaTemShiny(m)).length;
+      // As espécies com DUAS megas, e o preço da volta (o do welcome, `configMega`).
+      const duas = (e) => MEGAS_SEGUNDAS.map((m2) => {
+        const m1 = MEGAS.find((m) => m.dex === m2.dex);
+        const base = (m1?.nome ?? m2.nome).replace(/^Mega /, '').replace(/ [XYZ]$/, '');
+        return `<b>${base}</b> (${m1?.nome ?? '?'} ${e} ${m2.nome})`;
+      });
+      const juntar = (l, e) => (l.length > 1 ? `${l.slice(0, -1).join(', ')} ${e} ${l.at(-1)}` : l.join(''));
+      const volta = (loc) => Number(c.d.mega?.custoRetroceder ?? 1_000_000_000).toLocaleString(loc);
       const custo = c.d.mega?.custo ?? 10;
       const base = pctMega(c.d.mega?.chanceBase ?? 0.005);
       const baseShiny = pctMega(c.d.mega?.chanceBaseShiny ?? 0.0025);
-      const lista = MEGAS.map((m) => m.nome.replace(/^Mega /, '')).join(', ');
+      const lista = [...TODAS_AS_MEGAS]
+        .sort((a, b) => a.dex - b.dex || Number(!!a.segunda) - Number(!!b.segunda))
+        .map((m) => m.nome.replace(/^Mega /, ''))
+        .join(', ');
       return {
         pt: `
         <p>A <b>Mega Evolução</b> troca o seu pokémon pela <b>forma Mega</b> dele: arte nova,
@@ -8973,6 +9014,17 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <li><b>Mega Evoluir.</b> Com a pedra na mochila, o botão dourado aparece no pokémon.</li>
         </ol>
 
+        <h4>Duas megas na mesma espécie</h4>
+        <p><b>${MEGAS_SEGUNDAS.length} espécies</b> têm duas megas, cada uma com a <b>sua pedra</b>:
+        ${juntar(duas('e'), 'e')}. Na hora de megaevoluir você <b>escolhe qual</b> — e só sai a que tiver
+        a pedra na mochila.</p>
+
+        <h4>Trocar de mega: o Retroceder</h4>
+        <p>No Professor Carvalho, na bancada Mega, o <b>Retroceder Mega-Evolução</b> devolve a mega à
+        <b>espécie base</b> por <b>${volta('pt-BR')} coins</b> — o mesmo IV, nível, refino, potência e shiny.
+        A <b>pedra gasta não volta</b>: para ir da Mega Charizard Y para a X, você retrocede, fabrica a
+        Charizardite X e megaevolui de novo.</p>
+
         <h4>A chance no boss sobe com o degrau</h4>
         <p>É a <b>mesma escada</b> da peça de TM: <b>${base}</b> no primeiro par de bosses
         (Nv 300), o <b>dobro</b> no segundo (Nv 650) e mais um degrau a cada par. O fragmento
@@ -9007,8 +9059,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           DRAGON, Mega Sceptile ganha DRAGON. Isso mexe no STAB, na
           <a data-cap="tipos">efetividade</a> e até na pedra de <a data-cap="stats">refino</a> — mas não no
           <a data-cap="tm">TM</a> elemental, que continua valendo mesmo que o tipo dele suma.</li>
-          <li><b>Não tem volta</b>, como toda evolução aqui — e por isso o pokémon megaevoluído vai
-          para a sua <b>Coleção</b>, fora da venda ao NPC (devolver ao Depot é um clique).</li>
+          <li><b>Voltar custa caro</b> — ${volta('pt-BR')} coins no Retroceder, e a pedra não volta —, e por
+          isso o pokémon megaevoluído vai para a sua <b>Coleção</b>, fora da venda ao NPC (devolver ao
+          Depot é um clique).</li>
           <li>A <a data-cap="nota">Calculadora</a> mostra o <b>Potencial na Mega Evolução</b>: a nota
           que o mesmo nascimento teria na forma Mega, antes de você gastar a pedra.</li>
           <li><b>A nota nunca cai.</b> Megaevoluir sempre <b>sobe</b> o N=, pela mesma regra que
@@ -9062,6 +9115,17 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           pokémon.</li>
         </ol>
 
+        <h4>Two megas for one species</h4>
+        <p><b>${MEGAS_SEGUNDAS.length} species</b> have two megas, each with <b>its own stone</b>:
+        ${juntar(duas('and'), 'and')}. When you mega evolve you <b>pick which one</b> — and only the one
+        whose stone is in your backpack goes.</p>
+
+        <h4>Switching megas: Revert</h4>
+        <p>At Professor Oak's Mega bench, <b>Revert Mega Evolution</b> turns the mega back into its
+        <b>base species</b> for <b>${volta('en-US')} coins</b> — same IV, level, refinement, potential and
+        shiny. The <b>spent stone does not come back</b>: to go from Mega Charizard Y to X, you revert,
+        craft the Charizardite X and mega evolve again.</p>
+
         <h4>The boss drop rate climbs with the step</h4>
         <p>It is the <b>same ladder</b> as the TM piece: <b>${base}</b> on the first boss pair
         (Lv 300), <b>double</b> on the second (Lv 650) and one more step per pair. The
@@ -9100,9 +9164,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <a data-cap="tipos">effectiveness</a> and even the <a data-cap="stats">refine</a>
           stone — but not the elemental <a data-cap="tm">TM</a>, which keeps working even if its type goes
           away.</li>
-          <li><b>There is no going back</b>, like every evolution here — which is why the mega
-          evolved pokémon goes to your <b>Collection</b>, out of NPC selling (sending it back to the
-          Depot is one click).</li>
+          <li><b>Going back is expensive</b> — ${volta('en-US')} coins to Revert, and the stone does not
+          come back —, which is why the mega evolved pokémon goes to your <b>Collection</b>, out of NPC
+          selling (sending it back to the Depot is one click).</li>
           <li>The <a data-cap="nota">Calculator</a> shows the <b>Potential at Mega Evolution</b>: the
           score the same birth would have in Mega form, before you spend the stone.</li>
           <li><b>The grade never drops.</b> Mega evolving always <b>raises</b> the N=, by the
@@ -9157,6 +9221,17 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           pokémon.</li>
         </ol>
 
+        <h4>Dos megas en la misma especie</h4>
+        <p><b>${MEGAS_SEGUNDAS.length} especies</b> tienen dos megas, cada una con <b>su piedra</b>:
+        ${juntar(duas('y'), 'y')}. Al mega evolucionar <b>eliges cuál</b> — y solo sale la que tenga la
+        piedra en la mochila.</p>
+
+        <h4>Cambiar de mega: Revertir</h4>
+        <p>En el banco Mega del Profesor Oak, <b>Revertir Megaevolución</b> devuelve la mega a la
+        <b>especie base</b> por <b>${volta('es-ES')} coins</b> — el mismo IV, nivel, refinado, potencia y
+        shiny. La <b>piedra gastada no vuelve</b>: para ir de la Mega Charizard Y a la X, revierte,
+        fabrica la Charizardite X y mega evoluciona de nuevo.</p>
+
         <h4>La probabilidad en el boss sube con el escalón</h4>
         <p>Es la <b>misma escalera</b> de la pieza de TM: <b>${base}</b> en el primer par de
         bosses (Nv 300), el <b>doble</b> en el segundo (Nv 650) y un escalón más por par. El
@@ -9195,9 +9270,9 @@ multiplicador = ${BASE_PENALIDADE_BOSS} ^ déficit</pre>
           <a data-cap="tipos">efectividad</a> y hasta la piedra de
           <a data-cap="stats">refinado</a> — pero no el <a data-cap="tm">TM</a> elemental, que sigue valiendo
           aunque su tipo desaparezca.</li>
-          <li><b>No tiene vuelta atrás</b>, como toda evolución aquí — por eso el pokémon mega
-          evolucionado va a tu <b>Colección</b>, fuera de la venta al NPC (devolverlo al Depósito es un
-          clic).</li>
+          <li><b>Volver sale caro</b> — ${volta('es-ES')} coins al Revertir, y la piedra no vuelve —, por eso
+          el pokémon mega evolucionado va a tu <b>Colección</b>, fuera de la venta al NPC (devolverlo al
+          Depósito es un clic).</li>
           <li>La <a data-cap="nota">Calculadora</a> muestra el <b>Potencial en la Mega Evolución</b>:
           la nota que el mismo nacimiento tendría en la forma Mega, antes de gastar la piedra.</li>
           <li><b>La nota nunca baja.</b> Mega evolucionar siempre <b>sube</b> el N=, por la misma
@@ -11629,6 +11704,10 @@ poder = redond( nivel × 10 × score )</pre>
           <li>Somar unidades a um anúncio que já está à venda <b>reinicia</b> a retenção. Editar o
           preço só é possível depois que ela acaba, e também a reinicia. Cancelar vale a qualquer
           momento.</li>
+          <li><b>Item e diamante mudam de preço no máximo a cada ${m.esperaEditarItemMin ?? 30}
+          minutos</b>, contados da última mudança (a publicação ou a edição). O botão <b>Editar</b>
+          mostra o tempo que falta. É o que acaba com a guerra de um Coin a menos — o diamante a
+          19.000, o vizinho a 18.999, você a 18.998… Pokémon segue só com a retenção.</li>
           <li><b>Sorteio na liberação:</b> todo pedido de compra que chega nos primeiros
           <b>${SEG_SORTEIO} segundos</b> depois de o anúncio liberar entra num sorteio com a mesma
           chance. Pedir no primeiro milissegundo não vale mais que pedir no fim da janela. Quem
@@ -11675,7 +11754,8 @@ poder = redond( nivel × 10 × score )</pre>
           devolve o que ainda restava no anúncio.</li>
           <li><b>Um anúncio de diamante por vez</b>, com os mesmos
           ${m.reanuncioMin ?? 30} minutos de espera entre um e o próximo. Para vender mais barato,
-          edite o preço do que já está de pé.</li>
+          edite o preço do que já está de pé — uma mudança de preço a cada
+          ${m.esperaEditarItemMin ?? 30} minutos.</li>
           <li>Diamante <b>comprado de outro jogador</b> não pode ser revendido: quem o recebeu não
           pagou por ele em dinheiro nenhum, e revender abriria um ciclo sem lastro.</li>
           <li>A comissão da tabela abaixo vale igual, e sai do vendedor.</li>
@@ -11840,6 +11920,10 @@ poder = redond( nivel × 10 × score )</pre>
           <li>Adding units to a listing that is already for sale <b>restarts</b> the hold. The price
           can only be edited once the hold is over, and editing restarts it too. Cancelling works at
           any time.</li>
+          <li><b>Items and diamonds change price at most every ${m.esperaEditarItemMin ?? 30}
+          minutes</b>, counted from the last change (listing or edit). The <b>Edit</b> button shows
+          the time left. That ends the one-Coin-cheaper war — the diamond at 19,000, the neighbour at
+          18,999, you at 18,998… Pokémon keep only the hold.</li>
           <li><b>Release draw:</b> every purchase request that arrives in the first
           <b>${SEG_SORTEIO} seconds</b> after a listing is released goes into a draw with the same
           chance. Asking in the first millisecond is worth no more than asking at the end of the
@@ -11886,7 +11970,8 @@ poder = redond( nivel × 10 × score )</pre>
           <li>Listing <b>takes it out of your balance</b> right away, the way an item leaves your
           backpack. Cancelling returns whatever was still in the listing.</li>
           <li><b>One diamond listing at a time</b>, with the same ${m.reanuncioMin ?? 30} minutes
-          of wait between one and the next. To sell cheaper, edit the price of the one already up.</li>
+          of wait between one and the next. To sell cheaper, edit the price of the one already up —
+          one price change every ${m.esperaEditarItemMin ?? 30} minutes.</li>
           <li>Diamonds <b>bought from another player</b> cannot be resold: whoever received them
           paid no money for them, and reselling would open a loop with nothing behind it.</li>
           <li>The commission in the table below applies the same, and comes out of the seller.</li>
@@ -12050,6 +12135,11 @@ poder = redond( nivel × 10 × score )</pre>
           <li>Sumar unidades a un anuncio que ya está a la venta <b>reinicia</b> la retención.
           Editar el precio solo se puede cuando termina, y también la reinicia. Cancelar vale en
           cualquier momento.</li>
+          <li><b>Objetos y diamantes cambian de precio como máximo cada
+          ${m.esperaEditarItemMin ?? 30} minutos</b>, contados desde el último cambio (la publicación o
+          la edición). El botón <b>Editar</b> muestra el tiempo que falta. Es lo que acaba con la
+          guerra de un Coin menos — el diamante a 19.000, el vecino a 18.999, tú a 18.998… Los pokémon
+          siguen solo con la retención.</li>
           <li><b>Sorteo en la liberación:</b> toda petición de compra que llega en los primeros
           <b>${SEG_SORTEIO} segundos</b> después de liberarse el anuncio entra en un sorteo con la
           misma probabilidad. Pedir en el primer milisegundo no vale más que pedir al final de la
@@ -12097,7 +12187,7 @@ poder = redond( nivel × 10 × score )</pre>
           Cancelar devuelve lo que aún quedaba en el anuncio.</li>
           <li><b>Un anuncio de diamantes a la vez</b>, con los mismos ${m.reanuncioMin ?? 30}
           minutos de espera entre uno y el siguiente. Para vender más barato, edita el precio del
-          que ya está publicado.</li>
+          que ya está publicado — un cambio de precio cada ${m.esperaEditarItemMin ?? 30} minutos.</li>
           <li>El diamante <b>comprado a otro jugador</b> no se puede revender: quien lo recibió no
           pagó dinero por él, y revenderlo abriría un ciclo sin respaldo.</li>
           <li>La comisión de la tabla de abajo se aplica igual, y sale del vendedor.</li>
@@ -12850,14 +12940,15 @@ poder = redond( nivel × 10 × score )</pre>
         <ol class="wk-passos">
           <li>Na sua corretora, vá em <b>Depositar → USDT</b> e escolha a rede
           <b>${redes}</b>. Copie o endereço de depósito que ela gerar.</li>
-          <li>No jogo, abra <b>RMT → ↑ Withdraw</b>, cole esse endereço, escolha a mesma rede
+          <li>No jogo, abra <b>RMT → ↑ Saque</b>, cole esse endereço, escolha a mesma rede
           e diga quantas Gemas quer sacar (mínimo ${N(e.saqueMinimo, c.lang)}).</li>
           <li>Confira o endereço <b>caractere por caractere</b> na tela de confirmação. Uma
           transferência enviada <b>não tem como ser desfeita</b>.</li>
           <li>O pedido passa pela <b>aprovação da equipe</b> antes do envio — não há prazo
           garantido para ela. Você acompanha o status no extrato e, quando sair, recebe o
-          <b>hash</b> da transação para conferir no explorador da rede. Enquanto ele não sair, dá
-          para cancelar, e as Gemas voltam ao saldo.</li>
+          <b>hash</b> da transação para conferir no explorador da rede. O pedido <b>não se cancela
+          pela tela</b>: para desistir enquanto ele não foi enviado, abra um ticket — a equipe o
+          recusa e as Gemas voltam ao saldo.</li>
           <li>Se a equipe <b>recusar</b> o pedido, as Gemas voltam ao saldo na hora, e em <b>Meus
           saques</b> ele aparece como <b>recusado pela equipe</b>, com o <b>motivo</b> embaixo.</li>
         </ol>
@@ -12914,8 +13005,9 @@ poder = redond( nivel × 10 × score )</pre>
           transfer <b>cannot be undone</b>.</li>
           <li>The request goes through <b>approval by the team</b> before it is sent — there is no
           guaranteed deadline for it. You follow its status in the statement and, once it goes
-          out, you get the transaction <b>hash</b> to check on the network explorer. Until it goes
-          out, you can cancel it, and the Gems return to your balance.</li>
+          out, you get the transaction <b>hash</b> to check on the network explorer. The request
+          <b>cannot be cancelled on screen</b>: to give it up while it has not been sent, open a
+          ticket — the team refuses it and the Gems return to your balance.</li>
           <li>If the team <b>refuses</b> the request, the Gems return to your balance right away, and
           in <b>My withdrawals</b> it shows as <b>refused by the team</b>, with the <b>reason</b> below.</li>
         </ol>
@@ -12973,8 +13065,9 @@ poder = redond( nivel × 10 × score )</pre>
           transferencia enviada <b>no se puede deshacer</b>.</li>
           <li>El pedido pasa por la <b>aprobación del equipo</b> antes del envío; no hay un plazo
           garantizado para ella. Sigues el estado en el extracto y, cuando salga, recibes el
-          <b>hash</b> de la transacción para verificarlo en el explorador de la red. Mientras no
-          salga, puedes cancelarlo, y las Gemas vuelven a tu saldo.</li>
+          <b>hash</b> de la transacción para verificarlo en el explorador de la red. El pedido
+          <b>no se cancela desde la pantalla</b>: para desistir mientras no se haya enviado, abre
+          un ticket; el equipo lo rechaza y las Gemas vuelven a tu saldo.</li>
           <li>Si el equipo <b>rechaza</b> el pedido, las Gemas vuelven a tu saldo en el acto, y en
           <b>Mis retiros</b> aparece como <b>rechazado por el equipo</b>, con el <b>motivo</b> debajo.</li>
         </ol>

@@ -1,5 +1,5 @@
 {
- "em": "2026-10-17T14:27:09.692Z",
+ "em": "2026-10-17T15:29:40.274Z",
  "catalogo": [
   {
    "id": 70060,
@@ -466,6 +466,14 @@
    "npc": 0
   },
   {
+   "id": 71998,
+   "nome": "Baxcalibrite",
+   "icone": "/img/itens/mega/baxcalibrite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71015,
    "nome": "Beedrillite",
    "icone": "/img/itens/mega/beedrillite.png",
@@ -490,6 +498,14 @@
    "npc": 0
   },
   {
+   "id": 71382,
+   "nome": "Blue Orb",
+   "icone": "/img/itens/mega/blue-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71323,
    "nome": "Cameruptite",
    "icone": "/img/itens/mega/cameruptite.png",
@@ -506,9 +522,25 @@
    "npc": 0
   },
   {
+   "id": 74006,
+   "nome": "Charizardite X",
+   "icone": "/img/itens/mega/charizardite-x.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71006,
    "nome": "Charizardite Y",
    "icone": "/img/itens/mega/charizardite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71652,
+   "nome": "Chesnaughtite",
+   "icone": "/img/itens/mega/chesnaughtite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -525,6 +557,38 @@
    "id": 71036,
    "nome": "Clefablite",
    "icone": "/img/itens/mega/clefablite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71740,
+   "nome": "Crabominite",
+   "icone": "/img/itens/mega/crabominite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71491,
+   "nome": "Darkranite",
+   "icone": "/img/itens/mega/darkranite.png",
+   "categoria": "mega",
+   "tipo": "DARK",
+   "npc": 0
+  },
+  {
+   "id": 71655,
+   "nome": "Delphoxite",
+   "icone": "/img/itens/mega/delphoxite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71719,
+   "nome": "Diancite",
+   "icone": "/img/itens/mega/diancite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -570,9 +634,25 @@
    "npc": 0
   },
   {
+   "id": 71870,
+   "nome": "Falinksite",
+   "icone": "/img/itens/mega/falinksite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71160,
    "nome": "Feraligite",
    "icone": "/img/itens/mega/feraligite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71670,
+   "nome": "Floettite",
+   "icone": "/img/itens/mega/floettite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -626,6 +706,22 @@
    "npc": 0
   },
   {
+   "id": 71768,
+   "nome": "Golisopite",
+   "icone": "/img/itens/mega/golisopite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71623,
+   "nome": "Golurkite",
+   "icone": "/img/itens/mega/golurkite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71658,
    "nome": "Greninjite",
    "icone": "/img/itens/mega/greninjite.png",
@@ -650,6 +746,14 @@
    "npc": 0
   },
   {
+   "id": 71485,
+   "nome": "Heatranite",
+   "icone": "/img/itens/mega/heatranite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71214,
    "nome": "Heracronite",
    "icone": "/img/itens/mega/heracronite.png",
@@ -666,6 +770,14 @@
    "npc": 0
   },
   {
+   "id": 71384,
+   "nome": "Jade Orb",
+   "icone": "/img/itens/mega/jade-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71115,
    "nome": "Kangaskhanite",
    "icone": "/img/itens/mega/kangaskhanite.png",
@@ -674,9 +786,49 @@
    "npc": 0
   },
   {
+   "id": 71380,
+   "nome": "Latiasite",
+   "icone": "/img/itens/mega/latiasite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71381,
+   "nome": "Latiosite",
+   "icone": "/img/itens/mega/latiosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71428,
+   "nome": "Lopunnite",
+   "icone": "/img/itens/mega/lopunnite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71448,
    "nome": "Lucarionite",
    "icone": "/img/itens/mega/lucarionite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 74448,
+   "nome": "Lucarionite Z",
+   "icone": "/img/itens/mega/lucarionite-z.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71801,
+   "nome": "Magearnite",
+   "icone": "/img/itens/mega/magearnite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -722,9 +874,33 @@
    "npc": 0
   },
   {
+   "id": 71678,
+   "nome": "Meowsticite",
+   "icone": "/img/itens/mega/meowsticite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71376,
    "nome": "Metagrossite",
    "icone": "/img/itens/mega/metagrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 74150,
+   "nome": "Mewtwonite X",
+   "icone": "/img/itens/mega/mewtwonite-x.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71150,
+   "nome": "Mewtwonite Y",
+   "icone": "/img/itens/mega/mewtwonite-y.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -762,6 +938,14 @@
    "npc": 0
   },
   {
+   "id": 71383,
+   "nome": "Red Orb",
+   "icone": "/img/itens/mega/red-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71302,
    "nome": "Sablenite",
    "icone": "/img/itens/mega/sablenite.png",
@@ -789,6 +973,14 @@
    "id": 71545,
    "nome": "Scolipite",
    "icone": "/img/itens/mega/scolipite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71560,
+   "nome": "Scraftinite",
+   "icone": "/img/itens/mega/scraftinite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -874,6 +1066,14 @@
    "npc": 0
   },
   {
+   "id": 72998,
+   "nome": "Shiny Baxcalibrite",
+   "icone": "/img/itens/mega-shiny/baxcalibrite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72015,
    "nome": "Shiny Beedrillite",
    "icone": "/img/itens/mega-shiny/beedrillite.png",
@@ -898,6 +1098,14 @@
    "npc": 0
   },
   {
+   "id": 72382,
+   "nome": "Shiny Blue Orb",
+   "icone": "/img/itens/mega-shiny/blue-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72323,
    "nome": "Shiny Cameruptite",
    "icone": "/img/itens/mega-shiny/cameruptite.png",
@@ -914,9 +1122,25 @@
    "npc": 0
   },
   {
+   "id": 75006,
+   "nome": "Shiny Charizardite X",
+   "icone": "/img/itens/mega-shiny/charizardite-x.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72006,
    "nome": "Shiny Charizardite Y",
    "icone": "/img/itens/mega-shiny/charizardite-y.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72652,
+   "nome": "Shiny Chesnaughtite",
+   "icone": "/img/itens/mega-shiny/chesnaughtite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -933,6 +1157,38 @@
    "id": 72036,
    "nome": "Shiny Clefablite",
    "icone": "/img/itens/mega-shiny/clefablite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72740,
+   "nome": "Shiny Crabominite",
+   "icone": "/img/itens/mega-shiny/crabominite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72491,
+   "nome": "Shiny Darkranite",
+   "icone": "/img/itens/mega-shiny/darkranite.png",
+   "categoria": "mega",
+   "tipo": "DARK",
+   "npc": 0
+  },
+  {
+   "id": 72655,
+   "nome": "Shiny Delphoxite",
+   "icone": "/img/itens/mega-shiny/delphoxite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72719,
+   "nome": "Shiny Diancite",
+   "icone": "/img/itens/mega-shiny/diancite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -978,9 +1234,25 @@
    "npc": 0
   },
   {
+   "id": 72870,
+   "nome": "Shiny Falinksite",
+   "icone": "/img/itens/mega-shiny/falinksite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72160,
    "nome": "Shiny Feraligite",
    "icone": "/img/itens/mega-shiny/feraligite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72670,
+   "nome": "Shiny Floettite",
+   "icone": "/img/itens/mega-shiny/floettite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1034,6 +1306,22 @@
    "npc": 0
   },
   {
+   "id": 72768,
+   "nome": "Shiny Golisopite",
+   "icone": "/img/itens/mega-shiny/golisopite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72623,
+   "nome": "Shiny Golurkite",
+   "icone": "/img/itens/mega-shiny/golurkite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72658,
    "nome": "Shiny Greninjite",
    "icone": "/img/itens/mega-shiny/greninjite.png",
@@ -1058,6 +1346,14 @@
    "npc": 0
   },
   {
+   "id": 72485,
+   "nome": "Shiny Heatranite",
+   "icone": "/img/itens/mega-shiny/heatranite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72214,
    "nome": "Shiny Heracronite",
    "icone": "/img/itens/mega-shiny/heracronite.png",
@@ -1074,6 +1370,14 @@
    "npc": 0
   },
   {
+   "id": 72384,
+   "nome": "Shiny Jade Orb",
+   "icone": "/img/itens/mega-shiny/jade-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72115,
    "nome": "Shiny Kangaskhanite",
    "icone": "/img/itens/mega-shiny/kangaskhanite.png",
@@ -1082,9 +1386,49 @@
    "npc": 0
   },
   {
+   "id": 72380,
+   "nome": "Shiny Latiasite",
+   "icone": "/img/itens/mega-shiny/latiasite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72381,
+   "nome": "Shiny Latiosite",
+   "icone": "/img/itens/mega-shiny/latiosite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72428,
+   "nome": "Shiny Lopunnite",
+   "icone": "/img/itens/mega-shiny/lopunnite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72448,
    "nome": "Shiny Lucarionite",
    "icone": "/img/itens/mega-shiny/lucarionite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 75448,
+   "nome": "Shiny Lucarionite Z",
+   "icone": "/img/itens/mega-shiny/lucarionite-z.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72801,
+   "nome": "Shiny Magearnite",
+   "icone": "/img/itens/mega-shiny/magearnite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1130,9 +1474,33 @@
    "npc": 0
   },
   {
+   "id": 72678,
+   "nome": "Shiny Meowsticite",
+   "icone": "/img/itens/mega-shiny/meowsticite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72376,
    "nome": "Shiny Metagrossite",
    "icone": "/img/itens/mega-shiny/metagrossite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 75150,
+   "nome": "Shiny Mewtwonite X",
+   "icone": "/img/itens/mega-shiny/mewtwonite-x.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72150,
+   "nome": "Shiny Mewtwonite Y",
+   "icone": "/img/itens/mega-shiny/mewtwonite-y.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1170,6 +1538,14 @@
    "npc": 0
   },
   {
+   "id": 72383,
+   "nome": "Shiny Red Orb",
+   "icone": "/img/itens/mega-shiny/red-orb.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72302,
    "nome": "Shiny Sablenite",
    "icone": "/img/itens/mega-shiny/sablenite.png",
@@ -1202,6 +1578,14 @@
    "npc": 0
   },
   {
+   "id": 72560,
+   "nome": "Shiny Scraftinite",
+   "icone": "/img/itens/mega-shiny/scraftinite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72319,
    "nome": "Shiny Sharpedonite",
    "icone": "/img/itens/mega-shiny/sharpedonite.png",
@@ -1221,6 +1605,14 @@
    "id": 72080,
    "nome": "Shiny Slowbronite",
    "icone": "/img/itens/mega-shiny/slowbronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72398,
+   "nome": "Shiny Staraptite",
+   "icone": "/img/itens/mega-shiny/staraptite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1250,6 +1642,14 @@
    "npc": 0
   },
   {
+   "id": 72978,
+   "nome": "Shiny Tatsugirinite",
+   "icone": "/img/itens/mega-shiny/tatsugirinite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 72248,
    "nome": "Shiny Tyranitarite",
    "icone": "/img/itens/mega-shiny/tyranitarite.png",
@@ -1274,6 +1674,22 @@
    "npc": 0
   },
   {
+   "id": 72807,
+   "nome": "Shiny Zeraorite",
+   "icone": "/img/itens/mega-shiny/zeraorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 72718,
+   "nome": "Shiny Zygardite",
+   "icone": "/img/itens/mega-shiny/zygardite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71227,
    "nome": "Skarmorite",
    "icone": "/img/itens/mega/skarmorite.png",
@@ -1285,6 +1701,14 @@
    "id": 71080,
    "nome": "Slowbronite",
    "icone": "/img/itens/mega/slowbronite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71398,
+   "nome": "Staraptite",
+   "icone": "/img/itens/mega/staraptite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1314,6 +1738,14 @@
    "npc": 0
   },
   {
+   "id": 71978,
+   "nome": "Tatsugirinite",
+   "icone": "/img/itens/mega/tatsugirinite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
    "id": 71248,
    "nome": "Tyranitarite",
    "icone": "/img/itens/mega/tyranitarite.png",
@@ -1333,6 +1765,22 @@
    "id": 71071,
    "nome": "Victreebelite",
    "icone": "/img/itens/mega/victreebelite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71807,
+   "nome": "Zeraorite",
+   "icone": "/img/itens/mega/zeraorite.png",
+   "categoria": "mega",
+   "tipo": null,
+   "npc": 0
+  },
+  {
+   "id": 71718,
+   "nome": "Zygardite",
+   "icone": "/img/itens/mega/zygardite.png",
    "categoria": "mega",
    "tipo": null,
    "npc": 0
@@ -1946,6 +2394,7 @@
   "taxaGoldPct": 15,
   "cooldownCompraMs": 120000,
   "cooldownCompraMin": 2,
+  "esperaEditarItemMin": 30,
   "reanuncioMin": 30
  },
  "chavesEntrada": [
