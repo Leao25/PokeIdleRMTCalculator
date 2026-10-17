@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RMT Calculator: Sniper ao vivo
 // @namespace    pokeidle-rmt-calculator
-// @version      1.5.1
+// @version      1.5.2
 // @description  Painel no PokeIdle que olha o Mercado de tempos em tempos e avisa quando aparece pokémon ou item bem abaixo do preço de referência. Não compra nada sozinho.
 // @match        https://pokeidle.io/app*
 // @run-at       document-start
@@ -43,7 +43,13 @@
       socket = ws;
       const enviarOriginal = ws.send;
       ws.send = function (d) { try { const o = JSON.parse(d); if (o?.t === 'hello' && o.nick) meuNick = String(o.nick); } catch (e) { /* não é JSON */ } return enviarOriginal.call(this, d); };
-      ws.addEventListener('message', (ev) => { try { aoReceber(JSON.parse(ev.data)); } catch (e) { /* não é JSON */ } });
+      // só lê as mensagens que interessam ao Sniper: as de batalha chegam várias por segundo e ler (JSON.parse)
+      // cada uma de novo, por cima do jogo, pesa na aba
+      ws.addEventListener('message', (ev) => {
+        const d = ev.data;
+        if (typeof d !== 'string' || !(d.includes('"t":"market"') || d.includes('"t":"welcome"') || d.includes('"t":"erro"'))) return;
+        try { aoReceber(JSON.parse(d)); } catch (e) { /* não é JSON */ }
+      });
     }
     return ws;
   }
@@ -66,10 +72,11 @@
 
   // ---------- referência de preços (do site, de hora em hora) ----------
   let ref = null, refEm = 0;
+  let versaoDados = 0; // sobe quando chegam dados novos: invalida os preços guardados
   function baixarReferencia() {
     GM_xmlhttpRequest({
       method: 'GET', url: `${SITE}/dados/referencia.json?t=${Date.now()}`,
-      onload: (r) => { try { ref = JSON.parse(r.responseText); refEm = Date.now(); pintar(); } catch (e) { /* tenta na próxima */ } },
+      onload: (r) => { try { ref = JSON.parse(r.responseText); refEm = Date.now(); versaoDados++; pintar(); } catch (e) { /* tenta na próxima */ } },
     });
   }
   /**
@@ -103,7 +110,7 @@
         const dados = await pegarJson('dados/modelo.json');
         if (dados && typeof criarModelo === 'function') { const M = criarModelo(); st.modelo = { prever: (f, m) => M.prever(dados, f, m) }; }
       } catch (e) { /* segue sem o modelo */ }
-      hist = { kept, fim, n: base.length, vendas30: P.vendasPorEspecie(base, fim) }; histEm = Date.now();
+      hist = { kept, fim, n: base.length, vendas30: P.vendasPorEspecie(base, fim) }; histEm = Date.now(); versaoDados++;
       pintar();
     } catch (e) { /* tenta na próxima hora */ }
   }
@@ -190,7 +197,7 @@
     }
     if (m.aba === 'itens' && m.resumo) { avaliarItens(m.resumo, m.medias || {}); ultimaLeitura = Date.now(); pintar(); }
     if (m.aba === 'vitrine' && pediuAnuncios && (m.pagina ?? 0) === paginaPedida) {
-      avaliarAnuncios(m.linhas || []); ultimaLeitura = Date.now(); pintar();
+      avaliarAnuncios(m.linhas || []).then(() => { ultimaLeitura = Date.now(); pintar(); });
       // tem mais página e ainda não chegou na última que lemos? pede a próxima (com folga, pelo limite do jogo)
       if (paginaPedida + 1 < PAGINAS && (m.linhas?.length ?? 0) >= 24) setTimeout(() => { if (!pedirPagina(paginaPedida + 1)) pediuAnuncios = false; }, 1200);
       else pediuAnuncios = false;
@@ -226,15 +233,36 @@
     if (Array.isArray(ref?.outland) && ref.outland.length) return ref.outland.includes(f.nome);
     return id > 0 ? false : OUTLAND_RESERVA.includes(String(f.nome).split(' ')[0]) && String(f.nome).includes(' ');
   }
-  function avaliarAnuncios(linhas) {
-    if (cfg.alvo !== 'pokemon') return;
+  /**
+   * O preço justo de cada anúncio fica guardado (id + preço + moeda + versão dos dados): a vitrine "recentes"
+   * repete quase tudo de uma leitura para a outra, e refazer a conta dos 48 a cada 10 s (≈5–25 ms cada,
+   * contra ~16 mil vendas) travava a tela da hunt. A conta dos novos sai aos poucos, ~8 ms por vez, com o
+   * jogo desenhando entre uma vez e outra.
+   */
+  const precos = new Map();
+  const chavePreco = (a) => `${a.id}|${a.preco}|${a.moeda}|${versaoDados}`;
+  const pausa = () => new Promise((ok) => setTimeout(ok, 0));
+  async function precosDe(linhas) {
+    if (precos.size > 3000) precos.clear();
+    let t0 = performance.now();
     for (const a of linhas) {
+      const k = chavePreco(a);
+      if (precos.has(k)) continue;
+      if (performance.now() - t0 > 8) { await pausa(); t0 = performance.now(); }
+      precos.set(k, referenciaDe(a));
+    }
+  }
+  async function avaliarAnuncios(linhas) {
+    if (cfg.alvo !== 'pokemon') return;
+    const validas = linhas.filter((a) => a.tipo === 'pokemon' && a.ficha && a.estado === 'aberto' && (a.moeda === 'gold' ? 'gold' : 'orb') === cfg.moeda);
+    await precosDe(validas);
+    for (const a of validas) {
       if (a.tipo !== 'pokemon' || !a.ficha || a.estado !== 'aberto') continue;
       if ((a.moeda === 'gold' ? 'gold' : 'orb') !== cfg.moeda) continue;
       if (cfg.semOutland && ehOutland(a.ficha)) continue;
       if ((meuId != null && a.vendedorId === meuId) || (meuNick && a.vendedor === meuNick)) { achados.delete(`pk:${a.id}`); continue; } // seu anúncio
       if (ignorados.has(`pk:${a.id}`)) continue; // você apertou "ok"
-      const r = referenciaDe(a);
+      const kp = chavePreco(a), r = precos.has(kp) ? precos.get(kp) : referenciaDe(a);
       if (!r || !(a.preco > 0)) continue;
       const desc = 1 - a.preco / r.valor;
       const moedaA = a.moeda === 'gold' ? 'gold' : 'orb';
