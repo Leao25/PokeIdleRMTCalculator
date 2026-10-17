@@ -3,24 +3,24 @@
     "2026-09",
     "2026-10"
   ],
-  "total": 16229,
-  "atualizadoEm": "2026-10-17T00:57:09.679Z",
+  "total": 16336,
+  "atualizadoEm": "2026-10-17T01:59:15.037Z",
   "ultimaFonte": "coletor",
-  "ultimasNovas": 98,
+  "ultimasNovas": 107,
   "cotacao": {
-    "coinsPorGema": 2783583.3801700254,
-    "gemasPorDiamante": 7.6710572842998594,
-    "coinsPorDiamante": 21353027.564909298,
+    "coinsPorGema": 2772478.5590565163,
+    "gemasPorDiamante": 7.695998278829604,
+    "coinsPorDiamante": 21336990.21859093,
     "janela": "últimas 24 h",
     "vendas": {
-      "orb": 235,
-      "gold": 523
+      "orb": 232,
+      "gold": 511
     },
     "diamantes": {
-      "orb": 2828,
-      "gold": 2205
+      "orb": 2905,
+      "gold": 2161
     },
-    "em": "2026-10-17T00:57:04.101Z",
-    "media7Jogo": 3088273.8571428573
+    "em": "2026-10-17T01:59:09.529Z",
+    "media7Jogo": 3086433.8571428573
   }
 }
